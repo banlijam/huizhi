@@ -1,0 +1,54 @@
+# 导入敏感配置文件（包含密码、密钥等）
+# 请复制 application-secrets.example.yml 为 application-secrets.yml 并填入实际值
+spring:
+  config:
+    import: classpath:application-secrets.yml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?useSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name: org.postgresql.Driver
+  application:
+    name: huizhipay-service-hub
+  profiles:
+    active: dev
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    schemas: public
+    table: flyway_schema_history
+    validate-on-migrate: false
+    clean-disabled: false
+    out-of-order: false
+    connect-retries: 3
+    create-schemas: true
+    baseline-description: "Initial baseline"
+  mail:
+    host: smtp.qiye.aliyun.com
+    port: 465
+    properties.mail.smtp:
+      auth: true
+      ssl.enable: true
+
+jwt:
+  expiration: 86400000
+  cookie:
+    secure: false  # 本地开发环境设为false，生产环境设为true
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+# 自定义风控保理及 Stellar 参数
+huizhipay:
+  security:
+    use-aws-kms: false  # 测试环境关闭硬件密钥签名，走本地
+  stellar:
+    horizon-endpoint: https://horizon-testnet.stellar.org
+  factoring:
+    default-discount-rate: 0.008  # 默认保理买断溢价手续费 0.8%
+
+app:
+  frontend:
+    url: http://127.0.0.1:3000  # 前端域名，邮件中的链接会使用
+
+logging:
+  level:
+    org.flywaydb: DEBUG

@@ -1,0 +1,17 @@
+{
+  "name": "huizhi-pay",
+  "version": "1.0.0",
+  "description": "HuizhiPay Merchant Console",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "payment",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

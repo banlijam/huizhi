@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n/zh.js"></script>
+  <script src="../i18n/en.js"></script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300">
+  <div class="flex flex-col gap-6">
+    <div class="grid grid-cols-3 gap-6 mb-8" id="overview-cards">
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800">
+        <h2 class="text-lg font-semibold text-white" data-i18n="overview.chartTitle">7 Day 3DS Usage</h2>
+      </div>
+      <div class="p-6">
+        <canvas id="usageChart" class="w-full h-64"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800">
+        <h2 class="text-lg font-semibold text-white" data-i18n="overview.logTitle">Recent 3DS2 Logs</h2>
+      </div>
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-slate-950/50 text-slate-400 text-sm border-b border-slate-800">
+            <th class="px-6 py-3 font-medium" data-i18n="overview.table.time">Timestamp</th>
+            <th class="px-6 py-3 font-medium" data-i18n="overview.table.orderId">Order ID</th>
+            <th class="px-6 py-3 font-medium" data-i18n="overview.table.card">Card (Masked)</th>
+            <th class="px-6 py-3 font-medium" data-i18n="overview.table.provider">Provider</th>
+            <th class="px-6 py-3 font-medium" data-i18n="overview.table.status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="transactions-body" class="text-sm divide-y divide-slate-800">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let usageChart = null;
+    let currentLang = 'zh';
+    let overviewStats = null;
+
+    function getLangFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('lang') || 'zh';
+    }
+
+    function init() {
+      currentLang = getLangFromUrl();
+      applyLanguage(currentLang);
+      loadOverviewData();
+      loadTransactions();
+    }
+
+    async function loadOverviewData() {
+      overviewStats = await fetchOverviewStats();
+      renderCards();
+      renderChart();
+    }
+
+    function renderCards() {
+      const container = document.getElementById('overview-cards');
+      if (!container || !overviewStats) return;
+      
+      const stats = [
+        { 
+          label: 'overview.apiCalls', 
+          value: overviewStats.apiCalls.toLocaleString(), 
+          period: 'overview.last24h'
+        },
+        { 
+          label: 'overview.successRate', 
+          value: overviewStats.successRate + '%', 
+          isPositive: true,
+          period: 'overview.vsLastPeriod'
+        },
+        { 
+          label: 'overview.chargebackRate', 
+          value: '0.8%',
+          isNegative: true,
+          period: 'overview.belowThreshold'
+        }
+      ];
+      
+      container.innerHTML = stats.map(stat => {
+        return `
+          <div class="p-6 bg-slate-900 border border-slate-800 rounded-lg">
+            <p class="text-sm font-medium text-slate-400" data-i18n="${stat.label}">${t(stat.label, currentLang)}</p>
+            <p class="text-3xl font-bold text-white mt-2 ${stat.isPositive ? 'text-green-400' : stat.isNegative ? 'text-red-400' : ''}">${stat.value}</p>
+          </div>
+        `;
+      }).join('');
+      
+      applyLanguage(currentLang);
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById('usageChart');
+      if (!ctx || !overviewStats) return;
+      
+      if (usageChart) {
+        usageChart.destroy();
+      }
+      
+      const labels = t('overview.weekdays', currentLang) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const chartData = overviewStats.chartData || { requests: [482, 620, 545, 718, 680, 824, 756], approved: [451, 578, 519, 664, 642, 771, 713] };
+      
+      usageChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: t('overview.chart3dsRequests', currentLang) || '3DS Requests',
+              data: chartData.requests,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0
+            },
+            {
+              label: t('overview.chartApproved', currentLang) || 'Approved',
+              data: chartData.approved,
+              borderColor: '#4ade80',
+              backgroundColor: 'rgba(74, 222, 128, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#94a3b8',
+                usePointStyle: true,
+                padding: 20
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#e2e8f0',
+              bodyColor: '#94a3b8',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              usePointStyle: true
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8' }
+            },
+            y: {
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: { color: '#94a3b8' }
+            }
+          }
+        }
+      });
+    }
+
+    async function loadTransactions() {
+      const bodyEl = document.getElementById('transactions-body');
+      bodyEl.innerHTML = '';
+      
+      const transactions = await fetchTransactions();
+      
+      transactions.forEach(tx => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-800/50 text-slate-300';
+        
+        let statusBadge = '';
+        if (tx.status === 'verified') {
+          statusBadge = `<span class="px-2 py-1 bg-green-500/20 rounded text-xs text-green-400">${t('status.verified', currentLang) || 'Verified'}</span>`;
+        } else if (tx.status === 'failed') {
+          statusBadge = `<span class="px-2 py-1 bg-red-500/20 rounded text-xs text-red-400">${t('status.failed', currentLang) || 'Failed'}</span>`;
+        } else {
+          statusBadge = `<span class="px-2 py-1 bg-slate-800 rounded text-xs text-white">${t('status.pending', currentLang) || 'Pending'}</span>`;
+        }
+        
+        row.innerHTML = `
+          <td class="px-6 py-4 font-mono text-slate-400">${tx.time}</td>
+          <td class="px-6 py-4 text-blue-400 font-mono">${tx.orderId}</td>
+          <td class="px-6 py-4 font-mono">${tx.card}</td>
+          <td class="px-6 py-4">${tx.provider}</td>
+          <td class="px-6 py-4">${statusBadge}</td>
+        `;
+        bodyEl.appendChild(row);
+      });
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'lang-change') {
+        currentLang = event.data.lang;
+        applyLanguage(currentLang);
+        renderChart();
+        loadTransactions();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

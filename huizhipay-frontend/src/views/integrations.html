@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n/zh.js"></script>
+  <script src="../i18n/en.js"></script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300">
+  <div class="flex flex-col gap-6">
+    <div class="grid gap-6 md:grid-cols-2" id="integrations-container">
+    </div>
+  </div>
+
+  <script>
+    let currentLang = 'zh';
+    let integrations = [];
+
+    function getLangFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('lang') || 'zh';
+    }
+
+    async function init() {
+      currentLang = getLangFromUrl();
+      applyLanguage(currentLang);
+      await loadIntegrations();
+    }
+
+    async function loadIntegrations() {
+      integrations = await fetchIntegrations();
+      renderIntegrations();
+    }
+
+    function renderIntegrations() {
+      const container = document.getElementById('integrations-container');
+      if (!container) return;
+      
+      container.innerHTML = integrations.map(integration => {
+        const isRunning = integration.status === 'running';
+        
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+            <div class="flex flex-row items-start justify-between">
+              <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/10 text-blue-500">
+                ${integration.id === 'shopify' 
+                  ? '<i data-lucide="shop" class="w-5 h-5"></i>'
+                  : '<i data-lucide="shopping-cart" class="w-5 h-5"></i>'}
+              </span>
+              <span class="${isRunning ? 'rounded-full bg-green-500/20 px-2 py-1 text-xs font-medium text-green-400' : 'rounded-full border border-slate-700 px-2 py-1 text-xs font-medium text-slate-400'}" data-i18n="${isRunning ? 'integrations.running' : 'integrations.disabled'}">
+                ${isRunning ? t('integrations.running', currentLang) : t('integrations.disabled', currentLang)}
+              </span>
+            </div>
+            <div class="mt-5 flex flex-col gap-1">
+              <h3 class="text-lg font-semibold text-white">${integration.name}</h3>
+              <p class="text-sm text-slate-400" data-i18n="${integration.id === 'shopify' ? 'integrations.shopifyDesc' : 'integrations.woocommerceDesc'}">
+                ${t(integration.id === 'shopify' ? 'integrations.shopifyDesc' : 'integrations.woocommerceDesc', currentLang)}
+              </p>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+              <div>
+                <label class="text-sm font-medium text-slate-300" data-i18n="integrations.connection">${t('integrations.connection', currentLang)}</label>
+                <p class="text-xs text-slate-500">${integration.version} · ${integration.authType}</p>
+              </div>
+              <button onclick="toggleIntegration('${integration.id}')" class="${isRunning ? 'relative h-6 w-11 rounded-full bg-blue-600 transition-colors' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors'}">
+                <span class="${isRunning ? 'absolute right-1 top-1 h-4 w-4 rounded-full bg-white transition-transform' : 'absolute left-1 top-1 h-4 w-4 rounded-full bg-slate-400 transition-transform'}"></span>
+              </button>
+            </div>
+            <div class="mt-4 flex items-center justify-between border-t border-slate-800 pt-4">
+              <span class="flex items-center gap-1.5 text-xs text-slate-500">
+                ${isRunning 
+                  ? '<i data-lucide="check-circle" class="w-3.5 h-3.5 text-green-400"></i>'
+                  : '<i data-lucide="circle-dashed" class="w-3.5 h-3.5"></i>'}
+                <span data-i18n="${isRunning ? 'integrations.lastSync' : 'integrations.waiting'}">${isRunning ? t('integrations.lastSync', currentLang) : t('integrations.waiting', currentLang)}</span>
+              </span>
+              <button class="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+                <span data-i18n="integrations.configure">${t('integrations.configure', currentLang)}</span>
+                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      lucide.createIcons();
+      applyLanguage(currentLang);
+    }
+
+    async function toggleIntegration(id) {
+      const integration = integrations.find(i => i.id === id);
+      const enabled = !integration || integration.status !== 'running';
+      
+      await toggleIntegrationApi(id, enabled);
+      
+      if (integration) {
+        integration.status = enabled ? 'running' : 'disabled';
+      }
+      
+      renderIntegrations();
+      
+      const name = id === 'shopify' ? 'Shopify' : 'WooCommerce';
+      const desc = enabled 
+        ? t('toast.integrationEnabledDesc', currentLang)
+        : t('toast.integrationDisabledDesc', currentLang);
+      
+      window.parent.postMessage({ 
+        type: 'toast', 
+        message: `${name} ${enabled ? t('toast.integrationEnabled', currentLang) : t('toast.integrationDisabled', currentLang)}`,
+        description: desc
+      }, '*');
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'lang-change') {
+        currentLang = event.data.lang;
+        applyLanguage(currentLang);
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

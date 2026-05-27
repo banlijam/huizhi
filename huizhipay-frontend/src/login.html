@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuizhiPay - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n/zh.js"></script>
+  <script src="i18n/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300 font-sans h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-md px-6">
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-bold text-white mb-2">Huizhi<span class="text-blue-500">Pay</span></h1>
+      <p class="text-slate-400" data-i18n="login.subtitle">Merchant Console</p>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-8">
+      <h2 class="text-xl font-semibold text-white mb-6 text-center" data-i18n="login.title">Sign In</h2>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.email">Email</label>
+          <div class="relative">
+            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
+            <input type="email" id="email" required
+              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="you@example.com">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.password">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
+            <input type="password" id="password" required
+              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-12 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="••••••••">
+            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+              <i data-lucide="eye" id="password-toggle" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="totp-field" class="hidden">
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.totp">Two-Factor Code</label>
+          <div class="relative">
+            <i data-lucide="shield-check" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
+            <input type="number" id="totp-code"
+              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="6-digit code">
+          </div>
+          <p class="text-xs text-slate-500 mt-1" data-i18n="login.totpHint">Enter the 6-digit code from your authenticator app</p>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="flex items-center text-sm text-slate-400">
+            <input type="checkbox" id="remember-me" class="w-4 h-4 rounded border-slate-600 bg-slate-950 text-blue-500 focus:ring-blue-500">
+            <span class="ml-2" data-i18n="login.remember">Remember me</span>
+          </label>
+          <button type="button" onclick="showForgotPassword()" class="text-sm text-blue-400 hover:text-blue-300" data-i18n="login.forgot">Forgot password?</button>
+        </div>
+
+        <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-md transition-colors flex items-center justify-center gap-2">
+          <span data-i18n="login.signin">Sign In</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-6 border-t border-slate-800">
+        <p class="text-center text-sm text-slate-400" data-i18n="login.noAccount">Don't have an account?</p>
+        <button onclick="showRegister()" class="w-full mt-3 py-3 text-blue-400 hover:text-blue-300 font-medium transition-colors" data-i18n="login.signup">Create account</button>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-slate-600 mt-6">
+      &copy; 2026 HuizhiPay. All rights reserved.
+    </p>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="register-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+    <div class="bg-slate-900 border border-slate-700 w-[400px] rounded-xl shadow-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-white" data-i18n="register.title">Create Account</h3>
+        <button onclick="closeRegister()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="register.email">Email</label>
+          <input type="email" id="reg-email" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="register.password">Password</label>
+          <input type="password" id="reg-password" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-md">
+          <span data-i18n="register.create">Create Account</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgot-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+    <div class="bg-slate-900 border border-slate-700 w-[400px] rounded-xl shadow-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-white" data-i18n="forgot.title">Reset Password</h3>
+        <button onclick="closeForgotPassword()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form id="forgot-form" onsubmit="handleForgotPassword(event)" class="space-y-4">
+        <p class="text-sm text-slate-400" data-i18n="forgot.desc">Enter your email and we'll send you a reset link.</p>
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="forgot.email">Email</label>
+          <input type="email" id="forgot-email" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-md">
+          <span data-i18n="forgot.send">Send Reset Link</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed right-4 top-4 z-50 flex flex-col gap-2"></div>
+
+  <script>
+    let totpRequired = false;
+
+    function togglePassword() {
+      const password = document.getElementById('password');
+      const toggle = document.getElementById('password-toggle');
+      if (password.type === 'password') {
+        password.type = 'text';
+        toggle.setAttribute('data-lucide', 'eye-off');
+      } else {
+        password.type = 'password';
+        toggle.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    function showRegister() {
+      document.getElementById('register-modal').classList.remove('hidden');
+      document.getElementById('register-modal').classList.add('flex');
+    }
+
+    function closeRegister() {
+      document.getElementById('register-modal').classList.add('hidden');
+      document.getElementById('register-modal').classList.remove('flex');
+    }
+
+    function showForgotPassword() {
+      document.getElementById('forgot-modal').classList.remove('hidden');
+      document.getElementById('forgot-modal').classList.add('flex');
+    }
+
+    function closeForgotPassword() {
+      document.getElementById('forgot-modal').classList.add('hidden');
+      document.getElementById('forgot-modal').classList.remove('flex');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Signing in...</span>`;
+      lucide.createIcons();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const totpCode = document.getElementById('totp-code').value || null;
+
+      try {
+        const result = await login(email, password, totpCode);
+        if (result) {
+          if (result.totpRequired) {
+            totpRequired = true;
+            document.getElementById('totp-field').classList.remove('hidden');
+            document.getElementById('totp-code').required = true;
+            showToast('Please enter your TOTP code', 'info');
+          } else {
+            window.location.href = 'index.html';
+          }
+        }
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span data-i18n="login.signin">Sign In</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+        applyI18n();
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        await register(email, password);
+        showToast('Registration successful! Please check your email to verify.', 'success');
+        closeRegister();
+        document.getElementById('email').value = email;
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    async function handleForgotPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value;
+
+      try {
+        await forgotPassword(email);
+        showToast('Reset link has been sent to your email.', 'success');
+        closeForgotPassword();
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    lucide.createIcons();
+    applyI18n();
+  </script>
+</body>
+</html>

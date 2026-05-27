@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n/zh.js"></script>
+  <script src="i18n/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300 font-sans h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-md px-6 text-center">
+    <div id="loading" class="flex flex-col items-center">
+      <i data-lucide="loader-2" class="w-12 h-12 text-blue-500 animate-spin mb-4"></i>
+      <p class="text-slate-400" data-i18n="verify.email.verifying">Verifying your email...</p>
+    </div>
+
+    <div id="success" class="hidden flex flex-col items-center">
+      <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
+        <i data-lucide="check" class="w-10 h-10 text-green-500"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2" data-i18n="verify.email.success">Verification Successful!</h2>
+      <p class="text-slate-400 mb-8" data-i18n="verify.email.successDesc">Your email has been verified. You can now log in.</p>
+      <button onclick="goToLogin()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-md transition-colors">
+        <span data-i18n="verify.email.login">Go to Login</span>
+      </button>
+    </div>
+
+    <div id="error" class="hidden flex flex-col items-center">
+      <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+        <i data-lucide="x" class="w-10 h-10 text-red-500"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2" data-i18n="verify.email.error">Verification Failed</h2>
+      <p id="error-message" class="text-slate-400 mb-8"></p>
+      <button onclick="goToRegister()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-md transition-colors">
+        <span data-i18n="verify.email.register">Register Again</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function verifyEmail() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      if (!token) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('error-message').textContent = 'Invalid token';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/auth/verify-email?token=' + token, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Accept-Language': getLanguageHeader() }
+        });
+        
+        document.getElementById('loading').classList.add('hidden');
+        
+        if (response.ok) {
+          document.getElementById('success').classList.remove('hidden');
+        } else {
+          const data = await response.json();
+          document.getElementById('error').classList.remove('hidden');
+          document.getElementById('error-message').textContent = data.message || 'Verification failed';
+        }
+      } catch (error) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('error-message').textContent = error.message;
+      }
+    }
+
+    function goToLogin() {
+      window.location.href = 'login.html';
+    }
+
+    function goToRegister() {
+      window.location.href = 'login.html';
+    }
+
+    lucide.createIcons();
+    applyI18n();
+    verifyEmail();
+  </script>
+</body>
+</html>

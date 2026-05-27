@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk & Team</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n/zh.js"></script>
+  <script src="../i18n/en.js"></script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300">
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+      <div class="flex items-center gap-2">
+        <i data-lucide="shield" class="w-5 h-5 text-blue-500"></i>
+        <h2 class="text-lg font-semibold text-white" data-i18n="risk.rules">Risk Rules</h2>
+      </div>
+      <p class="mt-1 text-sm text-slate-400" data-i18n="risk.rulesDesc">Changes apply immediately to all real-time authorization requests.</p>
+      <div class="mt-5 flex flex-col gap-4" id="rules-container">
+      </div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
+            <h2 class="text-lg font-semibold text-white" data-i18n="risk.team">Team Members</h2>
+          </div>
+          <p class="text-sm text-slate-400" data-i18n="risk.teamDesc">Manage console access with role-based permissions.</p>
+        </div>
+        <button onclick="inviteMember()" class="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span data-i18n="risk.invite">Invite</span>
+        </button>
+      </div>
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-slate-950/50 text-slate-400 text-sm border-b border-slate-800">
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.email">Email</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.role">Role</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.sent">Sent On</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="team-body" class="text-sm divide-y divide-slate-800">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentLang = 'zh';
+    let riskRules = [];
+    let teamMembers = [];
+
+    function getLangFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('lang') || 'zh';
+    }
+
+    async function init() {
+      currentLang = getLangFromUrl();
+      applyLanguage(currentLang);
+      await loadRiskData();
+    }
+
+    async function loadRiskData() {
+      riskRules = await fetchRiskRules();
+      teamMembers = await fetchTeamMembers();
+      renderRules();
+      renderTeamMembers();
+    }
+
+    function renderRules() {
+      const container = document.getElementById('rules-container');
+      if (!container) return;
+      
+      container.innerHTML = riskRules.map(rule => {
+        const ruleKey = rule.id === 'blockPrepaid' ? 'risk.blockPrepaid' : 'risk.forceUs3ds';
+        const descKey = rule.id === 'blockPrepaid' ? 'risk.blockPrepaidDesc' : 'risk.forceUs3dsDesc';
+        
+        return `
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="${ruleKey}">${t(ruleKey, currentLang)}</label>
+              <p class="text-xs text-slate-500" data-i18n="${descKey}">${t(descKey, currentLang)}</p>
+            </div>
+            <button onclick="toggleRule('${rule.id}')" class="${rule.enabled ? 'relative h-6 w-11 rounded-full bg-blue-600 transition-colors' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors'}">
+              <span class="${rule.enabled ? 'absolute right-1 top-1 h-4 w-4 rounded-full bg-white transition-transform' : 'absolute left-1 top-1 h-4 w-4 rounded-full bg-slate-400 transition-transform'}"></span>
+            </button>
+          </div>
+        `;
+      }).join('');
+      
+      applyLanguage(currentLang);
+    }
+
+    function renderTeamMembers() {
+      const body = document.getElementById('team-body');
+      if (!body) return;
+      
+      body.innerHTML = teamMembers.map(member => {
+        const roleKey = `risk.role.${member.role}`;
+        const statusKey = `risk.status.${member.status}`;
+        const statusClass = member.status === 'accepted' 
+          ? 'px-2 py-1 bg-green-500/20 rounded text-xs text-green-400'
+          : 'px-2 py-1 bg-slate-800 rounded text-xs text-yellow-400';
+        
+        return `
+          <tr class="hover:bg-slate-800/50 text-slate-300">
+            <td class="px-6 py-4 font-mono text-sm">${member.email}</td>
+            <td class="px-6 py-4" data-i18n="${roleKey}">${t(roleKey, currentLang)}</td>
+            <td class="px-6 py-4 font-mono text-slate-400">${member.sentOn}</td>
+            <td class="px-6 py-4"><span class="${statusClass}" data-i18n="${statusKey}">${t(statusKey, currentLang)}</span></td>
+          </tr>
+        `;
+      }).join('');
+      
+      applyLanguage(currentLang);
+    }
+
+    async function toggleRule(id) {
+      const rule = riskRules.find(r => r.id === id);
+      if (!rule) return;
+      
+      const enabled = !rule.enabled;
+      
+      await toggleRiskRule(id, enabled);
+      
+      rule.enabled = enabled;
+      renderRules();
+      
+      const label = id === 'blockPrepaid' 
+        ? t('risk.blockPrepaid', currentLang)
+        : t('risk.forceUs3ds', currentLang);
+      
+      window.parent.postMessage({ 
+        type: 'toast', 
+        message: `${label}${enabled ? t('toast.ruleEnabled', currentLang) : t('toast.ruleDisabled', currentLang)}`
+      }, '*');
+    }
+
+    async function inviteMember() {
+      await inviteTeamMember('newmember@example.com', 'analyst');
+      
+      window.parent.postMessage({ 
+        type: 'toast', 
+        message: t('toast.inviteCreated', currentLang)
+      }, '*');
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'lang-change') {
+        currentLang = event.data.lang;
+        applyLanguage(currentLang);
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      init();
+    });
+  </script>
+</body>
+</html>

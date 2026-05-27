@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuizhiPay Merchant Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n/zh.js"></script>
+  <script src="i18n/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300 font-sans h-screen flex overflow-hidden">
+
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
+    <div class="h-16 flex items-center px-6 border-b border-slate-800">
+      <span class="text-xl font-bold text-white tracking-wider">Huizhi<span class="text-blue-500">Pay</span></span>
+    </div>
+    <nav class="flex-1 py-6 px-4 space-y-2">
+      <button onclick="switchView('overview')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn active" data-view="overview">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.overview">总览</span>
+      </button>
+      <button onclick="switchView('factoring')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn" data-view="factoring">
+        <i data-lucide="shield-alert" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.factoring">保理与结算</span>
+      </button>
+      <button onclick="switchView('integrations')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn" data-view="integrations">
+        <i data-lucide="plug" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.integrations">集成</span>
+      </button>
+      <button onclick="switchView('risk')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn" data-view="risk">
+        <i data-lucide="shield" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.risk">风控与团队</span>
+      </button>
+      <div class="flex items-center px-4 py-2 opacity-50 cursor-not-allowed mt-8 rounded-md text-slate-400">
+        <i data-lucide="landmark" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.fx">FX Withdrawals</span>
+        <span class="ml-2 text-[10px] bg-slate-700 px-1 rounded" data-i18n="sidebar.locked">Post-License</span>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="flex-1 flex flex-col">
+    <header class="h-16 flex items-center justify-between px-8 bg-slate-900 border-b border-slate-800">
+      <h1 class="text-xl font-semibold text-white" id="page-title" data-i18n="pages.overview.title">Dashboard Overview</h1>
+      <div class="flex items-center space-x-6">
+        <div class="text-right">
+          <p class="text-xs text-slate-400" data-i18n="header.balance">Available Balance</p>
+          <p class="text-lg font-bold text-white" id="ui-balance">$0.00</p>
+        </div>
+        <button onclick="openTopUpDialog()" class="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium">
+          <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+          <span data-i18n="header.topup">Top Up</span>
+        </button>
+        <button onclick="logout()" class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors">
+          <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>
+          <span>Logout</span>
+        </button>
+        <div class="relative">
+          <button onclick="toggleLanguageMenu()" class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800">
+            <span id="current-lang">中文</span>
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <div id="language-menu" class="absolute right-0 top-full z-50 mt-1 hidden rounded-md border border-slate-700 bg-slate-900 p-1 shadow-lg">
+            <button onclick="switchLanguage('zh'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="zh">中文</button>
+            <button onclick="switchLanguage('en'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="en">English</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-auto p-8">
+      <iframe id="content-frame" src="views/overview.html?lang=zh" class="w-full min-h-[600px] border-0" title="Content"></iframe>
+    </div>
+  </main>
+
+  <div id="topup-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+    <div class="bg-slate-900 border border-slate-700 w-[400px] rounded-xl shadow-2xl p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-white" data-i18n="topup.title">Crypto Top Up (TRC20)</h3>
+        <button onclick="closeTopUpDialog()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <input type="number" id="topup-amount" value="500" class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white mb-4">
+      <button onclick="generateInvoice()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-md">
+        <span data-i18n="topup.generate">Generate USDT Address</span>
+      </button>
+      <p id="topup-result" class="text-green-400 text-sm mt-4 text-center break-all hidden"></p>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed right-4 top-4 z-50 flex flex-col gap-2"></div>
+
+  <script src="js/app.js"></script>
+<script>
+  async function checkLoginStatus() {
+    const loggedIn = await isLoggedIn();
+    if (!loggedIn) {
+      window.location.href = 'login.html';
+    }
+  }
+
+  checkLoginStatus();
+</script>
+</body>
+</html>
