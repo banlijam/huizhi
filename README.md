@@ -36,22 +36,50 @@ middleware routing engine, bridging compliant fiat gateways with distributed led
 
 ## 🏗️ Architecture
 
-### Technical Architecture Diagram
+HSB adopts a "Compliance-First, Dual-Chain Execution" strategy. The architecture is documented from two complementary
+perspectives:
+
+### 1. System Execution & Risk Control Flow (Developer View)
+
+*End-to-end transaction lifecycle, risk decision points, and dual-chain routing logic.*
 
 <div align="center">
-  <img src="docs/hsb-architecture.jpg" alt="HSB Technical Architecture" width="100%" />
+  <img src="docs/hsb-execution-flow.jpg" alt="HSB Execution Flow" width="100%" />
 </div>
 
-### Layer Breakdown
+> 💡 Click the diagram to zoom in. For GDPR data flow and Stellar settlement logic, refer to the breakdown below.
 
-| Layer                   | Description                                                                                |
-|-------------------------|--------------------------------------------------------------------------------------------|
-| **Layer 1**             | SME Input & Order Management — Product catalog, data minimization middleware, API router   |
-| **Layer 2**             | Middleware & Router — Multi-channel aggregator, data protection, virtual ledger management |
-| **Blockchain Clearing** | Stellar Path Payment Engine — Optimal cross-currency path matching, SEP protocols          |
-| **Payout & Settlement** | Cross-border data transfer, licensed stellar anchors, merchant bank accounts               |
+**Technical Execution Breakdown:**
+
+| Layer  | Component                 | Key Operations                                                                                                                             | External API / Dependency                                            |
+|:------:|:--------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------|
+| **L1** | Frontend Widget           | Merchant storefront integrates HuizhiPay Checkout Widget; raw PII data isolated & tokenized.                                               | Merchant's own backend API.                                          |
+| **L2** | Edge Gateway & Compliance | GDPR HMAC-SHA256 pseudonymization; Frictionless 3DS2 risk scoring; Smart GEO routing.                                                      | Internal pseudonymization service; 3DS2 engine (e.g., Zai/Razorpay). |
+| **L3** | Licensed Gateways         | Submit payments via Local (ZAR/THB), Major Fiat (EUR/GBP), and Global FX corridors.                                                        | Regional payment gateways; International card/bank APIs.             |
+| **L4** | Core Ledger & Risk        | Webhook triggers; **Chainalysis KYT** continuous AML monitoring (high-risk → **Freeze**); PostgreSQL records negotiated split proportions. | Chainalysis KYT API; Internal webhooks.                              |
+| **L5** | Dual-Chain Infrastructure | **Polygon EVM** (CREATE2 auto-flush for high-frequency txs) **&** **Stellar** (SEP-24 path payments for compliant fiat redeem).            | Polygon RPC; Stellar Horizon & Anchor SEP-24 APIs.                   |
+| **L6** | Payout & Settlement       | On-chain split distribution; Merchant chooses **Crypto Wallet** OR **Fiat Bank Account** via licensed Stellar Anchors.                     | Stellar Anchor payout API; Banking SPDD/SEPA gateways.               |
 
 ---
+
+### 2. Compliance & Cross-Border Clearing Architecture (Audit View)
+
+*Focus on GDPR data sovereignty, minimized PII flow, and Stellar-based cross-currency clearing mechanism.*
+
+<div align="center">
+  <img src="docs/hsb-architecture.jpg" alt="HSB Compliance Architecture" width="100%" />
+</div>
+
+> 💡 Click the diagram to zoom in. Detailed API endpoints are listed in the table below.
+
+**Compliance & Clearing Layer Breakdown:**
+
+| Layer                    | Description                                                                                                                                                                              |
+|:-------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Layer 1 (Input)**      | SME Merchant Storefront with strict Data Minimization & Consent Management. Raw buyer PII is stripped/pseudonymized before routing (Pseudonymization Bridge).                            |
+| **Layer 2 (Middleware)** | Multi-channel aggregator (Cards/Banks/E-wallets/Crypto). Zero-Knowledge Proof (ZKP) for storage; AES-256/TLS 1.3 encryption; Non-custodial virtual ledger with dynamic fees (1.5%-2.5%). |
+| **Blockchain Clearing**  | **Stellar Core** as the new bridge. Utilizes Path Payment Engine for optimal liquidity matching (Local Fiat → USDC → EUR/HKD). Supports SEP-24 & SEP-06 compliance modules.              |
+| **Payout & Settlement**  | GDPR Transfer Impact Assessment (TIA) for cross-border data routing. Settled via licensed Stellar Anchors (EURC/HKD) directly to merchant multi-currency bank accounts.                  |
 
 ## 🚀 Quick Start
 
@@ -67,8 +95,8 @@ middleware routing engine, bridging compliant fiat gateways with distributed led
 
 ```bash
 # Clone the repository
-git clone https://github.com/huizhipay/huizhipay.git
-cd huizhipay
+git clone https://github.com/banlijam/huizhi.git
+cd huizhi
 
 # Configure database
 # Edit huizhipay-bootstrap/src/main/resources/application.yml
