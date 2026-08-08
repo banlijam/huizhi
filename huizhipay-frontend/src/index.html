@@ -20,6 +20,10 @@
       <span class="text-xl font-bold text-white tracking-wider">Huizhi<span class="text-blue-500">Pay</span></span>
     </div>
     <nav class="flex-1 py-6 px-4 space-y-2">
+      <button onclick="switchView('onboarding')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn" data-view="onboarding">
+        <i data-lucide="user-check" class="w-5 h-5 mr-3"></i>
+        <span data-i18n="sidebar.onboarding">入驻与合规</span>
+      </button>
       <button onclick="switchView('overview')" class="flex items-center px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-md nav-btn active" data-view="overview">
         <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
         <span data-i18n="sidebar.overview">总览</span>
@@ -73,7 +77,14 @@
       </div>
     </header>
 
-    <div class="flex-1 overflow-auto p-8">
+    <div class="flex-1 overflow-auto p-8 relative">
+      <!-- iframe 加载指示器 -->
+      <div id="frame-loader" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <div class="flex items-center gap-2 text-slate-500">
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          <span class="text-sm" data-i18n="loading">Loading...</span>
+        </div>
+      </div>
       <iframe id="content-frame" src="views/overview.html?lang=zh" class="w-full min-h-[600px] border-0" title="Content"></iframe>
     </div>
   </main>

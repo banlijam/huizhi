@@ -17,14 +17,6 @@
             <artifactId>huizhipay-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.huizhipay</groupId>
-            <artifactId>huizhipay-ledger</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.huizhipay</groupId>
-            <artifactId>huizhipay-acquiring</artifactId>
-        </dependency>
-        <dependency>
             <groupId>network.lightsail</groupId>
             <artifactId>stellar-sdk</artifactId>
         </dependency>

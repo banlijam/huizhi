@@ -28,6 +28,10 @@ spring:
     properties.mail.smtp:
       auth: true
       ssl.enable: true
+  jackson:
+    time-zone: UTC  # 所有接口时间以 UTC 序列化输出
+    # 注意：Spring Boot 4.0 / tools.jackson 3.x 已移除 SerializationFeature.WRITE_DATES_AS_TIMESTAMPS，
+    # 默认即以 ISO-8601 字符串输出日期，无需再配置 write-dates-as-timestamps。
 
 jwt:
   expiration: 86400000

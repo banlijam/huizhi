@@ -1,10 +1,11 @@
 window.i18nZh = {
   sidebar: {
     operations: '运营',
-    overview: '总览',
+    onboarding: '入驻与合规',
+    overview: '指挥中心',
     factoring: '保理与结算',
     integrations: '集成',
-    risk: '风控与团队',
+    risk: '风控与路由',
     restricted: '受限功能',
     bank: '银行账户',
     fx: 'FX 提现',
@@ -12,9 +13,13 @@ window.i18nZh = {
     pci: '所有卡数据经令牌化处理，控制台绝不存储 CVV。'
   },
   pages: {
+    onboarding: {
+      title: '入驻与合规',
+      description: '极简 KYB 流程与结算钱包绑定。'
+    },
     overview: {
-      title: '总览',
-      description: '监控支付认证、API 性能与资金健康度。'
+      title: '指挥中心',
+      description: '实时大盘、透明分账账本与清算倒计时。'
     },
     factoring: {
       title: '保理与结算',
@@ -25,8 +30,8 @@ window.i18nZh = {
       description: '连接商业平台并管理实时数据同步。'
     },
     risk: {
-      title: '风控与团队',
-      description: '配置交易规则、访问权限与团队成员。'
+      title: '风控与路由',
+      description: '配置智能路由规则、反欺诈策略与团队成员。'
     }
   },
   header: {
@@ -57,6 +62,81 @@ window.i18nZh = {
       status: '状态',
       cavv: 'CAVV / ECI'
     }
+  },
+  controlRoom: {
+    todayTitle: '今日大盘',
+    todayCount: '今日成功交易',
+    todayCountUnit: '笔',
+    conversionRate: '转化率',
+    todayVolume: '今日总流水',
+    countdownTitle: '清算倒计时',
+    countdownDesc: '距离下一笔 T+1 清算还有',
+    countdownUnit: '小时',
+    countdownNext: '下一笔清算预计到账',
+    ledgerTitle: '透明分账账本',
+    ledgerDesc: '每笔订单的 7:93 分账拆解，所见即所得。',
+    ledgerExample: '示例：买家支付',
+    ledgerFee: '绘智服务费',
+    ledgerNet: '您的净收益',
+    ledgerBuyer: '买家支付',
+    ledgerTable: {
+      orderId: '订单号',
+      gross: '买家支付',
+      fee: '服务费 (7%)',
+      net: '净收益 (93%)',
+      status: '状态',
+      time: '时间'
+    },
+    trendTitle: '7 日交易与转化趋势',
+    statusSettled: '已结算',
+    statusPending: '待清算'
+  },
+  onboarding: {
+    stepperTitle: 'KYB 入驻进度',
+    step1: '基本信息',
+    step2: '营业执照',
+    step3: '法人信息',
+    step4: '结算偏好',
+    formTitle: '极简入驻表单',
+    formDesc: '无需几十页 PDF，4 步即可完成合规审核。',
+    company: '公司名称',
+    country: '注册国家',
+    licenseNo: '营业执照编号',
+    licenseUpload: '上传营业执照',
+    licenseUploadHint: '拖拽文件至此或点击上传（PDF / JPG / PNG）',
+    legalRep: '法人姓名',
+    idNo: '法人证件号',
+    settlementPref: '结算偏好',
+    prefCrypto: '加密货币 (USDT / Polygon)',
+    prefFiat: '法币电汇',
+    prev: '上一步',
+    next: '下一步',
+    submit: '提交审核',
+    statusTitle: 'KYB 审核状态',
+    statusDraft: '草稿中',
+    statusPending: '审核中',
+    statusApproved: '已通过',
+    statusRejected: '未通过',
+    submittedAt: '提交时间',
+    reviewedAt: '审核时间',
+    walletTitle: '结算钱包绑定',
+    walletDesc: '绑定后，T+1 净收益将自动结算至该地址。',
+    walletBound: '当前结算地址',
+    walletNetwork: '网络',
+    walletType: '类型',
+    walletChange: '更换',
+    connectMetamask: '连接 MetaMask 授权',
+    metamaskDesc: '一键授权绑定 Polygon 提现地址',
+    stellarLabel: '或手动输入 Stellar 地址',
+    stellarPlaceholder: '以 G 开头的 56 位地址',
+    bindStellar: '绑定 Stellar 地址',
+    installMetamask: '未检测到 MetaMask，请先安装钱包插件。',
+    fieldRequired: '请完整填写必填项',
+    submittedHint: '已提交审核，请等待人工审核结果',
+    approvedHint: '审核已通过，功能已全面开放',
+    rejectedHint: '审核未通过，请修改后重新提交',
+    edit: '修改',
+    resubmit: '重新提交'
   },
   factoring: {
     chargebackRate: '拒付率',
@@ -98,12 +178,21 @@ window.i18nZh = {
     configure: '配置'
   },
   risk: {
+    routing: '智能路由配置',
+    routingDesc: '把复杂的智能路由做成规则开关，即时生效。',
     rules: '风控规则',
     rulesDesc: '规则修改会立即应用于所有实时授权请求。',
+    strictMode: '严格反欺诈模式 (Strict Anti-Fraud Mode)',
+    strictModeDesc: '开启后系统自动调高 Chainalysis KYT 拦截阈值，并强制所有订单进行 3DS2 验证。',
+    strictModeBadge: '一键强化',
     blockPrepaid: '阻止预付卡',
     blockPrepaidDesc: '拦截预付型 BIN 发起的交易。',
     forceUs3ds: '美国 BIN 强制 3DS',
     forceUs3dsDesc: '对美国发卡行交易执行挑战流程。',
+    kytScreening: 'Chainalysis KYT 实时拦截',
+    kytScreeningDesc: '对资金来源地址实时筛查受制裁地址。',
+    blockHighRiskRegion: '高风险地区拦截',
+    blockHighRiskRegionDesc: '拦截来自高风险司法管辖区的交易。',
     team: '团队邀请',
     teamDesc: '集中管理控制台访问与最小权限角色。',
     invite: '邀请成员',
@@ -293,6 +382,7 @@ window.i18nZh = {
       moonpayMercuryo: '通过 MoonPay + Mercuryo 自动路由'
     }
   },
+  loading: '加载中...',
   toast: {
     copied: '充值地址已复制',
     invoiceGenerated: '充值账单已生成',
@@ -304,6 +394,13 @@ window.i18nZh = {
     ruleEnabled: '已启用',
     ruleDisabled: '已停用',
     inviteCreated: '邀请链接已创建',
-    notifications: '暂无新通知'
+    notifications: '暂无新通知',
+    walletBound: '结算钱包已绑定',
+    walletMetamask: 'MetaMask 授权成功',
+    walletStellar: 'Stellar 地址已绑定',
+    walletInvalid: 'Stellar 地址格式不正确',
+    onboardingSubmitted: 'KYB 资料已提交，等待审核',
+    strictModeOn: '严格反欺诈模式已开启，所有订单强制 3DS2',
+    strictModeOff: '严格反欺诈模式已关闭'
   }
 };

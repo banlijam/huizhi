@@ -13,7 +13,14 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan("com.huizhipay")
-@MapperScan("com.huizhipay")
+@MapperScan({
+        "com.huizhipay.acquiring.mapper",
+        "com.huizhipay.ledger.mapper",
+        "com.huizhipay.merchant.mapper",
+        "com.huizhipay.risk.mapper",
+        "com.huizhipay.settlement.mapper",
+        "com.huizhipay.user.mapper"
+})
 @EnableAsync
 public class TestConfig {
 }

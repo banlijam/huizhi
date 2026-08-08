@@ -15,6 +15,11 @@
             <groupId>com.huizhipay</groupId>
             <artifactId>huizhipay-common</artifactId>
         </dependency>
+        <!-- 清算倒计时：ledger → settlement（单向，settlement 不依赖 ledger） -->
+        <dependency>
+            <groupId>com.huizhipay</groupId>
+            <artifactId>huizhipay-settlement</artifactId>
+        </dependency>
         <dependency>
             <groupId>systems.manifold</groupId>
             <artifactId>manifold</artifactId>

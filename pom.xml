@@ -17,6 +17,7 @@
         <module>huizhipay-ledger</module>
         <module>huizhipay-risk</module>
         <module>huizhipay-settlement</module>
+        <module>huizhipay-merchant</module>
         <module>huizhipay-bootstrap</module>
         <module>huizhipay-user</module>
     </modules>
@@ -172,6 +173,11 @@
             <dependency>
                 <groupId>com.huizhipay</groupId>
                 <artifactId>huizhipay-user</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.huizhipay</groupId>
+                <artifactId>huizhipay-merchant</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

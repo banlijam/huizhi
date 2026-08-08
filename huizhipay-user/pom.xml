@@ -16,6 +16,11 @@
             <groupId>com.huizhipay</groupId>
             <artifactId>huizhipay-common</artifactId>
         </dependency>
+        <!-- 余额查询：user → ledger（ledger 不依赖 user，无环） -->
+        <dependency>
+            <groupId>com.huizhipay</groupId>
+            <artifactId>huizhipay-ledger</artifactId>
+        </dependency>
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

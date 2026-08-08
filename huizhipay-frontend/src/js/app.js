@@ -8,6 +8,33 @@ async function init() {
   }
   applyLanguage();
   await loadUserProfile();
+  // iframe 首次加载完成后隐藏加载指示器
+  const iframe = document.getElementById('content-frame');
+  if (iframe) {
+    iframe.addEventListener('load', hideFrameLoader);
+  }
+}
+
+function showFrameLoader() {
+  const loader = document.getElementById('frame-loader');
+  if (loader) {
+    loader.classList.remove('pointer-events-none');
+    const spinner = loader.querySelector('i');
+    const text = loader.querySelector('span');
+    if (spinner) spinner.classList.remove('hidden');
+    if (text) text.classList.remove('hidden');
+  }
+}
+
+function hideFrameLoader() {
+  const loader = document.getElementById('frame-loader');
+  if (loader) {
+    const spinner = loader.querySelector('i');
+    const text = loader.querySelector('span');
+    // 保留元素但隐藏内容，避免布局抖动
+    if (spinner) spinner.classList.add('hidden');
+    if (text) text.classList.add('hidden');
+  }
 }
 
 async function loadUserProfile() {
@@ -81,6 +108,7 @@ function switchView(view) {
   
   const iframe = document.getElementById('content-frame');
   if (iframe) {
+    showFrameLoader();
     iframe.src = `views/${view}.html?lang=${currentLang}`;
   }
   

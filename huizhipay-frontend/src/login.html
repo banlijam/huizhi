@@ -13,7 +13,21 @@
   <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-300 font-sans h-screen flex items-center justify-center">
+<body class="bg-slate-950 text-slate-300 font-sans h-screen flex items-center justify-center relative">
+
+  <!-- 语言切换 -->
+  <div class="absolute top-4 right-4">
+    <div class="relative">
+      <button onclick="toggleLanguageMenu()" class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800">
+        <span id="current-lang">中文</span>
+        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+      </button>
+      <div id="language-menu" class="absolute right-0 top-full z-50 mt-1 hidden rounded-md border border-slate-700 bg-slate-900 p-1 shadow-lg">
+        <button onclick="switchLanguage('zh'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="zh">中文</button>
+        <button onclick="switchLanguage('en'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="en">English</button>
+      </div>
+    </div>
+  </div>
 
   <div class="w-full max-w-md px-6">
     <div class="text-center mb-10">
@@ -227,7 +241,40 @@
     }
 
     lucide.createIcons();
+
+    // 语言切换
+    let loginLang = localStorage.getItem('huizhipay-lang') || 'zh';
+
+    function applyI18n() {
+      const t = getTranslations(loginLang);
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const value = getNestedValue(t, key);
+        if (value) el.textContent = value;
+      });
+      document.getElementById('current-lang').textContent = loginLang === 'zh' ? '中文' : 'English';
+    }
+
+    function switchLanguage(lang) {
+      loginLang = lang;
+      localStorage.setItem('huizhipay-lang', lang);
+      applyI18n();
+    }
+
+    function toggleLanguageMenu() {
+      document.getElementById('language-menu').classList.toggle('hidden');
+    }
+
     applyI18n();
+
+    // 点击页面其他区域关闭语言菜单
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('language-menu');
+      const btn = document.querySelector('button[onclick="toggleLanguageMenu()"]');
+      if (menu && !menu.classList.contains('hidden') && !btn?.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
   </script>
 </body>
 </html>

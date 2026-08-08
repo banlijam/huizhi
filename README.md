@@ -156,6 +156,59 @@ huizhipay/
 
 ---
 
+## 📒 Ledger & Accounting Design
+
+The ledger module implements **double-entry bookkeeping** — every transaction updates at least two accounts, and the sum of all amount changes is always zero.
+
+The platform acts as a **collection agent**: funds are held in the platform's Transfi account, and the ledger tracks how much belongs to each merchant and what the platform has earned.
+
+### Account Types
+
+| Type | Balance Direction | Description |
+|------|:-----------------:|-------------|
+| `ASSET_AVAILABLE` | Positive (+) | Merchant's available balance (asset) |
+| `LIABILITY_CUSTODY` | Negative (-) | Custody liability — negative balance represents what the platform owes to the merchant |
+| `PLATFORM_INCOME` | Positive (+) | Platform's fee/revenue income |
+| `PLATFORM_COST` | Positive (+) | Platform's expenses (e.g., supplier costs for KYC/KYT queries) |
+
+### Business Flows
+
+**Flow 1: Customer Payment / Recharge (1000, 7% fee)**
+
+Customer pays 1000 → Platform receives funds through Transfi → Merchant gets 93% (930), platform keeps 7% (70) as fee.
+
+| Account | Amount | Meaning |
+|---------|:------:|---------|
+| `ASSET_AVAILABLE` | +930 | Merchant's available balance increases (93% net) |
+| `PLATFORM_INCOME` | +70 | Platform fee income (7%) |
+| `LIABILITY_CUSTODY` | -1000 | Custody liability increases (balance goes more negative) |
+
+> Sum: 930 + 70 - 1000 = 0 ✓
+
+**Flow 2: Merchant Payout / Withdrawal (500)**
+
+Merchant withdraws 500 to their wallet → Platform calls Transfi to send funds.
+
+| Account | Amount | Meaning |
+|---------|:------:|---------|
+| `ASSET_AVAILABLE` | -500 | Merchant's available balance decreases |
+| `LIABILITY_CUSTODY` | +500 | Custody liability decreases (balance goes less negative) |
+
+> Sum: -500 + 500 = 0 ✓
+
+**Flow 3: External Query Cost (KYC/KYT, platform pays supplier 0.8)**
+
+When the platform needs to perform an external query, it pays the supplier directly from its own income.
+
+| Account | Amount | Meaning |
+|---------|:------:|---------|
+| `PLATFORM_COST` | +0.8 | Supplier cost incurred (expense) |
+| `PLATFORM_INCOME` | -0.8 | Platform income reduced to pay the supplier |
+
+> Sum: +0.8 - 0.8 = 0 ✓
+
+---
+
 ## 🔐 Security
 
 - **JWT + HttpOnly Cookies**: Secure token management

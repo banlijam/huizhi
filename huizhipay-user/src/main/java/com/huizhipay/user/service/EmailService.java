@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
+import org.springframework.context.i18n.LocaleContextHolder;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(String email, String token) {
-        sendVerificationEmail(email, token, Locale.US);
+        sendVerificationEmail(email, token, LocaleContextHolder.getLocale());
     }
 
     @Async
@@ -44,7 +46,7 @@ public class EmailService {
 
     @Async
     public void sendResetPasswordEmail(String email, String token) {
-        sendResetPasswordEmail(email, token, Locale.US);
+        sendResetPasswordEmail(email, token, LocaleContextHolder.getLocale());
     }
 
     @Async

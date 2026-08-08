@@ -23,6 +23,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.context.i18n.LocaleContextHolder;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -69,7 +71,7 @@ public class AuthService {
 
     // 注册
     public void register(RegisterRequest request) throws AuthException {
-        register(request, Locale.US);
+        register(request, LocaleContextHolder.getLocale());
     }
 
     public void register(RegisterRequest request, Locale locale) throws AuthException {
@@ -110,7 +112,7 @@ public class AuthService {
 
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
-        forgotPassword(request, Locale.US);
+        forgotPassword(request, LocaleContextHolder.getLocale());
     }
 
     @Transactional

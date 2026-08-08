@@ -1,10 +1,11 @@
 window.i18nEn = {
   sidebar: {
     operations: 'Operations',
-    overview: 'Overview',
+    onboarding: 'Onboarding & KYB',
+    overview: 'Control Room',
     factoring: 'Factoring & Settlement',
     integrations: 'Integrations',
-    risk: 'Risk & Team',
+    risk: 'Risk & Routing',
     restricted: 'Restricted',
     bank: 'Bank Accounts',
     fx: 'FX Withdrawals',
@@ -12,9 +13,13 @@ window.i18nEn = {
     pci: 'All card data is tokenized. CVV is never stored in the console.'
   },
   pages: {
+    onboarding: {
+      title: 'Onboarding & KYB',
+      description: 'Minimal KYB flow and settlement wallet binding.'
+    },
     overview: {
-      title: 'Overview',
-      description: 'Monitor payment authentication, API performance, and fund health.'
+      title: 'Control Room',
+      description: 'Real-time metrics, transparent ledger, and settlement countdown.'
     },
     factoring: {
       title: 'Factoring & Settlement',
@@ -25,8 +30,8 @@ window.i18nEn = {
       description: 'Connect commerce platforms and manage real-time data sync.'
     },
     risk: {
-      title: 'Risk & Team',
-      description: 'Configure transaction rules, access permissions, and team members.'
+      title: 'Risk & Routing',
+      description: 'Configure smart routing, anti-fraud strategy, and team members.'
     }
   },
   header: {
@@ -57,6 +62,81 @@ window.i18nEn = {
       status: 'Status',
       cavv: 'CAVV / ECI'
     }
+  },
+  controlRoom: {
+    todayTitle: "Today's Market",
+    todayCount: 'Successful Tx Today',
+    todayCountUnit: 'tx',
+    conversionRate: 'Conversion Rate',
+    todayVolume: "Today's Volume",
+    countdownTitle: 'Settlement Countdown',
+    countdownDesc: 'Next T+1 settlement in',
+    countdownUnit: 'h',
+    countdownNext: 'Next settlement estimated',
+    ledgerTitle: 'Transparent Ledger',
+    ledgerDesc: '7:93 split breakdown for every order — what you see is what you get.',
+    ledgerExample: 'Example: buyer pays',
+    ledgerFee: 'Huizhi Service Fee',
+    ledgerNet: 'Your Net Revenue',
+    ledgerBuyer: 'Buyer Pays',
+    ledgerTable: {
+      orderId: 'Order ID',
+      gross: 'Buyer Pays',
+      fee: 'Fee (7%)',
+      net: 'Net (93%)',
+      status: 'Status',
+      time: 'Time'
+    },
+    trendTitle: '7-Day Tx & Conversion Trend',
+    statusSettled: 'Settled',
+    statusPending: 'Pending'
+  },
+  onboarding: {
+    stepperTitle: 'KYB Onboarding Progress',
+    step1: 'Basic Info',
+    step2: 'Business License',
+    step3: 'Legal Rep',
+    step4: 'Settlement Pref',
+    formTitle: 'Minimal Onboarding Form',
+    formDesc: 'No multi-page PDFs. Complete compliance review in 4 steps.',
+    company: 'Company Name',
+    country: 'Registered Country',
+    licenseNo: 'License Number',
+    licenseUpload: 'Upload Business License',
+    licenseUploadHint: 'Drag a file here or click to upload (PDF / JPG / PNG)',
+    legalRep: 'Legal Representative',
+    idNo: 'Rep ID Number',
+    settlementPref: 'Settlement Preference',
+    prefCrypto: 'Crypto (USDT / Polygon)',
+    prefFiat: 'Fiat Wire Transfer',
+    prev: 'Previous',
+    next: 'Next',
+    submit: 'Submit for Review',
+    statusTitle: 'KYB Review Status',
+    statusDraft: 'Draft',
+    statusPending: 'In Review',
+    statusApproved: 'Approved',
+    statusRejected: 'Rejected',
+    submittedAt: 'Submitted',
+    reviewedAt: 'Reviewed',
+    walletTitle: 'Settlement Wallet',
+    walletDesc: 'Once bound, T+1 net revenue auto-settles to this address.',
+    walletBound: 'Current Settlement Address',
+    walletNetwork: 'Network',
+    walletType: 'Type',
+    walletChange: 'Change',
+    connectMetamask: 'Connect MetaMask',
+    metamaskDesc: 'One-click authorization to bind Polygon payout address',
+    stellarLabel: 'Or enter a Stellar address manually',
+    stellarPlaceholder: '56-char address starting with G',
+    bindStellar: 'Bind Stellar Address',
+    installMetamask: 'MetaMask not detected. Please install the wallet extension first.',
+    fieldRequired: 'Please fill in all required fields',
+    submittedHint: 'Submitted for review. Please wait for manual review.',
+    approvedHint: 'Approved. All features are now available.',
+    rejectedHint: 'Rejected. Please revise and resubmit.',
+    edit: 'Edit',
+    resubmit: 'Resubmit'
   },
   factoring: {
     chargebackRate: 'Chargeback Rate',
@@ -98,12 +178,21 @@ window.i18nEn = {
     configure: 'Configure'
   },
   risk: {
+    routing: 'Smart Routing Settings',
+    routingDesc: 'Complex smart routing wrapped as simple toggles. Instant effect.',
     rules: 'Risk Rules',
     rulesDesc: 'Rule changes take effect immediately for all real-time authorization requests.',
+    strictMode: 'Strict Anti-Fraud Mode',
+    strictModeDesc: 'When on, the system raises the Chainalysis KYT interception threshold and forces 3DS2 verification on all orders.',
+    strictModeBadge: 'One-tap Harden',
     blockPrepaid: 'Block Prepaid Cards',
     blockPrepaidDesc: 'Block transactions from prepaid BINs.',
     forceUs3ds: 'Force 3DS for US BINs',
     forceUs3dsDesc: 'Execute challenge flow for US-issued cards.',
+    kytScreening: 'Chainalysis KYT Screening',
+    kytScreeningDesc: 'Real-time screening of source-of-funds against sanctioned addresses.',
+    blockHighRiskRegion: 'Block High-Risk Regions',
+    blockHighRiskRegionDesc: 'Block transactions from high-risk jurisdictions.',
     team: 'Team Invites',
     teamDesc: 'Centralized access control with minimum privilege roles.',
     invite: 'Invite Member',
@@ -293,6 +382,7 @@ window.i18nEn = {
       moonpayMercuryo: 'Auto-routed via MoonPay + Mercuryo'
     }
   },
+  loading: 'Loading...',
   toast: {
     copied: 'Deposit address copied',
     invoiceGenerated: 'Invoice generated',
@@ -304,6 +394,13 @@ window.i18nEn = {
     ruleEnabled: 'enabled',
     ruleDisabled: 'disabled',
     inviteCreated: 'Invite link created',
-    notifications: 'No new notifications'
+    notifications: 'No new notifications',
+    walletBound: 'Settlement wallet bound',
+    walletMetamask: 'MetaMask authorization successful',
+    walletStellar: 'Stellar address bound',
+    walletInvalid: 'Invalid Stellar address format',
+    onboardingSubmitted: 'KYB submitted, pending review',
+    strictModeOn: 'Strict Anti-Fraud Mode on — 3DS2 forced on all orders',
+    strictModeOff: 'Strict Anti-Fraud Mode off'
   }
 };

@@ -37,6 +37,11 @@
             <artifactId>huizhipay-user</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.huizhipay</groupId>
+            <artifactId>huizhipay-merchant</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Spring Boot JDBC（Flyway 自动配置必需） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

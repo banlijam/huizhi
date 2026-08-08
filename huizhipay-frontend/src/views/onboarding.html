@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding & KYB</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n/zh.js"></script>
+  <script src="../i18n/en.js"></script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/api.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300">
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+    <!-- 左栏：KYB 进度表单 -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-check" class="w-5 h-5 text-blue-500"></i>
+        <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.formTitle">极简入驻表单</h2>
+      </div>
+      <p class="mt-1 text-sm text-slate-400" data-i18n="onboarding.formDesc">无需几十页 PDF，4 步即可完成合规审核。</p>
+
+      <!-- Stepper -->
+      <div class="mt-6 kyb-stepper" id="stepper"></div>
+
+      <!-- 表单内容 -->
+      <div class="mt-8" id="form-body"></div>
+
+      <!-- 操作按钮 -->
+      <div class="mt-8 flex items-center justify-between border-t border-slate-800 pt-5">
+        <button onclick="prevStep()" id="btn-prev" class="flex items-center gap-1 px-4 py-2 text-slate-300 hover:bg-slate-800 rounded-md text-sm font-medium">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span data-i18n="onboarding.prev">上一步</span>
+        </button>
+        <button onclick="nextStep()" id="btn-next" class="flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium">
+          <span data-i18n="onboarding.next">下一步</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 右栏：状态 + 钱包绑定 -->
+    <div class="flex flex-col gap-6">
+      <!-- 审核状态卡 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-blue-500"></i>
+            <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.statusTitle">KYB 审核状态</h2>
+          </div>
+          <span id="kyb-status-badge" class="px-2 py-1 rounded text-xs font-medium"></span>
+        </div>
+        <div class="mt-5 space-y-3 text-sm" id="kyb-status-body"></div>
+      </div>
+
+      <!-- 钱包绑定卡 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="wallet" class="w-5 h-5 text-blue-500"></i>
+          <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.walletTitle">结算钱包绑定</h2>
+        </div>
+        <p class="mt-1 text-sm text-slate-400" data-i18n="onboarding.walletDesc">绑定后，T+1 净收益将自动结算至该地址。</p>
+
+        <!-- 已绑定地址展示 -->
+        <div id="wallet-bound" class="mt-5 hidden rounded-lg border border-slate-700 bg-slate-950/50 p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400" data-i18n="onboarding.walletBound">当前结算地址</span>
+            <button onclick="resetWallet()" class="text-xs text-blue-400 hover:text-blue-300" data-i18n="onboarding.walletChange">更换</button>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            <span id="wallet-type-badge" class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-400"></span>
+            <span id="wallet-network-badge" class="px-2 py-0.5 bg-slate-800 rounded text-xs text-slate-300"></span>
+          </div>
+          <p id="wallet-address" class="mt-2 font-mono text-sm text-green-400 break-all"></p>
+        </div>
+
+        <!-- 绑定入口 -->
+        <div id="wallet-actions" class="mt-5 flex flex-col gap-4">
+          <!-- MetaMask -->
+          <div class="rounded-lg border border-slate-800 p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-slate-200" data-i18n="onboarding.connectMetamask">连接 MetaMask 授权</p>
+                <p class="text-xs text-slate-500 mt-0.5" data-i18n="onboarding.metamaskDesc">一键授权绑定 Polygon 提现地址</p>
+              </div>
+              <button onclick="connectMetamask()" class="flex items-center gap-1.5 px-3 py-2 bg-orange-500/90 hover:bg-orange-500 text-white rounded-md text-sm font-medium">
+                <i data-lucide="chrome" class="w-4 h-4"></i>
+                <span>MetaMask</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Stellar 手动 -->
+          <div class="rounded-lg border border-slate-800 p-4">
+            <p class="text-sm font-medium text-slate-200" data-i18n="onboarding.stellarLabel">或手动输入 Stellar 地址</p>
+            <div class="mt-3 flex gap-2">
+              <input id="stellar-input" type="text" placeholder="G..." class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-blue-500" data-i18n-placeholder="onboarding.stellarPlaceholder">
+              <button onclick="bindStellar()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium" data-i18n="onboarding.bindStellar">绑定 Stellar 地址</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLang = 'zh';
+    let currentStep = 1;
+    const totalSteps = 4;
+    let onboardingData = null;
+    let walletData = null;
+    // 注意：settlementPref 不设前端默认值，由用户显式选择，提交后由后端 @NotNull 校验
+    let formDraft = { company: '', country: '', licenseNo: '', legalRep: '', idNo: '', settlementPref: null };
+    let editMode = false;
+
+    function getLangFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('lang') || 'zh';
+    }
+
+    async function init() {
+      currentLang = getLangFromUrl();
+      applyLanguage(currentLang);
+      onboardingData = await fetchOnboardingStatus();
+      walletData = await fetchWallet();
+      editMode = false;
+      // 已提交/已审核通过则填充表单草稿并跳转到第4步
+      if (onboardingData && onboardingData.status !== 'DRAFT') {
+        formDraft = { ...formDraft, ...onboardingData.company };
+        currentStep = totalSteps;
+      }
+      renderStepper();
+      renderForm();
+      renderStatus();
+      renderWallet();
+    }
+
+    function renderStepper() {
+      const container = document.getElementById('stepper');
+      if (!container) return;
+      const steps = ['step1', 'step2', 'step3', 'step4'];
+      const isSubmitted = !editMode && onboardingData && onboardingData.status !== 'DRAFT';
+      container.innerHTML = steps.map((key, idx) => {
+        const num = idx + 1;
+        const isDone = isSubmitted || num < currentStep;
+        const isActive = num === currentStep;
+        const cls = isDone ? 'kyb-step kyb-step--done' : isActive ? 'kyb-step kyb-step--active' : 'kyb-step';
+        const icon = isDone ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : num;
+        const line = idx < steps.length - 1 ? '<div class="kyb-step__line"></div>' : '';
+        return `
+          <div class="${cls}">
+            <div class="kyb-step__circle">${icon}</div>
+            <span class="text-xs text-slate-400 hidden sm:inline">${t('onboarding.' + key, currentLang)}</span>
+            ${line}
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function renderForm() {
+      const body = document.getElementById('form-body');
+      if (!body) return;
+
+      const status = onboardingData && onboardingData.status;
+
+      // 编辑模式：显示可编辑表单，支持多步导航
+      if (editMode) {
+        renderFormBody();
+        document.getElementById('btn-prev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        const nextBtn = document.getElementById('btn-next');
+        if (currentStep === totalSteps) {
+          nextBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span data-i18n="onboarding.submit">提交审核</span>`;
+          nextBtn.onclick = submitKyb;
+        } else {
+          nextBtn.innerHTML = `<span data-i18n="onboarding.next">下一步</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+          nextBtn.onclick = nextStep;
+        }
+        nextBtn.style.visibility = 'visible';
+        lucide.createIcons();
+        applyLanguage(currentLang);
+        return;
+      }
+
+      // 已提交的非草稿状态显示摘要
+      if (status && status !== 'DRAFT') {
+        const c = onboardingData.company || {};
+        const isApproved = status === 'APPROVED';
+        const isRejected = status === 'REJECTED';
+        const iconColor = isApproved ? 'text-green-400' : isRejected ? 'text-red-400' : 'text-amber-400';
+        const iconName = isApproved ? 'check-circle' : isRejected ? 'alert-triangle' : 'clock';
+        const hintKey = isApproved ? 'onboarding.approvedHint' : isRejected ? 'onboarding.rejectedHint' : 'onboarding.submittedHint';
+        const hintText = isApproved ? '审核已通过，功能已全面开放' : isRejected ? '审核未通过，请修改后重新提交' : '已提交审核，请等待人工审核结果';
+        const showEditBtn = !isApproved;
+
+        body.innerHTML = `
+          <div class="rounded-lg border ${isApproved ? 'border-green-700' : isRejected ? 'border-red-700' : 'border-amber-700'} ${isApproved ? 'bg-green-950/20' : isRejected ? 'bg-red-950/20' : 'bg-amber-950/20'} p-5 space-y-3">
+            <div class="flex items-center gap-2 ${iconColor}">
+              <i data-lucide="${iconName}" class="w-5 h-5"></i>
+              <span class="text-sm font-medium" data-i18n="${hintKey}">${hintText}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-sm pt-2">
+              <div><span class="text-slate-500" data-i18n="onboarding.company">公司名称</span><p class="text-slate-200 mt-0.5">${c.name || '—'}</p></div>
+              <div><span class="text-slate-500" data-i18n="onboarding.country">注册国家</span><p class="text-slate-200 mt-0.5">${c.country || '—'}</p></div>
+              <div><span class="text-slate-500" data-i18n="onboarding.licenseNo">营业执照编号</span><p class="text-slate-200 mt-0.5 font-mono">${c.licenseNo || '—'}</p></div>
+              <div><span class="text-slate-500" data-i18n="onboarding.legalRep">法人姓名</span><p class="text-slate-200 mt-0.5">${c.legalRep || '—'}</p></div>
+              <div><span class="text-slate-500" data-i18n="onboarding.settlementPref">结算偏好</span><p class="text-slate-200 mt-0.5">${c.settlementPref === 'CRYPTO' ? '加密货币' : '法币电汇'}</p></div>
+            </div>
+            <div class="text-xs text-slate-500 pt-1 border-t border-slate-800">
+              <span data-i18n="onboarding.submittedAt">提交时间</span>：<span class="font-mono text-slate-400">${onboardingData.submittedAt || '—'}</span>
+              ${isApproved ? '&nbsp;|&nbsp;<span data-i18n="onboarding.reviewedAt">审核时间</span>：<span class="font-mono text-slate-400">' + (onboardingData.reviewedAt || '—') + '</span>' : ''}
+            </div>
+            ${showEditBtn ? `
+            <div class="pt-2 flex gap-3">
+              <button onclick="enterEditMode()" class="flex items-center gap-1 px-4 py-2 ${isRejected ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'} text-white rounded-md text-sm font-medium">
+                <i data-lucide="edit" class="w-4 h-4"></i>
+                <span data-i18n="onboarding.${isRejected ? 'resubmit' : 'edit'}">${isRejected ? '重新提交' : '修改'}</span>
+              </button>
+            </div>` : ''}
+          </div>
+        `;
+        applyLanguage(currentLang);
+        lucide.createIcons();
+        // 隐藏操作按钮
+        document.getElementById('btn-prev').style.visibility = 'hidden';
+        document.getElementById('btn-next').style.visibility = 'hidden';
+        return;
+      }
+
+      // DRAFT 状态：正常可编辑表单
+      renderFormBody();
+      document.getElementById('btn-prev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+      const nextBtn = document.getElementById('btn-next');
+      if (currentStep === totalSteps) {
+        nextBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span data-i18n="onboarding.submit">提交审核</span>`;
+      } else {
+        nextBtn.innerHTML = `<span data-i18n="onboarding.next">下一步</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+      }
+      nextBtn.style.visibility = 'visible';
+      nextBtn.onclick = nextStep;
+      lucide.createIcons();
+      applyLanguage(currentLang);
+    }
+
+    function renderFormBody() {
+      const body = document.getElementById('form-body');
+      if (!body) return;
+      const d = formDraft;
+      let html = '';
+
+      if (currentStep === 1) {
+        html = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.company">公司名称</label>
+              <input type="text" value="${d.company}" oninput="formDraft.company=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.country">注册国家</label>
+              <input type="text" value="${d.country}" oninput="formDraft.country=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>`;
+      } else if (currentStep === 2) {
+        html = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.licenseNo">营业执照编号</label>
+              <input type="text" value="${d.licenseNo}" oninput="formDraft.licenseNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+              <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 mx-auto"></i>
+              <p class="mt-2 text-sm text-slate-400" data-i18n="onboarding.licenseUpload">上传营业执照</p>
+              <p class="mt-1 text-xs text-slate-600" data-i18n="onboarding.licenseUploadHint">拖拽文件至此或点击上传（PDF / JPG / PNG）</p>
+            </div>
+          </div>`;
+      } else if (currentStep === 3) {
+        html = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.legalRep">法人姓名</label>
+              <input type="text" value="${d.legalRep}" oninput="formDraft.legalRep=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.idNo">法人证件号</label>
+              <input type="text" value="${d.idNo}" oninput="formDraft.idNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>`;
+      } else if (currentStep === 4) {
+        // 枚举与后端保持一致：CRYPTO / FIAT
+        const isCrypto = d.settlementPref === 'CRYPTO';
+        const isFiat = d.settlementPref === 'FIAT';
+        html = `
+          <div class="space-y-3">
+            <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.settlementPref">结算偏好</label>
+            <label class="flex items-center gap-3 rounded-lg border ${isCrypto ? 'border-blue-500 bg-blue-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
+              <input type="radio" name="pref" value="CRYPTO" ${isCrypto ? 'checked' : ''} onchange="formDraft.settlementPref='CRYPTO'; renderForm();" class="accent-blue-600">
+              <i data-lucide="bitcoin" class="w-5 h-5 text-amber-400"></i>
+              <span class="text-sm text-slate-200" data-i18n="onboarding.prefCrypto">加密货币 (USDT / Polygon)</span>
+            </label>
+            <label class="flex items-center gap-3 rounded-lg border ${isFiat ? 'border-blue-500 bg-blue-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
+              <input type="radio" name="pref" value="FIAT" ${isFiat ? 'checked' : ''} onchange="formDraft.settlementPref='FIAT'; renderForm();" class="accent-blue-600">
+              <i data-lucide="landmark" class="w-5 h-5 text-slate-400"></i>
+              <span class="text-sm text-slate-200" data-i18n="onboarding.prefFiat">法币电汇</span>
+            </label>
+          </div>`;
+      }
+
+      body.innerHTML = html;
+      applyLanguage(currentLang);
+      lucide.createIcons();
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        renderStepper();
+        renderForm();
+      }
+    }
+
+    function nextStep() {
+      if (currentStep < totalSteps) {
+        currentStep++;
+        renderStepper();
+        renderForm();
+      } else {
+        submitKyb();
+      }
+    }
+
+    async function submitKyb() {
+      await submitOnboarding(formDraft);
+      editMode = false;
+      // 提交后重新拉取最新状态，刷新 UI
+      onboardingData = await fetchOnboardingStatus();
+      renderStepper();
+      renderForm();
+      renderStatus();
+      renderWallet();
+      window.parent.postMessage({
+        type: 'toast',
+        message: t('toast.onboardingSubmitted', currentLang)
+      }, '*');
+    }
+
+    function enterEditMode() {
+      editMode = true;
+      currentStep = 1;
+      formDraft = { ...formDraft, ...(onboardingData ? onboardingData.company : {}) };
+      renderStepper();
+      renderForm();
+      renderStatus();
+      renderWallet();
+    }
+
+    function renderStatus() {
+      const badge = document.getElementById('kyb-status-badge');
+      const body = document.getElementById('kyb-status-body');
+      if (!badge || !body || !onboardingData) return;
+
+      // 后端返回枚举 name()：DRAFT/PENDING/APPROVED/REJECTED
+      const status = onboardingData.status || 'DRAFT';
+      const statusLower = status.toLowerCase();
+      const statusKey = `onboarding.status${statusLower.charAt(0).toUpperCase() + statusLower.slice(1)}`;
+      const statusText = t(statusKey, currentLang);
+      const colorMap = {
+        draft: 'bg-slate-700 text-slate-200',
+        pending: 'bg-amber-500/20 text-amber-400',
+        approved: 'bg-green-500/20 text-green-400',
+        rejected: 'bg-red-500/20 text-red-400'
+      };
+      badge.className = `px-2 py-1 rounded text-xs font-medium ${colorMap[statusLower] || colorMap.draft}`;
+      badge.textContent = statusText;
+
+      const c = onboardingData.company || {};
+      body.innerHTML = `
+        <div class="flex justify-between"><span class="text-slate-500">${t('onboarding.company', currentLang)}</span><span class="text-slate-200">${c.name || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">${t('onboarding.licenseNo', currentLang)}</span><span class="text-slate-200 font-mono">${c.licenseNo || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">${t('onboarding.legalRep', currentLang)}</span><span class="text-slate-200">${c.legalRep || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">${t('onboarding.submittedAt', currentLang)}</span><span class="text-slate-400 font-mono">${onboardingData.submittedAt || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">${t('onboarding.reviewedAt', currentLang)}</span><span class="text-slate-400 font-mono">${onboardingData.reviewedAt || '—'}</span></div>
+      `;
+    }
+
+    function renderWallet() {
+      const boundEl = document.getElementById('wallet-bound');
+      const actionsEl = document.getElementById('wallet-actions');
+      if (!boundEl || !actionsEl || !walletData) return;
+
+      if (walletData.bound) {
+        boundEl.classList.remove('hidden');
+        actionsEl.classList.add('hidden');
+        document.getElementById('wallet-type-badge').textContent = walletData.type === 'metamask' ? 'MetaMask' : 'Stellar';
+        document.getElementById('wallet-network-badge').textContent = walletData.network;
+        document.getElementById('wallet-address').textContent = walletData.address;
+      } else {
+        boundEl.classList.add('hidden');
+        actionsEl.classList.remove('hidden');
+      }
+    }
+
+    function resetWallet() {
+      walletData = { bound: false, type: null, network: null, address: null };
+      renderWallet();
+    }
+
+    async function connectMetamask() {
+      if (typeof window.ethereum === 'undefined') {
+        window.parent.postMessage({ type: 'toast', message: t('onboarding.installMetamask', currentLang) }, '*');
+        return;
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        walletData = await bindWallet('metamask', address, 'Polygon');
+        renderWallet();
+        window.parent.postMessage({ type: 'toast', message: t('toast.walletMetamask', currentLang) }, '*');
+      } catch (e) {
+        window.parent.postMessage({ type: 'toast', message: t('onboarding.installMetamask', currentLang) }, '*');
+      }
+    }
+
+    async function bindStellar() {
+      const input = document.getElementById('stellar-input');
+      const addr = (input.value || '').trim();
+      // Stellar 公钥：G 开头，56 位
+      if (!/^G[A-Z0-9]{55}$/.test(addr)) {
+        window.parent.postMessage({ type: 'toast', message: t('toast.walletInvalid', currentLang), description: '', type: 'error' }, '*');
+        return;
+      }
+      walletData = await bindWallet('stellar', addr, 'Stellar');
+      renderWallet();
+      window.parent.postMessage({ type: 'toast', message: t('toast.walletStellar', currentLang) }, '*');
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'lang-change') {
+        currentLang = event.data.lang;
+        applyLanguage(currentLang);
+        renderStepper();
+        renderForm();
+        renderStatus();
+        renderWallet();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      init();
+    });
+  </script>
+</body>
+</html>
