@@ -2,10 +2,13 @@ window.i18nZh = {
   sidebar: {
     operations: '运营',
     onboarding: '入驻与合规',
-    overview: '指挥中心',
+    overview: '总览',
     factoring: '保理与结算',
+    ledgerSplits: '账本与分账',
+    settlements: '结算',
+    riskAml: '风控与反洗钱',
     integrations: '集成',
-    risk: '风控与路由',
+    settings: '设置',
     restricted: '受限功能',
     bank: '银行账户',
     fx: 'FX 提现',
@@ -17,6 +20,10 @@ window.i18nZh = {
       title: '入驻与合规',
       description: '极简 KYB 流程与结算钱包绑定。'
     },
+    merchant: {
+      title: '商户仪表盘',
+      description: '实现法币通道与链上目的地的全链路结算透明化。'
+    },
     overview: {
       title: '指挥中心',
       description: '实时大盘、透明分账账本与清算倒计时。'
@@ -25,6 +32,10 @@ window.i18nZh = {
       title: '保理与结算',
       description: '管理保理额度、拒付敞口与 T+1 结算。'
     },
+    settlements: {
+      title: '结算',
+      description: '追踪 T+1 结算状态与链上最终性。'
+    },
     integrations: {
       title: '集成',
       description: '连接商业平台并管理实时数据同步。'
@@ -32,13 +43,68 @@ window.i18nZh = {
     risk: {
       title: '风控与路由',
       description: '配置智能路由规则、反欺诈策略与团队成员。'
+    },
+    settings: {
+      title: '设置',
+      description: '管理账户偏好、团队与安全设置。'
     }
   },
   header: {
     balance: '可用余额',
     topup: '充值',
     langZh: '中文',
-    langEn: 'English'
+    langEn: 'English',
+    nextSettlement: '下一笔 T+1 清算倒计时'
+  },
+  merchant: {
+    title: '商户仪表盘',
+    subtitle: '实现法币通道与链上目的地的全链路结算透明化。'
+  },
+  kpi: {
+    todayVolume: {
+      label: '今日总流水',
+      vsYesterday: '较昨日'
+    },
+    netSettlement: {
+      label: '净结算额',
+      netYield: '净收益率'
+    },
+    conversionRate: {
+      label: '转化率',
+      silentApproval: '静默通过'
+    },
+    amlRisk: {
+      label: '反洗钱风险评分',
+      intercepted: 'Chainalysis 已拦截'
+    }
+  },
+  payout: {
+    label: '结算策略',
+    title: '选择结算目的地',
+    subtitle: '无需更改买家结算流程即可切换。',
+    crypto: {
+      option: '加密货币',
+      desc: 'Polygon / Stellar 智能合约分账 → 冷钱包'
+    },
+    fiat: {
+      option: '法币',
+      desc: 'Stellar SEP-24 锚定 → 商业银行账户'
+    }
+  },
+  ledger: {
+    sectionLabel: '1:N 分账瀑布流',
+    title: '虚拟账本',
+    allGateways: '所有网关',
+    exportCsv: '导出 CSV',
+    table: {
+      orderId: '订单号',
+      fiatIn: '法币收入',
+      geoGateway: '地域网关',
+      feeSplit: '费用分成',
+      chainDest: '链上目的地',
+      chainalysisStatus: 'Chainalysis 状态',
+      settlementTime: '清算时间'
+    }
   },
   overview: {
     apiCalls: 'API 调用',

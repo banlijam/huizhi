@@ -82,5 +82,6 @@ public class QueryService {
     }
 
     public record QueryRequest(String params) {
+
     }
 }

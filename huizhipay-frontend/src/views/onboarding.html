@@ -12,12 +12,12 @@
   <script src="../js/i18n.js"></script>
   <script src="../js/api.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-300">
+<body class="bg-transparent text-slate-300">
   <div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
     <!-- 左栏：KYB 进度表单 -->
-    <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+    <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
       <div class="flex items-center gap-2">
-        <i data-lucide="user-check" class="w-5 h-5 text-blue-500"></i>
+        <i data-lucide="user-check" class="w-5 h-5 text-indigo-500"></i>
         <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.formTitle">极简入驻表单</h2>
       </div>
       <p class="mt-1 text-sm text-slate-400" data-i18n="onboarding.formDesc">无需几十页 PDF，4 步即可完成合规审核。</p>
@@ -34,7 +34,7 @@
           <i data-lucide="arrow-left" class="w-4 h-4"></i>
           <span data-i18n="onboarding.prev">上一步</span>
         </button>
-        <button onclick="nextStep()" id="btn-next" class="flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium">
+        <button onclick="nextStep()" id="btn-next" class="flex items-center gap-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md text-sm font-medium">
           <span data-i18n="onboarding.next">下一步</span>
           <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
@@ -44,10 +44,10 @@
     <!-- 右栏：状态 + 钱包绑定 -->
     <div class="flex flex-col gap-6">
       <!-- 审核状态卡 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <i data-lucide="shield-check" class="w-5 h-5 text-blue-500"></i>
+            <i data-lucide="shield-check" class="w-5 h-5 text-indigo-500"></i>
             <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.statusTitle">KYB 审核状态</h2>
           </div>
           <span id="kyb-status-badge" class="px-2 py-1 rounded text-xs font-medium"></span>
@@ -56,9 +56,9 @@
       </div>
 
       <!-- 钱包绑定卡 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
         <div class="flex items-center gap-2">
-          <i data-lucide="wallet" class="w-5 h-5 text-blue-500"></i>
+          <i data-lucide="wallet" class="w-5 h-5 text-indigo-500"></i>
           <h2 class="text-lg font-semibold text-white" data-i18n="onboarding.walletTitle">结算钱包绑定</h2>
         </div>
         <p class="mt-1 text-sm text-slate-400" data-i18n="onboarding.walletDesc">绑定后，T+1 净收益将自动结算至该地址。</p>
@@ -67,10 +67,10 @@
         <div id="wallet-bound" class="mt-5 hidden rounded-lg border border-slate-700 bg-slate-950/50 p-4">
           <div class="flex items-center justify-between">
             <span class="text-xs text-slate-400" data-i18n="onboarding.walletBound">当前结算地址</span>
-            <button onclick="resetWallet()" class="text-xs text-blue-400 hover:text-blue-300" data-i18n="onboarding.walletChange">更换</button>
+            <button onclick="resetWallet()" class="text-xs text-indigo-400 hover:text-indigo-300" data-i18n="onboarding.walletChange">更换</button>
           </div>
           <div class="mt-2 flex items-center gap-2">
-            <span id="wallet-type-badge" class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-400"></span>
+            <span id="wallet-type-badge" class="px-2 py-0.5 bg-indigo-500/20 rounded text-xs text-indigo-400"></span>
             <span id="wallet-network-badge" class="px-2 py-0.5 bg-slate-800 rounded text-xs text-slate-300"></span>
           </div>
           <p id="wallet-address" class="mt-2 font-mono text-sm text-green-400 break-all"></p>
@@ -96,8 +96,8 @@
           <div class="rounded-lg border border-slate-800 p-4">
             <p class="text-sm font-medium text-slate-200" data-i18n="onboarding.stellarLabel">或手动输入 Stellar 地址</p>
             <div class="mt-3 flex gap-2">
-              <input id="stellar-input" type="text" placeholder="G..." class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-blue-500" data-i18n-placeholder="onboarding.stellarPlaceholder">
-              <button onclick="bindStellar()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium" data-i18n="onboarding.bindStellar">绑定 Stellar 地址</button>
+              <input id="stellar-input" type="text" placeholder="G..." class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-indigo-500" data-i18n-placeholder="onboarding.stellarPlaceholder">
+              <button onclick="bindStellar()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md text-sm font-medium" data-i18n="onboarding.bindStellar">绑定 Stellar 地址</button>
             </div>
           </div>
         </div>
@@ -214,7 +214,7 @@
             </div>
             ${showEditBtn ? `
             <div class="pt-2 flex gap-3">
-              <button onclick="enterEditMode()" class="flex items-center gap-1 px-4 py-2 ${isRejected ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'} text-white rounded-md text-sm font-medium">
+              <button onclick="enterEditMode()" class="flex items-center gap-1 px-4 py-2 ${isRejected ? 'bg-red-600 hover:bg-red-500' : 'bg-indigo-600 hover:bg-indigo-500'} text-white rounded-md text-sm font-medium">
                 <i data-lucide="edit" class="w-4 h-4"></i>
                 <span data-i18n="onboarding.${isRejected ? 'resubmit' : 'edit'}">${isRejected ? '重新提交' : '修改'}</span>
               </button>
@@ -255,11 +255,11 @@
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.company">公司名称</label>
-              <input type="text" value="${d.company}" oninput="formDraft.company=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+              <input type="text" value="${d.company}" oninput="formDraft.company=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
             <div>
               <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.country">注册国家</label>
-              <input type="text" value="${d.country}" oninput="formDraft.country=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+              <input type="text" value="${d.country}" oninput="formDraft.country=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
           </div>`;
       } else if (currentStep === 2) {
@@ -267,9 +267,9 @@
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.licenseNo">营业执照编号</label>
-              <input type="text" value="${d.licenseNo}" oninput="formDraft.licenseNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+              <input type="text" value="${d.licenseNo}" oninput="formDraft.licenseNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
-            <div class="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+            <div class="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 transition-colors">
               <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 mx-auto"></i>
               <p class="mt-2 text-sm text-slate-400" data-i18n="onboarding.licenseUpload">上传营业执照</p>
               <p class="mt-1 text-xs text-slate-600" data-i18n="onboarding.licenseUploadHint">拖拽文件至此或点击上传（PDF / JPG / PNG）</p>
@@ -280,11 +280,11 @@
           <div class="space-y-4">
             <div>
               <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.legalRep">法人姓名</label>
-              <input type="text" value="${d.legalRep}" oninput="formDraft.legalRep=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+              <input type="text" value="${d.legalRep}" oninput="formDraft.legalRep=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
             <div>
               <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.idNo">法人证件号</label>
-              <input type="text" value="${d.idNo}" oninput="formDraft.idNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+              <input type="text" value="${d.idNo}" oninput="formDraft.idNo=this.value" class="mt-1.5 w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
           </div>`;
       } else if (currentStep === 4) {
@@ -294,13 +294,13 @@
         html = `
           <div class="space-y-3">
             <label class="text-sm font-medium text-slate-300" data-i18n="onboarding.settlementPref">结算偏好</label>
-            <label class="flex items-center gap-3 rounded-lg border ${isCrypto ? 'border-blue-500 bg-blue-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
-              <input type="radio" name="pref" value="CRYPTO" ${isCrypto ? 'checked' : ''} onchange="formDraft.settlementPref='CRYPTO'; renderForm();" class="accent-blue-600">
+            <label class="flex items-center gap-3 rounded-lg border ${isCrypto ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
+              <input type="radio" name="pref" value="CRYPTO" ${isCrypto ? 'checked' : ''} onchange="formDraft.settlementPref='CRYPTO'; renderForm();" class="accent-indigo-600">
               <i data-lucide="bitcoin" class="w-5 h-5 text-amber-400"></i>
               <span class="text-sm text-slate-200" data-i18n="onboarding.prefCrypto">加密货币 (USDT / Polygon)</span>
             </label>
-            <label class="flex items-center gap-3 rounded-lg border ${isFiat ? 'border-blue-500 bg-blue-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
-              <input type="radio" name="pref" value="FIAT" ${isFiat ? 'checked' : ''} onchange="formDraft.settlementPref='FIAT'; renderForm();" class="accent-blue-600">
+            <label class="flex items-center gap-3 rounded-lg border ${isFiat ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-700'} p-4 cursor-pointer transition-colors">
+              <input type="radio" name="pref" value="FIAT" ${isFiat ? 'checked' : ''} onchange="formDraft.settlementPref='FIAT'; renderForm();" class="accent-indigo-600">
               <i data-lucide="landmark" class="w-5 h-5 text-slate-400"></i>
               <span class="text-sm text-slate-200" data-i18n="onboarding.prefFiat">法币电汇</span>
             </label>

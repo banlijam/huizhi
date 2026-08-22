@@ -2,8 +2,11 @@
   "name": "huizhi-pay",
   "version": "1.0.0",
   "description": "HuizhiPay Merchant Console",
+  "private": true,
   "scripts": {
-    "start": "node server.js"
+    "dev": "node server.js",
+    "build": "node scripts/build.cjs",
+    "preview": "npx serve -l 4173 dist"
   },
   "keywords": [
     "payment",
@@ -13,5 +16,6 @@
   "license": "MIT",
   "dependencies": {
     "express": "^5.2.1"
-  }
+  },
+  "devDependencies": {}
 }

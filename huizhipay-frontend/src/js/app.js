@@ -1,39 +1,70 @@
-let currentLang = 'zh';
+let currentLang = 'en';
 let currentView = 'overview';
 
+// 检测系统语言，默认中文
+function detectSystemLang() {
+  const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  return lang.startsWith('zh') ? 'zh' : 'en';
+}
+
+function updateLanguageMenuUI() {
+  const label = document.getElementById('current-lang-label');
+  if (label) {
+    label.textContent = currentLang === 'zh' ? '中文' : 'EN';
+  }
+  document.querySelectorAll('[data-lang-item]').forEach(btn => {
+    const itemLang = btn.getAttribute('data-lang-item');
+    if (itemLang === currentLang) {
+      btn.classList.add('text-indigo-400', 'bg-slate-800/50');
+      btn.classList.remove('text-slate-300');
+    } else {
+      btn.classList.remove('text-indigo-400', 'bg-slate-800/50');
+      btn.classList.add('text-slate-300');
+    }
+  });
+}
+
 async function init() {
+  // 优先使用用户保存的语言，否则使用系统语言
   const savedLang = localStorage.getItem('huizhipay-lang');
   if (savedLang && (savedLang === 'zh' || savedLang === 'en')) {
     currentLang = savedLang;
+  } else {
+    currentLang = detectSystemLang();
+  }
+  // 先渲染lucide图标，确保新加的图标（globe, chevron-down）能正常显示
+  if (window.lucide) {
+    lucide.createIcons();
   }
   applyLanguage();
+  updateLanguageMenuUI();
   await loadUserProfile();
   // iframe 首次加载完成后隐藏加载指示器
   const iframe = document.getElementById('content-frame');
   if (iframe) {
     iframe.addEventListener('load', hideFrameLoader);
+    // 如果 iframe 已经加载完成，立即隐藏加载器
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      hideFrameLoader();
+    }
   }
+  // 确保初始化时加载器是隐藏的
+  hideFrameLoader();
 }
 
 function showFrameLoader() {
   const loader = document.getElementById('frame-loader');
   if (loader) {
-    loader.classList.remove('pointer-events-none');
-    const spinner = loader.querySelector('i');
-    const text = loader.querySelector('span');
-    if (spinner) spinner.classList.remove('hidden');
-    if (text) text.classList.remove('hidden');
+    // 显示加载器
+    loader.classList.remove('hidden');
   }
 }
 
 function hideFrameLoader() {
   const loader = document.getElementById('frame-loader');
   if (loader) {
-    const spinner = loader.querySelector('i');
-    const text = loader.querySelector('span');
-    // 保留元素但隐藏内容，避免布局抖动
-    if (spinner) spinner.classList.add('hidden');
-    if (text) text.classList.add('hidden');
+    // 完全隐藏加载器，避免遮挡侧边栏
+    loader.classList.add('hidden');
   }
 }
 
@@ -64,36 +95,41 @@ function applyLanguageToPage() {
   
   const title = getNestedValue(t, `pages.${currentView}.title`);
   const description = getNestedValue(t, `pages.${currentView}.description`);
-  if (title) document.getElementById('page-title').textContent = title;
-  if (description) {
-    const descEl = document.getElementById('page-description');
-    if (descEl) descEl.textContent = description;
-  }
-  
-  const langText = currentLang === 'zh' ? '中文' : 'English';
-  const currentLangEl = document.getElementById('current-lang');
-  if (currentLangEl) currentLangEl.textContent = langText;
+  const titleEl = document.getElementById('page-title');
+  const descEl = document.getElementById('page-description');
+  if (title && titleEl) titleEl.textContent = title;
+  if (description && descEl) descEl.textContent = description;
 }
 
 function updateIframeLanguage() {
   const iframe = document.getElementById('content-frame');
   if (iframe) {
-    const currentSrc = iframe.src;
-    const url = new URL(currentSrc, window.location.href);
-    url.searchParams.set('lang', currentLang);
-    iframe.src = url.toString();
+    showFrameLoader();
+    const view = currentView || 'overview';
+    // 如果 iframe 已经有视图路径，只更新语言参数；否则设置完整路径
+    if (iframe.src && iframe.src.includes('views/')) {
+      const url = new URL(iframe.src, window.location.href);
+      url.searchParams.set('lang', currentLang);
+      iframe.src = url.toString();
+    } else {
+      iframe.src = `views/${view}.html?lang=${currentLang}`;
+    }
   }
 }
 
-function switchLanguage(lang) {
+function selectLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('huizhipay-lang', lang);
   applyLanguage();
+  updateLanguageMenuUI();
+  // 关闭语言菜单
+  const menu = document.getElementById('language-menu');
+  if (menu) menu.classList.add('hidden');
 }
 
 function toggleLanguageMenu() {
   const menu = document.getElementById('language-menu');
-  menu.classList.toggle('hidden');
+  if (menu) menu.classList.toggle('hidden');
 }
 
 function switchView(view) {

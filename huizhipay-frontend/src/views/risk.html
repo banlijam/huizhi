@@ -12,23 +12,23 @@
   <script src="../js/i18n.js"></script>
   <script src="../js/api.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-300">
-  <div class="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+<body class="bg-transparent text-slate-300">
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] pb-8">
     <!-- 左栏：智能路由配置 -->
     <div class="flex flex-col gap-6">
       <!-- 严格反欺诈模式大开关 -->
-      <div id="strict-card" class="strict-card rounded-lg p-6">
+      <div id="strict-card" class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-start gap-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/10 text-blue-500 flex-shrink-0">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-400 flex-shrink-0">
               <i data-lucide="shield-alert" class="w-5 h-5"></i>
             </span>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-base font-semibold text-white" data-i18n="risk.strictMode">严格反欺诈模式</h2>
-                <span class="px-1.5 py-0.5 bg-blue-500/20 rounded text-[10px] text-blue-400" data-i18n="risk.strictModeBadge">一键强化</span>
+                <h2 class="text-base font-semibold text-white" data-i18n="risk.strictMode">Strict Anti-Fraud Mode</h2>
+                <span class="px-1.5 py-0.5 bg-indigo-500/20 rounded text-[10px] text-indigo-400" data-i18n="risk.strictModeBadge">One-tap Harden</span>
               </div>
-              <p class="mt-1 text-xs text-slate-400 leading-relaxed" data-i18n="risk.strictModeDesc">开启后系统自动调高 Chainalysis KYT 拦截阈值，并强制所有订单进行 3DS2 验证。</p>
+              <p class="mt-1 text-xs text-slate-400 leading-relaxed" data-i18n="risk.strictModeDesc">When on, the system raises the Chainalysis KYT interception threshold and forces 3DS2 verification on all orders.</p>
             </div>
           </div>
           <button id="strict-toggle" onclick="toggleStrictMode()" class="relative h-7 w-12 rounded-full bg-slate-700 transition-colors flex-shrink-0">
@@ -38,41 +38,41 @@
       </div>
 
       <!-- 常规路由规则 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
         <div class="flex items-center gap-2">
-          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-blue-500"></i>
-          <h2 class="text-lg font-semibold text-white" data-i18n="risk.routing">智能路由配置</h2>
+          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-indigo-400"></i>
+          <h2 class="text-base font-semibold text-white" data-i18n="risk.routing">Smart Routing Settings</h2>
         </div>
-        <p class="mt-1 text-sm text-slate-400" data-i18n="risk.routingDesc">把复杂的智能路由做成规则开关，即时生效。</p>
+        <p class="mt-1 text-sm text-slate-400" data-i18n="risk.routingDesc">Complex smart routing wrapped as simple toggles. Instant effect.</p>
         <div class="mt-5 flex flex-col gap-5" id="rules-container"></div>
       </div>
     </div>
 
     <!-- 右栏：团队 -->
-    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+    <div class="bg-[#111827] border border-slate-800/80 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800/80 flex justify-between items-center">
         <div>
           <div class="flex items-center gap-2">
-            <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
-            <h2 class="text-lg font-semibold text-white" data-i18n="risk.team">团队邀请</h2>
+            <i data-lucide="users" class="w-5 h-5 text-indigo-400"></i>
+            <h2 class="text-base font-semibold text-white" data-i18n="risk.team">Team Invites</h2>
           </div>
-          <p class="text-sm text-slate-400" data-i18n="risk.teamDesc">集中管理控制台访问与最小权限角色。</p>
+          <p class="text-sm text-slate-400" data-i18n="risk.teamDesc">Centralized access control with minimum privilege roles.</p>
         </div>
-        <button onclick="inviteMember()" class="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium">
+        <button onclick="inviteMember()" class="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors">
           <i data-lucide="user-plus" class="w-4 h-4"></i>
-          <span data-i18n="risk.invite">邀请成员</span>
+          <span data-i18n="risk.invite">Invite Member</span>
         </button>
       </div>
       <table class="w-full text-left">
         <thead>
-          <tr class="bg-slate-950/50 text-slate-400 text-sm border-b border-slate-800">
-            <th class="px-6 py-3 font-medium" data-i18n="risk.table.email">邮箱</th>
-            <th class="px-6 py-3 font-medium" data-i18n="risk.table.role">角色</th>
-            <th class="px-6 py-3 font-medium" data-i18n="risk.table.sent">发送日期</th>
-            <th class="px-6 py-3 font-medium" data-i18n="risk.table.status">状态</th>
+          <tr class="text-[10px] text-slate-500 uppercase tracking-wider bg-slate-900/50 border-b border-slate-800/80">
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.email">Email</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.role">Role</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.sent">Sent On</th>
+            <th class="px-6 py-3 font-medium" data-i18n="risk.table.status">Status</th>
           </tr>
         </thead>
-        <tbody id="team-body" class="text-sm divide-y divide-slate-800"></tbody>
+        <tbody id="team-body" class="text-sm divide-y divide-slate-800/60"></tbody>
       </table>
     </div>
   </div>
@@ -108,15 +108,15 @@
       const toggle = document.getElementById('strict-toggle');
       const knob = toggle.querySelector('span');
       if (rule.enabled) {
-        card.classList.add('strict-card--on');
+        card.classList.add('border-indigo-500/50', 'bg-indigo-500/5');
         toggle.classList.remove('bg-slate-700');
-        toggle.classList.add('bg-blue-600');
+        toggle.classList.add('bg-indigo-600');
         knob.classList.remove('left-1', 'bg-slate-400');
         knob.classList.add('right-1', 'bg-white');
       } else {
-        card.classList.remove('strict-card--on');
+        card.classList.remove('border-indigo-500/50', 'bg-indigo-500/5');
         toggle.classList.add('bg-slate-700');
-        toggle.classList.remove('bg-blue-600');
+        toggle.classList.remove('bg-indigo-600');
         knob.classList.add('left-1', 'bg-slate-400');
         knob.classList.remove('right-1', 'bg-white');
       }
@@ -137,7 +137,6 @@
     function renderRules() {
       const container = document.getElementById('rules-container');
       if (!container) return;
-      // 排除 strictMode（已单独渲染）
       const normalRules = riskRules.filter(r => r.id !== 'strictMode');
 
       container.innerHTML = normalRules.map(rule => {
@@ -149,7 +148,7 @@
               <label class="text-sm font-medium text-slate-200">${t(labelKey, currentLang)}</label>
               <p class="text-xs text-slate-500 mt-0.5">${t(descKey, currentLang)}</p>
             </div>
-            <button onclick="toggleRule('${rule.id}')" class="${rule.enabled ? 'relative h-6 w-11 rounded-full bg-blue-600 transition-colors flex-shrink-0' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors flex-shrink-0'}">
+            <button onclick="toggleRule('${rule.id}')" class="${rule.enabled ? 'relative h-6 w-11 rounded-full bg-indigo-600 transition-colors flex-shrink-0' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors flex-shrink-0'}">
               <span class="${rule.enabled ? 'absolute right-1 top-1 h-4 w-4 rounded-full bg-white transition-transform' : 'absolute left-1 top-1 h-4 w-4 rounded-full bg-slate-400 transition-transform'}"></span>
             </button>
           </div>
@@ -164,14 +163,14 @@
         const roleKey = `risk.role.${member.role}`;
         const statusKey = `risk.status.${member.status}`;
         const statusClass = member.status === 'accepted'
-          ? 'px-2 py-1 bg-green-500/20 rounded text-xs text-green-400'
-          : 'px-2 py-1 bg-slate-800 rounded text-xs text-yellow-400';
+          ? 'px-2 py-1 bg-emerald-500/20 rounded text-xs text-emerald-400'
+          : 'px-2 py-1 bg-amber-500/20 rounded text-xs text-amber-400';
         return `
-          <tr class="hover:bg-slate-800/50 text-slate-300">
-            <td class="px-6 py-4 font-mono text-sm">${member.email}</td>
-            <td class="px-6 py-4" data-i18n="${roleKey}">${t(roleKey, currentLang)}</td>
-            <td class="px-6 py-4 font-mono text-slate-400">${member.sentOn}</td>
-            <td class="px-6 py-4"><span class="${statusClass}" data-i18n="${statusKey}">${t(statusKey, currentLang)}</span></td>
+          <tr class="hover:bg-slate-800/30 text-slate-300 transition-colors">
+            <td class="px-6 py-3.5 font-mono text-sm">${member.email}</td>
+            <td class="px-6 py-3.5 text-sm" data-i18n="${roleKey}">${t(roleKey, currentLang)}</td>
+            <td class="px-6 py-3.5 font-mono text-sm text-slate-400">${member.sentOn}</td>
+            <td class="px-6 py-3.5"><span class="${statusClass}" data-i18n="${statusKey}">${t(statusKey, currentLang)}</span></td>
           </tr>
         `;
       }).join('');
@@ -206,7 +205,7 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
       init();
     });
   </script>

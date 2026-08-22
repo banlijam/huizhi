@@ -2,10 +2,13 @@ window.i18nEn = {
   sidebar: {
     operations: 'Operations',
     onboarding: 'Onboarding & KYB',
-    overview: 'Control Room',
+    overview: 'Overview',
     factoring: 'Factoring & Settlement',
+    ledgerSplits: 'Ledger & Splits',
+    settlements: 'Settlements',
+    riskAml: 'Risk & AML',
     integrations: 'Integrations',
-    risk: 'Risk & Routing',
+    settings: 'Settings',
     restricted: 'Restricted',
     bank: 'Bank Accounts',
     fx: 'FX Withdrawals',
@@ -17,6 +20,10 @@ window.i18nEn = {
       title: 'Onboarding & KYB',
       description: 'Minimal KYB flow and settlement wallet binding.'
     },
+    merchant: {
+      title: 'Merchant Dashboard',
+      description: 'Settlement transparency across fiat rails and on-chain destinations.'
+    },
     overview: {
       title: 'Control Room',
       description: 'Real-time metrics, transparent ledger, and settlement countdown.'
@@ -25,6 +32,10 @@ window.i18nEn = {
       title: 'Factoring & Settlement',
       description: 'Manage factoring limits, chargeback exposure, and T+1 settlements.'
     },
+    settlements: {
+      title: 'Settlements',
+      description: 'Track T+1 settlement status and on-chain finality.'
+    },
     integrations: {
       title: 'Integrations',
       description: 'Connect commerce platforms and manage real-time data sync.'
@@ -32,13 +43,68 @@ window.i18nEn = {
     risk: {
       title: 'Risk & Routing',
       description: 'Configure smart routing, anti-fraud strategy, and team members.'
+    },
+    settings: {
+      title: 'Settings',
+      description: 'Manage account preferences, team, and security.'
     }
   },
   header: {
     balance: 'Available Balance',
     topup: 'Top Up',
     langZh: '中文',
-    langEn: 'English'
+    langEn: 'English',
+    nextSettlement: 'Next T+1 Settlement in'
+  },
+  merchant: {
+    title: 'Merchant Dashboard',
+    subtitle: 'Settlement transparency across fiat rails and on-chain destinations.'
+  },
+  kpi: {
+    todayVolume: {
+      label: "Today's Volume",
+      vsYesterday: 'vs yesterday'
+    },
+    netSettlement: {
+      label: 'Net Settlement',
+      netYield: 'net yield'
+    },
+    conversionRate: {
+      label: 'Conversion Rate',
+      silentApproval: 'silent approval'
+    },
+    amlRisk: {
+      label: 'AML Risk Score',
+      intercepted: 'Chainalysis intercepted'
+    }
+  },
+  payout: {
+    label: 'Payout Strategy',
+    title: 'Choose the settlement destination',
+    subtitle: 'Switch without changing the buyer-facing checkout.',
+    crypto: {
+      option: 'Crypto',
+      desc: 'Polygon / Stellar smart-contract split → cold wallet'
+    },
+    fiat: {
+      option: 'Fiat',
+      desc: 'Stellar SEP-24 anchor → business bank account'
+    }
+  },
+  ledger: {
+    sectionLabel: '1:N Split Waterfall',
+    title: 'Virtual Ledger',
+    allGateways: 'All gateways',
+    exportCsv: 'Export CSV',
+    table: {
+      orderId: 'Order ID',
+      fiatIn: 'Fiat In',
+      geoGateway: 'Geo Gateway',
+      feeSplit: 'Fee Split',
+      chainDest: 'Chain Destination',
+      chainalysisStatus: 'Chainalysis Status',
+      settlementTime: 'Settlement Time'
+    }
   },
   overview: {
     apiCalls: 'API Calls',

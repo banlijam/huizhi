@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n/zh.js"></script>
+  <script src="../i18n/en.js"></script>
+  <script src="../js/i18n.js"></script>
+</head>
+<body class="bg-transparent text-slate-300">
+  <div class="max-w-4xl mx-auto py-12 text-center">
+    <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6">
+      <i data-lucide="settings" class="w-8 h-8 text-indigo-400"></i>
+    </div>
+    <h2 class="text-xl font-bold text-white mb-2" data-i18n="pages.settings.title">Settings</h2>
+    <p class="text-sm text-slate-500" data-i18n="pages.settings.description">Manage account preferences, team, and security.</p>
+  </div>
+  <script>
+    function getLangFromUrl() {
+      const p = new URLSearchParams(window.location.search);
+      return p.get('lang') || 'en';
+    }
+    function init() {
+      const lang = getLangFromUrl();
+      applyLanguage(lang);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

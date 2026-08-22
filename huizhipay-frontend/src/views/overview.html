@@ -13,267 +13,284 @@
   <script src="../js/i18n.js"></script>
   <script src="../js/api.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-300">
-  <div class="flex flex-col gap-6">
-    <!-- ① 今日大盘 + 清算倒计时 -->
-    <div>
-      <div class="flex items-center gap-2 mb-4">
-        <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i>
-        <h2 class="text-lg font-semibold text-white" data-i18n="controlRoom.todayTitle">今日大盘</h2>
-        <span class="ml-2 flex items-center gap-1 text-xs text-green-400">
-          <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-          <span data-i18n="overview.realtime">实时</span>
-        </span>
-      </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="today-cards"></div>
-    </div>
+<body class="bg-transparent text-slate-300">
+  <div class="flex flex-col gap-6 pb-8">
 
-    <!-- ② 透明分账账本 -->
-    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center gap-2">
-        <i data-lucide="split" class="w-5 h-5 text-blue-500"></i>
-        <div>
-          <h2 class="text-lg font-semibold text-white" data-i18n="controlRoom.ledgerTitle">透明分账账本</h2>
-          <p class="text-xs text-slate-500" data-i18n="controlRoom.ledgerDesc">每笔订单的 7:93 分账拆解，所见即所得。</p>
+    <!-- ===== ① KPI Cards Row ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <!-- Today's Volume -->
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-5 relative overflow-hidden">
+        <div class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+        </div>
+        <div class="text-xs text-slate-500 font-medium" data-i18n="kpi.todayVolume.label">Today's Volume</div>
+        <div class="mt-3 text-2xl font-bold text-white">€124,500.00</div>
+        <div class="mt-1 text-xs text-emerald-400 flex items-center gap-1">
+          <i data-lucide="trending-up" class="w-3 h-3"></i>
+          <span>+14.2% <span class="text-slate-500" data-i18n="kpi.todayVolume.vsYesterday">vs yesterday</span></span>
         </div>
       </div>
 
-      <!-- 示例拆解条 -->
-      <div class="px-6 py-5 border-b border-slate-800">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-sm text-slate-400"><span data-i18n="controlRoom.ledgerExample">示例：买家支付</span> <span class="text-white font-semibold">$100</span></span>
-          <div class="flex items-center gap-4 text-xs">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-400"></span><span data-i18n="controlRoom.ledgerFee">绘智服务费</span> <span class="text-amber-400 font-semibold">$7</span></span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-green-400"></span><span data-i18n="controlRoom.ledgerNet">您的净收益</span> <span class="text-green-400 font-semibold">$93</span></span>
+      <!-- Net Settlement -->
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-5 relative overflow-hidden">
+        <div class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+          <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400"></i>
+        </div>
+        <div class="text-xs text-slate-500 font-medium" data-i18n="kpi.netSettlement.label">Net Settlement</div>
+        <div class="mt-3 text-2xl font-bold text-white">€115,785.00</div>
+        <div class="mt-1 text-xs text-slate-500 flex items-center gap-1">
+          <span class="text-emerald-400 font-medium">93%</span>
+          <span data-i18n="kpi.netSettlement.netYield">net yield</span>
+        </div>
+      </div>
+
+      <!-- Conversion Rate -->
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-5 relative overflow-hidden">
+        <div class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-purple-400"></i>
+        </div>
+        <div class="text-xs text-slate-500 font-medium" data-i18n="kpi.conversionRate.label">Conversion Rate</div>
+        <div class="mt-3 text-2xl font-bold text-white">94.2%</div>
+        <div class="mt-1 text-xs text-slate-500 flex items-center gap-1">
+          <span class="text-slate-400 font-medium">3,052</span>
+          <span data-i18n="kpi.conversionRate.silentApproval">silent approval</span>
+        </div>
+      </div>
+
+      <!-- AML Risk Score -->
+      <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-5 relative overflow-hidden">
+        <div class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center">
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+        </div>
+        <div class="text-xs text-slate-500 font-medium" data-i18n="kpi.amlRisk.label">AML Risk Score</div>
+        <div class="mt-3 text-2xl font-bold text-white">0.02%</div>
+        <div class="mt-1 text-xs text-slate-500 flex items-center gap-1">
+          <span data-i18n="kpi.amlRisk.intercepted">Chainalysis intercepted</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ② Payout Strategy ===== -->
+    <div class="bg-[#111827] border border-slate-800/80 rounded-xl p-6">
+      <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest mb-1" data-i18n="payout.label">Payout Strategy</div>
+      <h3 class="text-lg font-bold text-white" data-i18n="payout.title">Choose the settlement destination</h3>
+      <p class="text-sm text-slate-500 mt-1" data-i18n="payout.subtitle">Switch without changing the buyer-facing checkout.</p>
+
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Option A - Crypto (selected) -->
+        <div class="p-4 rounded-xl border-2 border-indigo-500/80 bg-indigo-500/8 cursor-pointer payout-option" data-option="crypto" onclick="selectPayout('crypto')">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <i data-lucide="bitcoin" class="w-4 h-4 text-indigo-400"></i>
+                <span class="text-sm font-semibold text-indigo-300">Option A · <span data-i18n="payout.crypto.option">Crypto</span></span>
+              </div>
+              <p class="mt-2 text-xs text-slate-400" data-i18n="payout.crypto.desc">Polygon / Stellar smart-contract split → cold wallet</p>
+            </div>
+            <div class="w-5 h-5 rounded-full border-2 border-indigo-500 bg-indigo-500 flex items-center justify-center mt-0.5">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
           </div>
         </div>
-        <div class="split-bar">
-          <div class="split-bar__fee flex items-center justify-center text-amber-900 text-xs font-bold" style="width:7%">7%</div>
-          <div class="split-bar__net flex items-center justify-center text-green-900 text-xs font-bold" style="width:93%">93%</div>
+
+        <!-- Option B - Fiat -->
+        <div class="p-4 rounded-xl border-2 border-slate-700 bg-slate-900/40 cursor-pointer payout-option" data-option="fiat" onclick="selectPayout('fiat')">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <i data-lucide="landmark" class="w-4 h-4 text-slate-400"></i>
+                <span class="text-sm font-semibold text-slate-300">Option B · <span data-i18n="payout.fiat.option">Fiat</span></span>
+              </div>
+              <p class="mt-2 text-xs text-slate-400" data-i18n="payout.fiat.desc">Stellar SEP-24 anchor → business bank account</p>
+            </div>
+            <div class="w-5 h-5 rounded-full border-2 border-slate-600 mt-0.5"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ③ Virtual Ledger Table ===== -->
+    <div class="bg-[#111827] border border-slate-800/80 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div>
+          <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest" data-i18n="ledger.sectionLabel">1:N Split Waterfall</div>
+          <h3 class="text-base font-bold text-white mt-0.5" data-i18n="ledger.title">Virtual Ledger</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 bg-slate-800/60 rounded-lg hover:bg-slate-700/60 transition-colors">
+            <span data-i18n="ledger.allGateways">All gateways</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 bg-slate-800/60 rounded-lg hover:bg-slate-700/60 transition-colors">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span data-i18n="ledger.exportCsv">Export CSV</span>
+          </button>
         </div>
       </div>
 
-      <!-- 分账流水表 -->
-      <table class="w-full text-left">
-        <thead>
-          <tr class="bg-slate-950/50 text-slate-400 text-sm border-b border-slate-800">
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.orderId">订单号</th>
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.time">时间</th>
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.gross">买家支付</th>
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.fee">服务费 (7%)</th>
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.net">净收益 (93%)</th>
-            <th class="px-6 py-3 font-medium" data-i18n="controlRoom.ledgerTable.status">状态</th>
-          </tr>
-        </thead>
-        <tbody id="ledger-body" class="text-sm divide-y divide-slate-800"></tbody>
-      </table>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-[10px] text-slate-500 uppercase tracking-wider bg-slate-900/50">
+              <th class="px-6 py-3 font-medium" data-i18n="ledger.table.orderId">Order ID</th>
+              <th class="px-4 py-3 font-medium" data-i18n="ledger.table.fiatIn">Fiat In</th>
+              <th class="px-4 py-3 font-medium" data-i18n="ledger.table.geoGateway">Geo Gateway</th>
+              <th class="px-4 py-3 font-medium" data-i18n="ledger.table.feeSplit">Fee Split</th>
+              <th class="px-4 py-3 font-medium" data-i18n="ledger.table.chainDest">Chain Destination</th>
+              <th class="px-4 py-3 font-medium" data-i18n="ledger.table.chainalysisStatus">Chainalysis Status</th>
+              <th class="px-6 py-3 font-medium text-right" data-i18n="ledger.table.settlementTime">Settlement Time</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-body" class="text-sm divide-y divide-slate-800/60"></tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- ③ 7 日趋势图 -->
-    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800">
-        <h2 class="text-lg font-semibold text-white" data-i18n="controlRoom.trendTitle">7 日交易与转化趋势</h2>
-      </div>
-      <div class="p-6">
-        <canvas id="usageChart" class="w-full h-64"></canvas>
-      </div>
-    </div>
   </div>
 
   <script>
-    let usageChart = null;
     let currentLang = 'zh';
-    let overviewStats = null;
-    let ledgerData = [];
-    let countdownTimer = null;
 
     function getLangFromUrl() {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get('lang') || 'zh';
     }
 
-    function init() {
-      currentLang = getLangFromUrl();
-      applyLanguage(currentLang);
-      loadOverviewData();
-      loadLedger();
-    }
-
-    async function loadOverviewData() {
-      overviewStats = await fetchOverviewStats();
-      renderTodayCards();
-      renderChart();
-      startCountdown();
-    }
-
-    async function loadLedger() {
-      ledgerData = await fetchLedger();
-      renderLedger();
-    }
-
-    function renderTodayCards() {
-      const container = document.getElementById('today-cards');
-      if (!container || !overviewStats) return;
-      const s = overviewStats;
-
-      const cards = [
-        {
-          label: t('controlRoom.todayCount', currentLang),
-          value: s.todayCount.toLocaleString(),
-          unit: t('controlRoom.todayCountUnit', currentLang),
-          change: s.todayCountChange,
-          icon: 'shopping-cart',
-          color: 'blue'
-        },
-        {
-          label: t('controlRoom.conversionRate', currentLang),
-          value: s.conversionRate + '%',
-          unit: '',
-          change: s.conversionRateChange,
-          icon: 'target',
-          color: 'green'
-        },
-        {
-          label: t('controlRoom.todayVolume', currentLang),
-          value: '$' + s.todayVolume.toLocaleString(),
-          unit: '',
-          change: s.todayVolumeChange,
-          icon: 'dollar-sign',
-          color: 'green'
-        }
-      ];
-
-      const cardsHtml = cards.map(c => {
-        const up = c.change >= 0;
-        return `
-          <div class="p-5 bg-slate-900 border border-slate-800 rounded-lg">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-slate-400">${c.label}</span>
-              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/10 text-blue-500"><i data-lucide="${c.icon}" class="w-4 h-4"></i></span>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-white">${c.value}<span class="text-base text-slate-500 ml-1">${c.unit}</span></p>
-            <p class="mt-1 text-xs ${up ? 'text-green-400' : 'text-red-400'}">${up ? '↑' : '↓'} ${Math.abs(c.change)}% <span class="text-slate-500">${t('overview.vsLastPeriod', currentLang)}</span></p>
-          </div>`;
-      }).join('');
-
-      // 清算倒计时环形卡
-      const countdownHtml = `
-        <div class="p-5 bg-slate-900 border border-slate-800 rounded-lg flex items-center gap-4">
-          <div class="relative w-20 h-20 flex-shrink-0">
-            <svg class="countdown-ring w-20 h-20" viewBox="0 0 80 80">
-              <circle class="countdown-ring__track" cx="40" cy="40" r="34" fill="none" stroke-width="7"></circle>
-              <circle id="countdown-progress" class="countdown-ring__progress" cx="40" cy="40" r="34" fill="none" stroke-width="7" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span id="countdown-hours" class="text-lg font-bold text-white leading-none">--</span>
-              <span class="text-[9px] text-slate-500">${t('controlRoom.countdownUnit', currentLang)}</span>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-slate-400" data-i18n="controlRoom.countdownTitle">清算倒计时</p>
-            <p class="text-xs text-slate-500 mt-0.5" data-i18n="controlRoom.countdownDesc">距离下一笔 T+1 清算还有</p>
-            <p id="countdown-time" class="text-sm font-semibold text-blue-400 mt-1">--:--</p>
-          </div>
-        </div>`;
-
-      container.innerHTML = cardsHtml + countdownHtml;
-      lucide.createIcons();
-      applyLanguage(currentLang);
-    }
-
-    function startCountdown() {
-      if (!overviewStats) return;
-      let remainingHours = overviewStats.settlementCountdownHours;
-      const total = overviewStats.settlementCountdownTotal;
-      const circumference = 2 * Math.PI * 34;
-
-      function tick() {
-        const h = Math.floor(remainingHours);
-        const m = Math.floor((remainingHours - h) * 60);
-        const hoursEl = document.getElementById('countdown-hours');
-        const timeEl = document.getElementById('countdown-time');
-        const progressEl = document.getElementById('countdown-progress');
-        if (hoursEl) hoursEl.textContent = h;
-        if (timeEl) timeEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        if (progressEl) {
-          const ratio = Math.max(0, Math.min(1, remainingHours / total));
-          const offset = circumference * (1 - ratio);
-          progressEl.setAttribute('stroke-dashoffset', offset);
-          progressEl.classList.toggle('countdown-ring__progress--warning', remainingHours < 2);
-        }
-        remainingHours = Math.max(0, remainingHours - 1/60);
+    const ledgerRows = [
+      {
+        orderId: 'HZ-99801',
+        fiatIn: '€500.00',
+        gateway: 'BVNK · SEPA',
+        feeSplit: '7% / 93%',
+        chainDest: 'Stellar · EURC',
+        status: 'COMPLETED',
+        statusType: 'completed',
+        time: '10:42:01'
+      },
+      {
+        orderId: 'HZ-99802',
+        fiatIn: 'R1,200.00',
+        gateway: 'Transfi · EFT',
+        feeSplit: '6% / 94%',
+        chainDest: 'Polygon · CREATE2',
+        status: 'PROCESSING',
+        statusType: 'processing',
+        time: '10:39:44'
+      },
+      {
+        orderId: 'HZ-99803',
+        fiatIn: '$2,500.00',
+        gateway: 'Onramper · US',
+        feeSplit: '—',
+        chainDest: 'Merchant Cold Wallet',
+        status: 'AML_HOLD',
+        statusType: 'aml',
+        time: '10:36:19'
+      },
+      {
+        orderId: 'HZ-99798',
+        fiatIn: '฿18,400.00',
+        gateway: 'PromptPay · TH',
+        feeSplit: '5% / 95%',
+        chainDest: 'Stellar · USDC',
+        status: 'COMPLETED',
+        statusType: 'completed',
+        time: '10:28:52'
+      },
+      {
+        orderId: 'HZ-99794',
+        fiatIn: '€920.00',
+        gateway: 'BVNK · SEPA',
+        feeSplit: '7% / 93%',
+        chainDest: 'Polygon · USDC',
+        status: 'COMPLETED',
+        statusType: 'completed',
+        time: '10:17:09'
       }
-      tick();
-      if (countdownTimer) clearInterval(countdownTimer);
-      countdownTimer = setInterval(tick, 60000);
-    }
+    ];
 
     function renderLedger() {
       const body = document.getElementById('ledger-body');
       if (!body) return;
-      body.innerHTML = ledgerData.map(row => {
-        const statusKey = row.status === 'settled' ? 'controlRoom.statusSettled' : 'controlRoom.statusPending';
-        const statusText = t(statusKey, currentLang);
-        const statusClass = row.status === 'settled'
-          ? 'px-2 py-1 bg-green-500/20 rounded text-xs text-green-400'
-          : 'px-2 py-1 bg-amber-500/20 rounded text-xs text-amber-400';
-        return `
-          <tr class="hover:bg-slate-800/50 text-slate-300">
-            <td class="px-6 py-4 text-blue-400 font-mono">${row.orderId}</td>
-            <td class="px-6 py-4 font-mono text-slate-400">${row.time}</td>
-            <td class="px-6 py-4 font-mono">$${row.gross.toFixed(2)}</td>
-            <td class="px-6 py-4 font-mono text-amber-400">$${row.fee.toFixed(2)}</td>
-            <td class="px-6 py-4 font-mono font-medium text-green-400">$${row.net.toFixed(2)}</td>
-            <td class="px-6 py-4"><span class="${statusClass}">${statusText}</span></td>
-          </tr>`;
-      }).join('');
+
+      const statusClass = {
+        completed: 'text-emerald-400 font-medium',
+        processing: 'text-amber-400 font-medium',
+        aml: 'text-red-400 font-medium'
+      };
+
+      body.innerHTML = ledgerRows.map(row => `
+        <tr class="hover:bg-slate-800/30 transition-colors">
+          <td class="px-6 py-3.5 font-mono text-sm text-indigo-400 font-semibold">${row.orderId}</td>
+          <td class="px-4 py-3.5 font-mono text-sm text-slate-300">${row.fiatIn}</td>
+          <td class="px-4 py-3.5">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300 border border-slate-700">
+              ${row.gateway}
+            </span>
+          </td>
+          <td class="px-4 py-3.5 font-mono text-sm text-slate-400">${row.feeSplit}</td>
+          <td class="px-4 py-3.5 text-sm text-slate-300">${row.chainDest}</td>
+          <td class="px-4 py-3.5">
+            <span class="${statusClass[row.statusType]} text-xs uppercase tracking-wide">${row.status}</span>
+          </td>
+          <td class="px-6 py-3.5 font-mono text-sm text-slate-400 text-right">${row.time}</td>
+        </tr>
+      `).join('');
     }
 
-    function renderChart() {
-      const ctx = document.getElementById('usageChart');
-      if (!ctx || !overviewStats) return;
-      if (usageChart) usageChart.destroy();
-
-      const labels = t('overview.weekdays', currentLang) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const chartData = overviewStats.chartData || { requests: [482, 620, 545, 718, 680, 824, 756], approved: [451, 578, 519, 664, 642, 771, 713] };
-
-      usageChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            { label: t('overview.chart3dsRequests', currentLang) || 'Requests', data: chartData.requests, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0 },
-            { label: t('overview.chartApproved', currentLang) || 'Approved', data: chartData.approved, borderColor: '#4ade80', backgroundColor: 'rgba(74, 222, 128, 0.1)', fill: true, tension: 0.4, pointRadius: 0 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { intersect: false, mode: 'index' },
-          plugins: {
-            legend: { display: true, position: 'top', labels: { color: '#94a3b8', usePointStyle: true, padding: 20 } },
-            tooltip: { backgroundColor: '#1e293b', titleColor: '#e2e8f0', bodyColor: '#94a3b8', borderColor: '#334155', borderWidth: 1, padding: 12, displayColors: true, usePointStyle: true }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-            y: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } }
+    function selectPayout(option) {
+      const options = document.querySelectorAll('.payout-option');
+      options.forEach(el => {
+        const isSelected = el.dataset.option === option;
+        if (isSelected) {
+          el.className = 'p-4 rounded-xl border-2 border-indigo-500/80 bg-indigo-500/8 cursor-pointer payout-option transition-all';
+          // Update radio inner
+          const radio = el.querySelector('.w-5.h-5');
+          if (radio) {
+            radio.className = 'w-5 h-5 rounded-full border-2 border-indigo-500 bg-indigo-500 flex items-center justify-center mt-0.5';
+            radio.innerHTML = '<div class="w-2 h-2 bg-white rounded-full"></div>';
+          }
+          // Update text colors
+          const label = el.querySelector('.text-sm.font-semibold');
+          if (label) {
+            label.className = 'text-sm font-semibold text-indigo-300';
+            const icon = el.querySelector('i');
+            if (icon) icon.className = 'w-4 h-4 text-indigo-400';
+          }
+        } else {
+          el.className = 'p-4 rounded-xl border-2 border-slate-700 bg-slate-900/40 cursor-pointer payout-option transition-all';
+          const radio = el.querySelector('.w-5.h-5');
+          if (radio) {
+            radio.className = 'w-5 h-5 rounded-full border-2 border-slate-600 mt-0.5';
+            radio.innerHTML = '';
+          }
+          const label = el.querySelector('.text-sm.font-semibold');
+          if (label) {
+            label.className = 'text-sm font-semibold text-slate-300';
+            const icon = el.querySelector('i');
+            if (icon) icon.className = 'w-4 h-4 text-slate-400';
           }
         }
       });
+    }
+
+    function init() {
+      currentLang = getLangFromUrl();
+      applyLanguage(currentLang);
+      renderLedger();
     }
 
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'lang-change') {
         currentLang = event.data.lang;
         applyLanguage(currentLang);
-        renderTodayCards();
-        renderChart();
-        renderLedger();
-        startCountdown();
       }
     });
 
-    window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      init();
+    });
   </script>
 </body>
 </html>
