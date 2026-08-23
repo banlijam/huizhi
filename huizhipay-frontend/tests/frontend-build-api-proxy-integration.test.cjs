@@ -51,6 +51,8 @@ test('build contains the complete interactive prototype and local vendor assets'
   }
 
   assert.match(html, /new URLSearchParams\(location\.search\)/);
+  assert.match(html, /id=["']dummy-create-form["']/);
+  assert.match(html, /\/api\/v1\/dummy\/orders/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);
 
   for (const file of ['tailwindcss.js', 'lucide.min.js', 'chart.umd.min.js']) {
@@ -95,7 +97,11 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const paymentPage = await fetch(`${baseUrl}/pay/`);
   assert.equal(paymentPage.status, 200);
-  assert.match(await paymentPage.text(), /HuizhiPay/);
+  const paymentHtml = await paymentPage.text();
+  assert.match(paymentHtml, /HuizhiPay/);
+  assert.match(paymentHtml, /id=["']success["']/);
+  assert.match(paymentHtml, /id=["']fail["']/);
+  assert.match(paymentHtml, /\/api\/v1\/dummy\/orders/);
 
   const favicon = await fetch(`${baseUrl}/favicon.svg`);
   assert.equal(favicon.status, 200);

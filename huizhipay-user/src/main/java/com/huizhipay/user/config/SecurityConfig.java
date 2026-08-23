@@ -27,7 +27,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)   // 禁用CSRF（使用JWT）
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/actuator/health",
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/dummy/**", "/actuator/health",
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
                         .permitAll()
                         .anyRequest()
