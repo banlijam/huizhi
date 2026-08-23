@@ -1,169 +1,119 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HuizhiPay Merchant Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="styles.css">
-  <script src="i18n/zh.js"></script>
-  <script src="i18n/en.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/toast.js"></script>
-  <script src="js/api.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="powered-by" content="frontend-design, webapp-testing, sites-building">
+  <title>HuizhiPay Web-first Interactive Prototype v1.4</title>
+  <style>
+    :root{--bg:#070a0f;--panel:#101620;--panel2:#151c28;--line:#273146;--text:#f4f7fb;--muted:#8d98aa;--blue:#5a91ff;--green:#3bd49b;--lime:#c0f96c;--amber:#f4c15d;--red:#ff7278;--sans:"Aptos Display","Segoe UI Variable",sans-serif;--mono:"Cascadia Mono",Consolas,monospace}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;color:var(--text);font-family:var(--sans)}button,input,select{font:inherit}.hidden{display:none!important}.mono{font-family:var(--mono)}.muted{color:var(--muted)}
+    .demo-nav{position:fixed;z-index:50;left:58%;top:14px;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid #2b3549;border-radius:12px;background:rgba(9,13,20,.9);box-shadow:0 16px 50px #0008;backdrop-filter:blur(18px)}
+    .demo-nav button{border:0;border-radius:8px;padding:8px 12px;background:transparent;color:#8792a5;font-size:11px;font-weight:750;cursor:pointer}.demo-nav button:hover{color:#fff;background:#182131}.demo-nav button.active{color:#071017;background:linear-gradient(120deg,#9cc1ff,#c3fa70)}.state-select{margin-left:4px;border:1px solid #303b50;border-radius:8px;padding:0 10px;background:#121925;color:#bdc7d5;font-size:10px;font-weight:750;outline:none}
+    .stage{position:relative;width:100vw;height:100dvh;min-height:0;overflow:hidden;background:radial-gradient(circle at 20% 5%,#152339 0,transparent 32%),radial-gradient(circle at 90% 90%,#14251d 0,transparent 30%),#070a0f}.screen{position:absolute;left:50%;top:50%;overflow:hidden;transform-origin:center;background:linear-gradient(145deg,#0a0e15,#0d131d 58%,#101926)}
+    .badge{display:inline-flex;align-items:center;gap:7px;border:1px solid #2c384d;border-radius:999px;padding:7px 10px;background:#151c28;color:#b5c0ce;font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#78a7ff,#c0f96c);color:#071017;font-weight:950}.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7e8aa0;font-weight:800}.card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(24,31,45,.97),rgba(14,19,28,.97));box-shadow:0 20px 60px #0003}
+
+    /* Checkout web 1440×1024 */
+    #checkout-web{width:1440px;height:1024px;display:grid;grid-template-rows:86px 1fr}.web-head{display:flex;align-items:center;justify-content:space-between;padding:0 58px;border-bottom:1px solid #222b3d;background:#0a0e15dd}.brand{display:flex;align-items:center;gap:11px;font-weight:850}.brand small{display:block;margin-top:3px;color:#758197;font-size:9px;font-weight:600}.web-safe{display:flex;align-items:center;gap:10px}.web-body{display:grid;grid-template-columns:1.08fr .92fr;min-height:0}.web-story{position:relative;padding:104px 74px 64px;overflow:hidden}.web-story:after{content:"";position:absolute;width:520px;height:520px;left:-220px;bottom:-270px;border:1px solid #41516b;border-radius:50%;box-shadow:0 0 0 74px #ffffff05,0 0 0 148px #ffffff03}.web-story h1{max-width:700px;margin:14px 0 20px;font-size:72px;line-height:.94;letter-spacing:-.065em}.web-story h1 em{font-style:normal;color:#9dc0ff}.web-story>p{max-width:600px;margin:0;color:#9aa5b6;font-size:17px;line-height:1.65}.proofs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:650px;margin-top:55px}.proof{padding:16px;border-top:1px solid #354057;color:#8e99aa;font-size:11px;line-height:1.55}.proof b{display:block;margin-bottom:7px;color:#f2f6fb;font-size:13px}.route-visual{position:absolute;right:-80px;top:82px;width:300px;height:2px;background:linear-gradient(90deg,transparent,var(--blue));transform:rotate(-32deg);opacity:.45}.checkout-shell{display:grid;place-items:center;padding:74px 70px 50px;border-left:1px solid #202a3a;background:linear-gradient(145deg,#0d121b,#080b11)}.checkout-card{width:510px;border-radius:25px;padding:26px;background:linear-gradient(155deg,#171e2b,#0e131c);border:1px solid #303b50;box-shadow:0 35px 100px #0009}.checkout-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.checkout-card-head h2{margin:2px 0 0;font-size:19px}.seg{display:flex;padding:4px;border:1px solid #2a3448;border-radius:10px;background:#0b1018}.seg button{border:0;border-radius:7px;padding:7px 12px;background:transparent;color:#778398;font-size:9px;font-weight:800;cursor:pointer}.seg button.active{background:#222d40;color:#fff}.field{margin-top:12px;padding:15px;border:1px solid #2b364b;border-radius:14px;background:#121925}.field-label{display:flex;justify-content:space-between;color:#8b97a9;font-size:10px}.detected{color:#9ec2ff}.amount-row{display:flex;align-items:center;justify-content:space-between;margin-top:9px}.amount{font-size:34px;font-weight:800;letter-spacing:-.04em}.currency{border:1px solid #3a465e;border-radius:10px;background:#212b3b;color:#fff;padding:9px 11px;font-size:11px}.route{display:flex;align-items:center;gap:10px;margin:12px 0;padding:11px 12px;border:1px solid #273247;border-radius:12px;background:#0d1420}.route-copy{min-width:180px}.route-copy b{display:block;font-size:10px}.route-copy small{color:#7f8a9c;font-size:8px}.track{height:5px;flex:1;border-radius:99px;background:linear-gradient(90deg,var(--green) 0 32%,var(--blue) 32% 68%,#566278 68%)}.estimate{display:flex;align-items:flex-end;justify-content:space-between}.estimate strong{display:block;margin-top:6px;font-size:26px}.asset{border-radius:8px;padding:7px 9px;background:#20293a;color:#b7c1cf;font-size:9px}.split{margin-top:12px;border:1px solid #283247;border-radius:14px;padding:13px;background:#0f151f}.split-head{display:flex;justify-content:space-between;font-size:10px;font-weight:800}.split-bars{display:flex;gap:5px;margin:9px 0}.split-bars i{display:block;height:5px;border-radius:99px}.split-bars i:nth-child(1){width:30%;background:#64748b}.split-bars i:nth-child(2){width:14%;background:var(--amber)}.split-bars i:nth-child(3){flex:1;background:var(--green)}.split-row{display:flex;justify-content:space-between;padding-top:7px;border-top:1px solid #222b3c;color:#929daf;font-size:9px}.split-row b{color:#e8edf4}.cta{width:100%;margin-top:16px;border:0;border-radius:12px;padding:14px;background:linear-gradient(110deg,#407fff,#76aaff);color:#fff;font-size:12px;font-weight:850;cursor:pointer;box-shadow:0 15px 35px #4f8cff40}.secure-note{display:flex;justify-content:center;gap:12px;margin-top:12px;color:#788497;font-size:8px}
+
+    /* Checkout mobile 420×780 */
+    #checkout-mobile{width:420px;height:780px;padding:18px;display:flex;flex-direction:column;gap:11px;border:1px solid #29344a}.mobile-head{display:flex;align-items:center;justify-content:space-between}.mobile-head .mark{width:27px;height:27px}.mobile-brand{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:850}.mobile-title h1{margin:4px 0 5px;font-size:27px;line-height:1.02;letter-spacing:-.045em}.mobile-title p{margin:0;color:#8f9aac;font-size:10px;line-height:1.45}#checkout-mobile .field{margin-top:0;padding:12px}#checkout-mobile .amount{font-size:28px}#checkout-mobile .route{margin:0;padding:9px}#checkout-mobile .estimate strong{font-size:21px}#checkout-mobile .split{margin-top:0;padding:11px}#checkout-mobile .cta{margin-top:auto;padding:13px}
+
+    /* modal */
+    .modal{position:absolute;z-index:20;inset:0;display:grid;place-items:center;background:#02050bbd;backdrop-filter:blur(14px)}.modal-panel{width:430px;border:1px solid #ffffff25;border-radius:24px;padding:25px;background:linear-gradient(145deg,#202838f2,#080b11fa);box-shadow:0 38px 120px #000c}.mobile-modal .modal-panel{width:352px}.approved{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:#153b2c;color:#79efb2;font-size:22px}.modal h3{margin:13px 0 5px;font-size:20px}.modal p{color:#9aa5b5;font-size:11px;line-height:1.5}.logic{margin:14px 0;padding:13px;border:1px solid #273146;border-radius:12px;background:#070a0f;color:#aab7c8;font-size:9px;line-height:1.65}.logic b{color:#91b7ff}.modal button{width:100%;border:0;border-radius:10px;padding:11px;background:#eff4ff;color:#0d1420;font-size:10px;font-weight:850;cursor:pointer}
+
+    /* Desktop app shell */
+    .desktop{width:1440px;height:1024px;display:grid;grid-template-columns:224px 1fr}.side{display:flex;flex-direction:column;padding:24px 18px;border-right:1px solid #202839;background:#090d13}.side-brand{display:flex;align-items:center;gap:10px;padding:0 8px 28px;font-weight:850}.side-brand small{display:block;margin-top:3px;color:#748095;font-size:9px}.nav{display:grid;gap:5px}.nav div{padding:11px 12px;border-radius:10px;color:#8994a5;font-size:11px}.nav div.active{border:1px solid #2c3850;background:#192131;color:#fff}.nav span{display:inline-block;width:20px;color:#637087}.account{margin-top:auto;padding:18px 8px 0;border-top:1px solid #202839;color:#7e899b;font-size:9px}.app-main{min-width:0}.top{height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid #202839;background:#0d1119dd}.top h1{margin:0;font-size:18px}.top p{margin:5px 0 0;color:#7f8a9c;font-size:10px}.top-actions{display:flex;align-items:center;gap:12px}.env{display:flex;padding:3px;border:1px solid #293246;border-radius:9px;background:#141a25}.env button{border:0;border-radius:6px;padding:6px 10px;background:transparent;color:#778397;font-size:9px;cursor:pointer}.env button.active{background:#26334a;color:#fff}.countdown{color:#939eaf;font-size:10px}.countdown b{display:block;margin-top:3px;color:#f2c66c;font-size:14px}.content{padding:24px 28px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kpi{height:128px;padding:16px;border-radius:15px}.kpi-top{display:flex;justify-content:space-between;color:#8994a5;font-size:10px}.icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#222c3f}.kpi strong{display:block;margin-top:16px;font-size:24px;letter-spacing:-.035em}.trend{margin-top:8px;color:#6fe2a8;font-size:9px}.strategy{height:118px;display:flex;align-items:center;justify-content:space-between;margin-top:15px;padding:16px;border-radius:15px}.strategy h3{margin:4px 0 5px;font-size:12px}.strategy p{margin:0;color:#838fa1;font-size:9px}.strategy-toggle{display:flex;gap:4px;padding:4px;border:1px solid #273148;border-radius:12px;background:#0c1119}.strategy-option{width:300px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#7f8a9d;text-align:left;font-size:9px;line-height:1.4;cursor:pointer}.strategy-option b{display:block;margin-bottom:3px;color:#b9c3d2;font-size:10px}.strategy-option.active{background:#20304a;box-shadow:inset 0 0 0 1px #36537e}.strategy-option.active b{color:#fff}.ledger{height:505px;margin-top:15px;border-radius:15px;overflow:hidden}.ledger-head{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #273044}.ledger-head h3{margin:3px 0 0;font-size:12px}.filters{display:flex;gap:7px}.filter{padding:6px 9px;border:1px solid #303a4e;border-radius:8px;color:#8e9aab;font-size:9px}.table{padding:0 14px}.tr{display:grid;grid-template-columns:118px 102px 126px 115px 150px 154px 110px;gap:10px;align-items:center;min-height:66px;border-bottom:1px solid #222a39;color:#aeb8c6;font-size:9px}.tr.header{min-height:44px;color:#667287;font-size:8px;font-weight:800;text-transform:uppercase}.order{color:#fff;font-weight:800}.chip{width:max-content;padding:5px 7px;border:1px solid #34415a;border-radius:7px;background:#1a2231}.status{font-size:8px;font-weight:850}.completed{color:#63dfa0}.hold{color:#ff7b82}.processing{color:#efc162}
+
+    /* Developer */
+    .dev-grid{display:grid;grid-template-columns:1.02fr 1.38fr;gap:15px;height:870px}.dev-col{display:grid;gap:15px;align-content:start}.dev-card{border-radius:15px;overflow:hidden}.dev-head{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #273044}.dev-head h3{margin:0;font-size:12px}.dev-head span{color:#6edda5;font-size:9px}.keys,.docs,.sandbox{display:grid;gap:11px;padding:15px}.key{padding:11px;border:1px solid #293348;border-radius:11px;background:#0d121a}.key-label{color:#748095;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.key-value{display:flex;align-items:center;justify-content:space-between;margin-top:7px;color:#c2ccda;font-size:10px}.mini{border:1px solid #334058;border-radius:7px;padding:6px 8px;background:#1e2737;color:#d4dce8;font-size:8px;font-weight:750;cursor:pointer}.tabs{display:flex;gap:7px}.tabs span{padding:6px 9px;border-radius:7px;background:#20283a;color:#aeb8c7;font-size:8px}.code,.response,.payload{padding:12px;border:1px solid #263047;border-radius:10px;background:#070a0f;color:#96a5b9;font-size:8px;line-height:1.6}.blue{color:#83adff}.green{color:#72e0a8}.request{display:grid;grid-template-columns:68px 1fr 74px;gap:8px}.method{padding:9px;border:1px solid #285e45;border-radius:8px;background:#163728;color:#77e8ad;text-align:center;font-size:9px;font-weight:850}.endpoint{padding:9px;border:1px solid #273148;border-radius:8px;background:#0b1018;color:#b4becc;font-size:9px}.send{border:0;border-radius:8px;background:var(--blue);color:#fff;font-size:9px;font-weight:850;cursor:pointer}.events{padding:8px 12px}.event{padding:10px 5px;border-bottom:1px solid #222a39}.event-main{display:grid;grid-template-columns:105px 1fr 70px 75px;gap:10px;align-items:center;font-size:9px}.event-type{color:#e9edf5}.event-time{color:#6d788b}.payload{margin-top:9px}.payload-actions{display:flex;justify-content:flex-end;margin-top:8px}
+    .toast{position:absolute;z-index:30;right:30px;bottom:30px;padding:12px 15px;border:1px solid #2f5e48;border-radius:11px;background:#10271e;color:#82eab5;font-size:10px;box-shadow:0 20px 60px #0009}.state-layer{position:absolute;z-index:18;inset:86px 0 0;display:grid;place-items:center;background:rgba(7,10,15,.91);backdrop-filter:blur(8px)}#checkout-mobile .state-layer{inset:0}.state-card{width:360px;padding:28px;border:1px solid #2b364b;border-radius:18px;background:linear-gradient(145deg,#171e2b,#0d121a);box-shadow:0 28px 90px #0009;text-align:center}.state-card h3{margin:12px 0 7px;font-size:17px}.state-card p{margin:0;color:#8e9aab;font-size:10px;line-height:1.55}.state-card button{margin-top:17px;border:0;border-radius:9px;padding:9px 16px;background:#4f8cff;color:white;font-size:10px;font-weight:800;cursor:pointer}.spinner{width:30px;height:30px;margin:auto;border:3px solid #29354a;border-top-color:#76a7ff;border-radius:50%;animation:spin .8s linear infinite}.state-icon{width:42px;height:42px;display:grid;place-items:center;margin:auto;border-radius:13px;background:#202a3b;color:#9bbdff;font-size:18px}.state-error .state-icon{background:#381c24;color:#ff8b91}@keyframes spin{to{transform:rotate(360deg)}}
+    /* v1.3.1: align type scale and checkout focus with tr.html */
+    .demo-nav button{font-size:12px}.state-select{font-size:12px}.badge{font-size:12px}.eyebrow{font-size:12px}
+    .web-body{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(circle at 50% 48%,#172238 0,transparent 35%),linear-gradient(145deg,#0a0e15,#0d131d 58%,#101926)}
+    .web-story{position:relative;width:760px;padding:0;text-align:center;overflow:visible}.web-story:after{width:480px;height:480px;left:-610px;bottom:-420px;opacity:.45}.web-story h1{max-width:none;margin:10px 0 12px;font-size:40px;line-height:1.02;letter-spacing:-.045em}.web-story>p{max-width:690px;margin:0 auto;color:#a5afbe;font-size:14px;line-height:1.55}.web-story .proofs,.route-visual{display:none}
+    .checkout-shell{display:block;padding:0;border-left:0;background:transparent}.checkout-card{width:520px;padding:24px}.checkout-card-head{margin-bottom:16px}.checkout-card-head h2{font-size:20px}.seg button{font-size:12px}.field{padding:14px}.field-label{font-size:12px}.amount{font-size:32px}.currency{font-size:14px}.route-copy{min-width:215px}.route-copy b{font-size:12px}.route-copy small{font-size:10px}.estimate strong{font-size:24px}.asset{font-size:11px}.split-head{font-size:12px}.split-row{font-size:11px}.cta{font-size:14px}.secure-note{font-size:10px}
+    .mobile-brand{font-size:14px}.mobile-title h1{font-size:24px}.mobile-title p{font-size:12px}#checkout-mobile .field-label{font-size:12px}#checkout-mobile .route-copy b{font-size:12px}#checkout-mobile .route-copy small{font-size:10px}#checkout-mobile .asset{font-size:10px}#checkout-mobile .split-head{font-size:11px}#checkout-mobile .split-row{font-size:10px}#checkout-mobile .cta{font-size:12px}#checkout-mobile .secure-note{font-size:9px}
+    .side-brand{font-size:14px}.side-brand small{font-size:10px}.nav div{font-size:12px}.account{font-size:11px}.top p{font-size:12px}.env button{font-size:12px}.countdown{font-size:12px}.kpi-top{font-size:12px}.trend{font-size:10px}.strategy h3{font-size:14px}.strategy p{font-size:11px}.strategy-option{font-size:11px}.strategy-option b{font-size:12px}.ledger-head h3{font-size:14px}.filter{font-size:11px}.tr{font-size:10px}.tr.header{font-size:9px}.status{font-size:9px}
+    .dev-head h3{font-size:14px}.dev-head span{font-size:10px}.key-label{font-size:10px}.key-value{font-size:12px}.mini{font-size:10px}.tabs span{font-size:10px}.code,.response,.payload{font-size:10px}.method,.endpoint,.send{font-size:10px}.event-main{font-size:10px}.toast{font-size:12px}.state-card h3{font-size:18px}.state-card p{font-size:12px}.state-card button{font-size:12px}
+    /* v1.3.2: coordinated desktop density, spacing and hierarchy based on tr.html */
+    .desktop{grid-template-columns:248px 1fr}.desktop .side{padding:28px 20px}.desktop .side .mark{width:36px;height:36px;border-radius:11px}.desktop .side-brand{gap:12px;padding:0 8px 32px;font-size:16px;line-height:1.2}.desktop .side-brand small{margin-top:5px;font-size:11px;line-height:1.35}.desktop .nav{gap:6px}.desktop .nav div{padding:14px;border-radius:12px;font-size:14px;line-height:1.2}.desktop .nav span{width:24px;font-size:14px}.desktop .account{padding:22px 8px 2px;font-size:12px;line-height:1.65}.desktop .top{height:88px;padding:0 30px}.desktop .top h1{font-size:22px;letter-spacing:-.02em}.desktop .top p{margin-top:6px;font-size:12px;line-height:1.45}.desktop .top-actions{gap:14px}.desktop .env{padding:4px}.desktop .env button{padding:8px 12px;font-size:12px}.desktop .countdown{font-size:12px;line-height:1.25}.desktop .countdown b{font-size:16px}.desktop .content{padding:26px 30px 28px}.desktop .state-layer{inset:88px 0 0}
+    #dashboard .kpis{gap:16px}#dashboard .kpi{height:138px;padding:18px;border-radius:16px}#dashboard .kpi-top{font-size:12px;line-height:1.4}#dashboard .icon{width:30px;height:30px;border-radius:9px;font-size:14px}#dashboard .kpi strong{margin-top:14px;font-size:24px;line-height:1.15}#dashboard .trend{margin-top:9px;font-size:10px;line-height:1.4}
+    #dashboard .strategy{height:132px;margin-top:18px;padding:20px;border-radius:16px}#dashboard .strategy h3{margin:5px 0 7px;font-size:14px}#dashboard .strategy p{font-size:12px;line-height:1.45}#dashboard .strategy-toggle{gap:5px;padding:4px}#dashboard .strategy-option{width:306px;padding:12px 14px;font-size:12px;line-height:1.45}#dashboard .strategy-option b{margin-bottom:4px;font-size:12px}
+    #dashboard .ledger{height:558px;margin-top:18px;border-radius:16px}#dashboard .ledger-head{height:64px;padding:0 18px}#dashboard .ledger-head h3{margin-top:4px;font-size:14px}#dashboard .filters{gap:8px}#dashboard .filter{padding:8px 10px;font-size:12px}#dashboard .table{padding:0 18px}#dashboard .tr{grid-template-columns:1fr .88fr 1.05fr .8fr 1.3fr 1.3fr .95fr;gap:12px;min-height:70px;font-size:12px;line-height:1.35}#dashboard .tr.header{min-height:48px;font-size:10px;line-height:1.3}#dashboard .chip{padding:6px 8px;font-size:11px}#dashboard .status{font-size:10px;line-height:1.3}
+    #developer .dev-grid{grid-template-columns:minmax(0,.95fr) minmax(0,1.35fr);gap:18px;height:858px}#developer .dev-col{gap:18px}#developer .dev-card{border-radius:16px}#developer .dev-col:last-child{height:100%;grid-template-rows:1fr;align-content:stretch}#developer .dev-col:last-child .dev-card{display:flex;height:auto;flex-direction:column}#developer .dev-col:last-child .events{flex:1;overflow:auto}#developer .dev-head{height:62px;padding:0 18px;flex:0 0 62px}#developer .dev-head h3{font-size:14px;line-height:1.3}#developer .dev-head span{font-size:11px}#developer .keys,#developer .docs,#developer .sandbox{gap:14px;padding:18px}#developer .key{padding:13px;border-radius:12px}#developer .key-label{font-size:10px;line-height:1.4}#developer .key-value{margin-top:9px;font-size:12px;line-height:1.4}#developer .mini{padding:7px 10px;font-size:11px}#developer .tabs{gap:8px}#developer .tabs span{padding:7px 10px;font-size:11px}#developer .code,#developer .response,#developer .payload{padding:14px;font-size:11px;line-height:1.65}#developer .request{grid-template-columns:76px 1fr 80px;gap:10px}#developer .method,#developer .endpoint,#developer .send{padding:10px;font-size:11px}#developer .events{padding:10px 14px}#developer .event{min-height:60px;padding:14px 6px}#developer .event-main{grid-template-columns:110px 1fr 74px 82px;gap:12px;font-size:12px;line-height:1.35}#developer .payload{margin-top:12px}#developer .payload-actions{margin-top:10px}
+    #developer .dev-col:last-child{min-height:0;grid-template-rows:minmax(0,1fr);overflow:hidden}#developer .dev-col:last-child .dev-card,#developer .dev-col:last-child .events{min-height:0}#developer .event{min-height:70px}
+    /* v1.4.1: give the shared brand component a stable sidebar footprint */
+    .desktop{grid-template-columns:304px minmax(0,1fr)}
+    .desktop .side{min-width:0}
+    .desktop .app-main{min-width:0}
+    .desktop .content{padding-left:24px;padding-right:24px}
+    #dashboard .side>huizhi-brand,#developer .side>huizhi-brand{display:inline-flex;flex:0 0 auto;align-self:flex-start;min-width:max-content;margin:0 6px 32px!important}
+    @media(max-width:900px){.demo-nav{left:50%;width:calc(100vw - 20px);overflow:auto;justify-content:flex-start}.demo-nav button{white-space:nowrap}}
+  </style>
 </head>
-<body class="bg-[#0a0f1e] text-slate-300 font-sans h-screen flex overflow-hidden">
+<body>
+  <nav class="demo-nav" aria-label="Prototype screens">
+    <button data-screen="checkout-web">Web Checkout</button><button data-screen="checkout-mobile">Mobile Checkout</button><button data-screen="dashboard">Merchant</button><button data-screen="developer">Developer</button><select id="state-select" class="state-select" aria-label="Demo state"><option value="default">Default</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="error">Error</option></select>
+  </nav>
+  <main class="stage">
+    <section id="checkout-web" class="screen">
+      <header class="web-head"><div class="brand"><span class="mark">H</span><div>HuizhiPay™<small>COMPLIANT PAYMENT ORCHESTRATION</small></div></div><div class="web-safe"><span class="badge"><span class="dot"></span>0% Rolling Reserve</span><span class="badge">GDPR Protected</span></div></header>
+      <div class="web-body"><article class="web-story"><div class="route-visual"></div><span class="eyebrow">Frictionless checkout infrastructure</span><h1>Pay local.<br><em>Settle intelligently.</em></h1><p>One compliant checkout request routes local money through the right regulated gateway, authenticates silently, and prepares transparent merchant settlement.</p><div class="proofs"><div class="proof"><b>Local buyer experience</b>EUR, ZAR, USD and THB with IP-aware payment rails.</div><div class="proof"><b>Invisible compliance</b>3DS2 frictionless authentication and Chainalysis screening.</div><div class="proof"><b>Deterministic payout</b>CREATE2 routing with negotiated 1:N split logic.</div></div></article>
+        <aside class="checkout-shell"><div class="checkout-card"><div class="checkout-card-head"><div><span class="eyebrow">Secure payment request</span><h2>Checkout</h2></div><div class="seg"><button data-mode="compact">Compact</button><button class="active" data-mode="expanded">Expanded</button></div></div><div class="field"><div class="field-label"><span>You Pay</span><span class="detected">Detected: Europe (SEPA)</span></div><div class="amount-row"><span class="amount">500.00</span><select class="currency"><option>EUR</option><option>ZAR</option><option>USD</option><option>THB</option></select></div></div><div class="route"><span class="dot"></span><div class="route-copy"><b>Compliant smart routing</b><small>BVNK · SEPA Instant · 3DS2 frictionless</small></div><div class="track"></div></div><div class="field estimate"><div><div class="field-label">Settlement estimate</div><strong>€465.00</strong></div><span class="asset">Local fiat · EUR</span></div><div class="split"><div class="split-head"><span>Smart Splitter</span><span class="muted">Transparent settlement⌃</span></div><div class="split-bars"><i></i><i></i><i></i></div><div class="split-details"><div class="split-row"><span>Gateway Processing</span><b>Included</b></div><div class="split-row"><span>Protocol Technical Fee</span><b>Negotiated</b></div><div class="split-row"><span>Merchant Net Payout</span><b style="color:#63dfa0">Negotiated</b></div></div></div><button class="cta" data-open-modal="web-modal">▣ &nbsp; Request Secure Checkout API</button><div class="secure-note"><span>3DS2 protected</span><span>·</span><span>PCI scoped</span><span>·</span><span>Encrypted in transit</span></div></div></aside></div>
+      <div id="web-modal" class="modal hidden"><div class="modal-panel"><div class="approved">✓</div><span class="eyebrow">Authentication result</span><h3>3DS2 Frictionless Auth Approved</h3><p>No buyer challenge required. A deterministic settlement route is ready.</p><div class="logic mono"><span class="muted">CREATE2 settlement address</span><br><b>0x3f88…a82f1</b><br><br><span class="muted">Payout logic</span><br>SEPA → compliant gateway → negotiated split → merchant destination</div><button data-close-modal="web-modal">Continue secure checkout</button></div></div>
+    </section>
 
-  <!-- ===== SIDEBAR ===== -->
-  <aside class="w-56 bg-[#0d1424] border-r border-slate-800/60 flex flex-col">
-    <div class="px-5 py-5 border-b border-slate-800/60">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">H</div>
-        <div>
-          <div class="text-sm font-bold text-white tracking-wide">HuizhiPay™</div>
-          <div class="text-[9px] text-slate-500 uppercase tracking-wider">Compliant Payment Orchestration</div>
-        </div>
-      </div>
-    </div>
-    <nav class="flex-1 py-4 px-3 space-y-1">
-      <button onclick="switchView('overview')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn active transition-colors" data-view="overview">
-        <i data-lucide="layout-dashboard" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.overview">Overview</span>
-      </button>
-      <button onclick="switchView('factoring')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn transition-colors" data-view="factoring">
-        <i data-lucide="book-open" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.ledgerSplits">Ledger & Splits</span>
-      </button>
-      <button onclick="switchView('settlements')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn transition-colors" data-view="settlements">
-        <i data-lucide="landmark" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.settlements">Settlements</span>
-      </button>
-      <button onclick="switchView('risk')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn transition-colors" data-view="risk">
-        <i data-lucide="shield" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.riskAml">Risk & AML</span>
-      </button>
-      <button onclick="switchView('integrations')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn transition-colors" data-view="integrations">
-        <i data-lucide="plug" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.integrations">Integrations</span>
-      </button>
-      <button onclick="switchView('settings')" class="w-full flex items-center px-3 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg nav-btn transition-colors" data-view="settings">
-        <i data-lucide="settings" class="w-4.5 h-4.5 mr-3"></i>
-        <span class="text-sm font-medium" data-i18n="sidebar.settings">Settings</span>
-      </button>
-    </nav>
-  </aside>
+    <section id="checkout-mobile" class="screen hidden"><div class="mobile-head"><div class="mobile-brand"><span class="mark">H</span>HuizhiPay™</div><span class="badge" style="color:#8cf0bd"><span class="dot"></span>GDPR</span></div><div class="mobile-title"><span class="eyebrow">Frictionless checkout</span><h1>Pay local.<br>Settle intelligently.</h1><p>Compliant routing, authentication and settlement in one request.</p></div><div class="seg"><button data-mode="compact">Compact</button><button class="active" data-mode="expanded">Expanded</button></div><div class="field"><div class="field-label"><span>You Pay</span><span class="detected">Detected: Europe (SEPA)</span></div><div class="amount-row"><span class="amount">500.00</span><span class="currency">EUR⌄</span></div></div><div class="route"><span class="dot"></span><div class="route-copy"><b>Compliant smart routing</b><small>BVNK · SEPA · 3DS2</small></div><div class="track"></div></div><div class="field estimate"><div><div class="field-label">Settlement estimate</div><strong>€465.00</strong></div><span class="asset">Local fiat · EUR</span></div><div class="split"><div class="split-head"><span>Smart Splitter</span><span class="muted">Transparent⌃</span></div><div class="split-bars"><i></i><i></i><i></i></div><div class="split-details"><div class="split-row"><span>Gateway Processing</span><b>Included</b></div><div class="split-row"><span>Technical Fee</span><b>Negotiated</b></div><div class="split-row"><span>Merchant Net Payout</span><b style="color:#63dfa0">Negotiated</b></div></div></div><button class="cta" data-open-modal="mobile-modal">▣ &nbsp; Request Secure Checkout API</button><div class="secure-note"><span>3DS2</span><span>·</span><span>PCI scoped</span><span>·</span><span>Encrypted</span></div><div id="mobile-modal" class="modal mobile-modal hidden"><div class="modal-panel"><div class="approved">✓</div><span class="eyebrow">Authentication result</span><h3>3DS2 Frictionless Auth Approved</h3><p>No buyer challenge required. CREATE2 routing is ready.</p><div class="logic mono"><span class="muted">CREATE2 settlement address</span><br><b>0x3f88…a82f1</b><br><br>SEPA → gateway → split → merchant</div><button data-close-modal="mobile-modal">Continue secure checkout</button></div></div></section>
 
-  <!-- ===== MAIN ===== -->
-  <main class="flex-1 flex flex-col overflow-hidden">
-    <!-- Top Header -->
-    <header class="px-8 pt-6 pb-4 flex items-start justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white" data-i18n="pages.merchant.title">Merchant Dashboard</h1>
-        <p class="text-sm text-slate-500 mt-1" data-i18n="pages.merchant.subtitle">Settlement transparency across fiat rails and on-chain destinations.</p>
-      </div>
-      <div class="flex items-center gap-5">
-        <!-- Environment Toggle -->
-        <div class="flex bg-slate-800/60 rounded-lg p-1">
-          <button id="env-live" onclick="switchEnv('live')" class="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white transition-all">Live</button>
-          <button id="env-sandbox" onclick="switchEnv('sandbox')" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition-all">Sandbox</button>
-        </div>
-        <!-- Language Switcher -->
-        <div class="relative">
-          <button onclick="toggleLanguageMenu()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-slate-800/60 text-slate-300 hover:bg-slate-700/60 transition-all">
-            <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-            <span id="current-lang-label">中文</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 opacity-60"></i>
-          </button>
-          <div id="language-menu" class="absolute right-0 mt-1 w-32 bg-[#111827] border border-slate-700 rounded-lg shadow-xl overflow-hidden hidden z-50">
-            <button onclick="selectLanguage('zh')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 transition-colors" data-lang-item="zh">
-              <span>🇨🇳</span><span>中文</span>
-            </button>
-            <button onclick="selectLanguage('en')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 transition-colors" data-lang-item="en">
-              <span>🇺🇸</span><span>English</span>
-            </button>
-          </div>
-        </div>
-        <!-- Countdown -->
-        <div class="text-right">
-          <div class="text-[10px] text-slate-500 uppercase tracking-wider" data-i18n="header.nextSettlement">Next T+1 Settlement in</div>
-          <div class="text-xl font-bold text-white font-mono" id="settlement-countdown">00:42:15</div>
-        </div>
-      </div>
-    </header>
+    <section id="dashboard" class="screen desktop hidden"><aside class="side"><div class="side-brand"><span class="mark">绘</span><div>绘智 HSB<small>Merchant Control Center</small></div></div><nav class="nav"><div class="active"><span>◈</span>Overview</div><div><span>▤</span>Ledger & Splits</div><div><span>↗</span>Settlements</div><div><span>◇</span>Risk & AML</div><div><span>◎</span>Integrations</div><div><span>⚙</span>Settings</div></nav><div class="account">Atlas Mobility<br><span class="muted">Merchant · EU-0921</span></div></aside><div class="app-main"><header class="top"><div><h1>Merchant Dashboard</h1><p>Settlement transparency across fiat rails and on-chain destinations.</p></div><div class="top-actions"><div class="env"><button class="active">Live</button><button>Sandbox</button></div><div class="countdown">Next T+1 Settlement in:<b class="mono" id="timer">08:42:15</b></div></div></header><div class="content"><div class="kpis"><div class="kpi card"><div class="kpi-top"><span>Today's Volume</span><span class="icon">↗</span></div><strong>€124,500.00</strong><div class="trend">+14.2% vs yesterday</div></div><div class="kpi card"><div class="kpi-top"><span>Net Settlement</span><span class="icon">◎</span></div><strong>€115,785.00</strong><div class="trend">93% net yield</div></div><div class="kpi card"><div class="kpi-top"><span>Conversion Rate</span><span class="icon">✓</span></div><strong>94.2%</strong><div class="trend">3DS2 silent approval</div></div><div class="kpi card"><div class="kpi-top"><span>AML Risk Score</span><span class="icon">◇</span></div><strong>0.02%</strong><div class="trend">Chainalysis intercepted</div></div></div><div class="strategy card"><div><span class="eyebrow">Payout strategy</span><h3>Choose the settlement destination</h3><p>Switch without changing the buyer-facing checkout.</p></div><div class="strategy-toggle"><button class="strategy-option active"><b>Option A · Crypto</b>Polygon / Stellar smart-contract split → cold wallet</button><button class="strategy-option"><b>Option B · Fiat</b>Stellar SEP-24 anchor → business bank account</button></div></div><div class="ledger card"><div class="ledger-head"><div><span class="eyebrow">1:N split waterfall</span><h3>Virtual Ledger</h3></div><div class="filters"><span class="filter">All gateways⌄</span><span class="filter">Export CSV</span></div></div><div class="table"><div class="tr header"><span>Order ID</span><span>Fiat In</span><span>GEO Gateway</span><span>Fee Split</span><span>Chain Destination</span><span>Chainalysis Status</span><span>Settlement Time</span></div><div class="tr"><span class="order">HZ-99801</span><span>€500.00</span><span class="chip">BVNK · SEPA</span><span>7% / 93%</span><span>Stellar · EURC</span><span class="status completed">COMPLETED</span><span>10:42:01</span></div><div class="tr"><span class="order">HZ-99802</span><span>R1,200.00</span><span class="chip">TransFi · EFT</span><span>6% / 94%</span><span>Polygon · CREATE2</span><span class="status processing">PROCESSING</span><span>10:39:44</span></div><div class="tr"><span class="order">HZ-99803</span><span>$2,500.00</span><span class="chip">Onramper · US</span><span>—</span><span>Merchant Cold Wallet</span><span class="status hold">AML_HOLD</span><span>10:36:19</span></div><div class="tr"><span class="order">HZ-99798</span><span>฿18,400.00</span><span class="chip">PromptPay · TH</span><span>5% / 95%</span><span>Stellar · USDC</span><span class="status completed">COMPLETED</span><span>10:28:52</span></div><div class="tr"><span class="order">HZ-99794</span><span>€920.00</span><span class="chip">BVNK · SEPA</span><span>7% / 93%</span><span>Polygon · USDC</span><span class="status completed">COMPLETED</span><span>10:17:09</span></div></div></div></div></div></section>
 
-    <!-- Content -->
-    <div class="flex-1 overflow-auto px-8 pb-8 relative">
-      <!-- iframe loader -->
-      <div id="frame-loader" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-        <div class="flex items-center gap-2 text-slate-500">
-          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-          <span class="text-sm" data-i18n="loading">Loading...</span>
-        </div>
-      </div>
-      <iframe id="content-frame" src="" class="w-full min-h-[calc(100vh-180px)] border-0" title="Content"></iframe>
-    </div>
+    <section id="developer" class="screen desktop hidden"><aside class="side"><div class="side-brand"><span class="mark">H</span><div>Huizhi Developers<small>API & Sandbox Workspace</small></div></div><nav class="nav"><div class="active"><span>⌁</span>API Keys</div><div><span>◉</span>Webhook Logs</div><div><span>↓</span>SDK Downloads</div><div><span>⌘</span>OpenAPI Sandbox</div><div><span>▤</span>Documentation</div></nav><div class="account"><span class="badge"><span class="dot"></span>Sandbox healthy</span></div></aside><div class="app-main"><header class="top"><div><h1>Developer Portal</h1><p>Issue credentials, replay webhooks and validate settlement requests.</p></div><div class="top-actions"><span class="badge">API v2026-08</span><span class="badge"><span class="dot"></span>99.99% uptime</span></div></header><div class="content"><div class="dev-grid"><div class="dev-col"><div class="dev-card card"><div class="dev-head"><h3>API Keys</h3><span>Encrypted at rest</span></div><div class="keys"><div class="key"><div class="key-label">Test Secret Key</div><div class="key-value mono"><span>sk_test_hz88902…</span><button class="mini copy">Copy</button></div></div><div class="key"><div class="key-label">Live Secret Key</div><div class="key-value mono"><span>pk_live_****************</span><button class="mini">Roll Key</button></div></div></div></div><div class="dev-card card"><div class="dev-head"><h3>Documentation</h3><span>Quick start</span></div><div class="docs"><div class="tabs"><span>cURL</span><span>Node</span><span>Java</span></div><div class="code mono"><span class="blue">POST</span> /v1/checkout/sessions<br><span class="green">Authorization:</span> Bearer sk_test…<br><br>{<br>&nbsp;&nbsp;"amount": 50000,<br>&nbsp;&nbsp;"currency": "EUR",<br>&nbsp;&nbsp;"settlement": "AUTO_SPLIT"<br>}</div></div></div><div class="dev-card card"><div class="dev-head"><h3>OpenAPI Sandbox</h3><span>Ready</span></div><div class="sandbox"><div class="request"><span class="method">POST</span><span class="endpoint mono">/v1/checkout/sessions</span><button class="send">Send</button></div><div class="response mono"><span class="green">200 OK</span><br>{ "id": "cs_hz_99801", "status": "requires_confirmation" }</div></div></div></div><div class="dev-col"><div class="dev-card card"><div class="dev-head"><div><span class="eyebrow">Last 50 deliveries</span><h3 style="margin-top:3px">Real-time Webhook Console</h3></div><span>● Listening</span></div><div class="events"><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">payment_intent.succeeded</span><span class="event-time mono">10:42:01</span><button class="mini expand">Expand</button></div><div class="payload mono hidden">{<br>&nbsp;&nbsp;"event": "payment_intent.succeeded",<br>&nbsp;&nbsp;"order_id": "HZ-99801",<br>&nbsp;&nbsp;"status": "COMPLETED",<br>&nbsp;&nbsp;"derived_contract": "0x7a89…",<br>&nbsp;&nbsp;"response_code": 200<br>}<div class="payload-actions"><button class="mini resend" style="background:#2b4f84;color:#fff">Resend Event</button></div></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">settlement.completed</span><span class="event-time mono">10:41:55</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="processing">202 ACCEPTED</span><span class="event-type">aml.review.created</span><span class="event-time mono">10:39:44</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">payout.split_confirmed</span><span class="event-time mono">10:36:19</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="hold">500 RETRY</span><span class="event-type">webhook.delivery_failed</span><span class="event-time mono">10:32:07</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">checkout.session.created</span><span class="event-time mono">10:30:18</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">gateway.route_selected</span><span class="event-time mono">10:28:52</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">three_ds.frictionless</span><span class="event-time mono">10:26:43</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="processing">202 ACCEPTED</span><span class="event-type">settlement.processing</span><span class="event-time mono">10:22:16</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">payout.created</span><span class="event-time mono">10:19:04</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="completed">200 OK</span><span class="event-type">ledger.entry.posted</span><span class="event-time mono">10:17:09</span><button class="mini">Expand</button></div></div><div class="event"><div class="event-main"><span class="processing">202 ACCEPTED</span><span class="event-type">webhook.delivery_delayed</span><span class="event-time mono">10:14:31</span><button class="mini">Expand</button></div></div></div></div></div></div></div></div><div class="toast hidden">Webhook event resent successfully</div></section>
   </main>
-
-  <!-- Top-up Modal -->
-  <div id="topup-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
-    <div class="bg-[#0d1424] border border-slate-700 w-[400px] rounded-xl shadow-2xl p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-semibold text-white" data-i18n="topup.title">Crypto Top Up (TRC20)</h3>
-        <button onclick="closeTopUpDialog()" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-      <input type="number" id="topup-amount" value="500" class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white mb-4">
-      <button onclick="generateInvoice()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-md">
-        <span data-i18n="topup.generate">Generate USDT Address</span>
-      </button>
-      <p id="topup-result" class="text-green-400 text-sm mt-4 text-center break-all hidden"></p>
-    </div>
-  </div>
-
-  <!-- Toast Container -->
-  <div id="toast-container" class="fixed right-4 top-4 z-50 flex flex-col gap-2"></div>
-
-  <script src="js/app.js"></script>
-<script>
-  async function checkLoginStatus() {
-    const loggedIn = await isLoggedIn();
-    if (!loggedIn) {
-      window.location.href = 'login.html';
+  <script>
+    class HuizhiBrand extends HTMLElement{
+      connectedCallback(){
+        if(this.shadowRoot)return;
+        const compact=this.hasAttribute('compact');
+        const root=this.attachShadow({mode:'open'});
+        root.innerHTML=`<style>:host{display:inline-flex;align-items:center;gap:${compact?'8':'11'}px;color:#f4f7fb;font-family:"Aptos Display","Segoe UI Variable",sans-serif}.brand-mark{display:grid;place-items:center;width:${compact?'28':'36'}px;height:${compact?'28':'36'}px;border-radius:${compact?'9':'11'}px;background:linear-gradient(135deg,#78a7ff,#c0f96c);color:#071017;font-size:${compact?'13':'16'}px;font-weight:950;box-shadow:0 8px 24px #5a91ff25}.brand-name{display:block;font-size:${compact?'13':'16'}px;font-weight:850;line-height:1.2;white-space:nowrap}.brand-tagline{display:${compact?'none':'block'};margin-top:4px;color:#758197;font-size:10px;font-weight:650;line-height:1.25;letter-spacing:.03em;white-space:nowrap}</style><span class="brand-mark" aria-hidden="true">H</span><span><strong class="brand-name">HuizhiPay™</strong><small class="brand-tagline">COMPLIANT PAYMENT ORCHESTRATION</small></span>`;
+      }
     }
-  }
-
-  function switchEnv(env) {
-    const live = document.getElementById('env-live');
-    const sandbox = document.getElementById('env-sandbox');
-    if (env === 'live') {
-      live.className = 'px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white transition-all';
-      sandbox.className = 'px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition-all';
-    } else {
-      sandbox.className = 'px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white transition-all';
-      live.className = 'px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition-all';
+    customElements.define('huizhi-brand',HuizhiBrand);
+    function mountBrand(selector,{compact=false,sidebar=false}={}){
+      const current=document.querySelector(selector),brand=document.createElement('huizhi-brand');
+      if(compact)brand.setAttribute('compact','');
+      if(sidebar)brand.style.margin='0 8px 32px';
+      current.replaceWith(brand);
     }
-  }
-
-  function startCountdown() {
-    // 42 minutes 15 seconds
-    let totalSeconds = 42 * 60 + 15;
-    const el = document.getElementById('settlement-countdown');
-    if (!el) return;
-    
-    function tick() {
-      if (totalSeconds <= 0) totalSeconds = 24 * 3600; // reset to 24h
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      totalSeconds--;
-    }
-    tick();
-    setInterval(tick, 1000);
-  }
-
-  checkLoginStatus();
-  startCountdown();
-</script>
+    mountBrand('#checkout-web .brand');
+    mountBrand('#checkout-mobile .mobile-brand',{compact:true});
+    mountBrand('#dashboard .side-brand',{sidebar:true});
+    mountBrand('#developer .side-brand',{sidebar:true});
+    const screens=[...document.querySelectorAll('.screen')],nav=[...document.querySelectorAll('.demo-nav button')];
+    const stateSelect=document.getElementById('state-select');
+    const stateCopy={
+      'checkout-web':{loading:['Preparing secure route','Checking local rails, 3DS2 eligibility and settlement options.'],empty:['Enter an amount to begin','Choose a local currency and enter the amount the buyer wants to pay.'],error:['Secure route unavailable','We could not reach a compliant gateway. Review the amount or try again.']},
+      'checkout-mobile':{loading:['Preparing secure route','Checking local rails and authentication.'],empty:['Enter an amount to begin','Choose a currency and enter the buyer amount.'],error:['Route unavailable','Check the connection or try again.']},
+      dashboard:{loading:['Loading merchant ledger','Reconciling gateways, fee splits and settlement destinations.'],empty:['No transactions in this period','Adjust the date range or switch between Live and Sandbox.'],error:['Ledger sync interrupted','Latest settlements could not be reconciled. Try loading the ledger again.']},
+      developer:{loading:['Loading delivery logs','Fetching API status and the latest webhook events.'],empty:['No webhook deliveries yet','Send a Sandbox checkout request to create the first event.'],error:['Webhook console unavailable','Delivery logs could not be loaded. Retry without changing your endpoint.']}
+    };
+    function applyState(value){document.querySelectorAll('.state-layer').forEach(x=>x.remove());if(value==='default')return;const root=document.querySelector('.screen:not(.hidden)'),copy=stateCopy[root.id][value],layer=document.createElement('div');layer.className='state-layer '+(value==='error'?'state-error':'');layer.innerHTML=`<div class="state-card">${value==='loading'?'<div class="spinner"></div>':`<div class="state-icon">${value==='empty'?'◇':'!'}</div>`}<h3>${copy[0]}</h3><p>${copy[1]}</p>${value==='error'?'<button class="state-retry">Retry</button>':''}</div>`;root.appendChild(layer);layer.querySelector('.state-retry')?.addEventListener('click',()=>{stateSelect.value='loading';applyState('loading');setTimeout(()=>{stateSelect.value='default';applyState('default')},850)})}
+    function fitScreen(root){const scale=Math.min(innerWidth/root.offsetWidth,innerHeight/root.offsetHeight,1);root.style.transform=`translate(-50%,-50%) scale(${scale})`}
+    function show(id){screens.forEach(s=>s.classList.toggle('hidden',s.id!==id));nav.forEach(b=>b.classList.toggle('active',b.dataset.screen===id));stateSelect.value='default';applyState('default');const root=document.getElementById(id);fitScreen(root);history.replaceState(null,'','?screen='+id)}
+    nav.forEach(b=>b.addEventListener('click',()=>show(b.dataset.screen)));
+    document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{const root=b.closest('.screen');root.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('.split-details').forEach(x=>x.classList.toggle('hidden',b.dataset.mode==='compact'))}));
+    document.querySelectorAll('[data-open-modal]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.openModal).classList.remove('hidden')));
+    document.querySelectorAll('[data-close-modal]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.closeModal).classList.add('hidden')));
+    document.querySelectorAll('.env button,.strategy-option').forEach(b=>b.addEventListener('click',()=>{[...b.parentElement.children].forEach(x=>x.classList.toggle('active',x===b))}));
+    const exp=document.querySelector('.expand'),payload=document.querySelector('.payload');exp.addEventListener('click',()=>{payload.classList.toggle('hidden');exp.textContent=payload.classList.contains('hidden')?'Expand':'Collapse'});
+    document.querySelector('.resend').addEventListener('click',()=>{const t=document.querySelector('.toast');t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1800)});
+    document.querySelector('.copy').addEventListener('click',e=>{e.currentTarget.textContent='Copied';setTimeout(()=>e.currentTarget.textContent='Copy',1200)});
+    document.querySelector('.send').addEventListener('click',e=>{e.currentTarget.textContent='Sent ✓';setTimeout(()=>e.currentTarget.textContent='Send',1200)});
+    stateSelect.addEventListener('change',()=>applyState(stateSelect.value));
+    addEventListener('resize',()=>{const root=document.querySelector('.screen:not(.hidden)');if(root)fitScreen(root)});
+    show(new URLSearchParams(location.search).get('screen')||'checkout-web');
+  </script>
 </body>
 </html>
