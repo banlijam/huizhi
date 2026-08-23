@@ -53,6 +53,9 @@ test('build contains the complete interactive prototype and local vendor assets'
   assert.match(html, /new URLSearchParams\(location\.search\)/);
   assert.match(html, /id=["']dummy-create-form["']/);
   assert.match(html, /\/api\/v1\/dummy\/orders/);
+  assert.match(html, /location\.pathname===['"]\/demo['"]/);
+  assert.match(html, /Responsive Checkout/);
+  assert.doesNotMatch(html, /data-screen=["']checkout-mobile["']/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);
 
   for (const file of ['tailwindcss.js', 'lucide.min.js', 'chart.umd.min.js']) {
@@ -94,6 +97,18 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   const root = await fetch(`${baseUrl}/?screen=developer`);
   assert.equal(root.status, 200);
   assert.match(await root.text(), /id=["']developer["']/);
+
+  const merchant = await fetch(`${baseUrl}/merchant`);
+  assert.equal(merchant.status, 200);
+  assert.match(await merchant.text(), /id=["']dummy-create-form["']/);
+
+  const demo = await fetch(`${baseUrl}/demo?screen=developer`);
+  assert.equal(demo.status, 200);
+  assert.match(await demo.text(), /Prototype sample data/);
+
+  const developer = await fetch(`${baseUrl}/developer`);
+  assert.equal(developer.status, 200);
+  assert.match(await developer.text(), /开发者门户本周暂缓/);
 
   const paymentPage = await fetch(`${baseUrl}/pay/`);
   assert.equal(paymentPage.status, 200);

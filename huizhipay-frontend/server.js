@@ -99,6 +99,10 @@ const server = http.createServer(async (req, res) => {
     pathname = pathname.substring(0, queryIndex);
   }
 
+  if (pathname === '/merchant' || pathname === '/demo') {
+    pathname = '/index.html';
+  }
+
   if (pathname.endsWith('/')) {
     pathname += 'index.html';
   }
