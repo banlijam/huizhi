@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node server.js",
     "build": "node scripts/build.cjs",
-    "preview": "node server.js --dist"
+    "preview": "node server.js --dist",
+    "test": "npm run build && node --test tests/*.test.cjs"
   },
   "keywords": [
     "payment",

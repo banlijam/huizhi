@@ -98,7 +98,11 @@ const server = http.createServer(async (req, res) => {
   if (queryIndex !== -1) {
     pathname = pathname.substring(0, queryIndex);
   }
-  
+
+  if (pathname.endsWith('/')) {
+    pathname += 'index.html';
+  }
+
   let filePath = path.join(PUBLIC_DIR, pathname);
   const extname = path.extname(filePath);
   
