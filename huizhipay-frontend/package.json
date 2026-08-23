@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "node scripts/build.cjs",
-    "preview": "npx serve -l 4173 dist"
+    "preview": "node server.js --dist"
   },
   "keywords": [
     "payment",

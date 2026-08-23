@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, 'src');
-const BACKEND_API = 'http://localhost:8080';
+const PUBLIC_DIR = path.join(__dirname, process.argv.includes('--dist') ? 'dist' : 'src');
+const BACKEND_API = process.env.BACKEND_API || 'http://localhost:8080';
 
 const transactions = [
   { time: '14:32:08', orderId: 'HP-839201', card: '•••• 4242', provider: 'Adyen', status: 'verified', cavvEci: 'AAABBI / 05' },
@@ -111,5 +111,6 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
-  console.log(`You can also open public/index.html directly in your browser`);
+  console.log(`Serving frontend from ${PUBLIC_DIR}`);
+  console.log(`Proxying /api/v1 to ${BACKEND_API}`);
 });
