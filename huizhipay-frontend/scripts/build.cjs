@@ -136,6 +136,21 @@ function rewriteHtmlAssets() {
   }
 }
 
+/** 为 nginx 静态托管生成与本地预览一致的目录入口。 */
+function writeRouteEntrypoints() {
+  const routes = {
+    merchant: 'index.html',
+    demo: 'index.html',
+    developer: 'developer.html',
+  };
+
+  for (const [route, source] of Object.entries(routes)) {
+    const routeDir = path.join(DIST_DIR, route);
+    fs.mkdirSync(routeDir, { recursive: true });
+    fs.copyFileSync(path.join(DIST_DIR, source), path.join(routeDir, 'index.html'));
+  }
+}
+
 async function build() {
   console.log('🧹 清理 dist 目录...');
   resetDir(DIST_DIR);
@@ -161,6 +176,9 @@ async function build() {
 
   console.log('✏️  重写 HTML 中的 CDN 引用为本地路径...');
   rewriteHtmlAssets();
+
+  console.log('🧭 生成静态部署路由入口...');
+  writeRouteEntrypoints();
 
   console.log('✅ 构建完成，发布产物位于 dist/');
   console.log('   可直接将 dist/ 拷贝到 nginx 的 root 目录使用。');

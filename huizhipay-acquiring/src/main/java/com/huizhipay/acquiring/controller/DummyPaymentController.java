@@ -3,6 +3,7 @@ package com.huizhipay.acquiring.controller;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
+import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,9 +29,15 @@ public class DummyPaymentController {
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
-        BigDecimal amount = request.amount() == null ? new BigDecimal("10.00") : request.amount();
-        String currency = request.currency() == null || request.currency().isBlank()
-                ? "USD" : request.currency().trim().toUpperCase(Locale.ROOT);
+        if (request.amount() == null || request.amount().signum() <= 0) {
+            throw new BizException(400, "Dummy amount must be greater than zero");
+        }
+        if (request.currency() != null && !request.currency().isBlank()
+                && !"USD".equalsIgnoreCase(request.currency().trim())) {
+            throw new BizException(400, "Dummy MVP only supports USD");
+        }
+        BigDecimal amount = request.amount();
+        String currency = "USD";
         String orderNo = "DUMMY-" + UUID.randomUUID().toString().replace("-", "")
                 .substring(0, 12).toUpperCase(Locale.ROOT);
         LocalDateTime now = LocalDateTime.now();
@@ -56,8 +63,14 @@ public class DummyPaymentController {
     @PostMapping("/{orderNo}/result")
     public R<OrderView> result(@PathVariable String orderNo, @RequestBody ResultRequest request) {
         PaymentOrder order = requireOrder(orderNo);
-        PaymentOrder.PaymentStatus status = "FAILED".equalsIgnoreCase(request.result())
-                ? PaymentOrder.PaymentStatus.FAILED : PaymentOrder.PaymentStatus.SUCCESS;
+        String requestedResult = request.result() == null ? "" : request.result().trim().toUpperCase(Locale.ROOT);
+        if (!"SUCCESS".equals(requestedResult) && !"FAILED".equals(requestedResult)) {
+            throw new BizException(400, "Dummy result must be SUCCESS or FAILED");
+        }
+        if (order.getStatus() != PaymentOrder.PaymentStatus.PENDING) {
+            return R.ok(toView(order));
+        }
+        PaymentOrder.PaymentStatus status = PaymentOrder.PaymentStatus.valueOf(requestedResult);
         order.setStatus(status)
                 .setChannelTradeNo("DUMMY_TXN_" + UUID.randomUUID().toString().replace("-", "")
                         .substring(0, 10).toUpperCase(Locale.ROOT))
@@ -84,7 +97,7 @@ public class DummyPaymentController {
                 Wrappers.<PaymentOrder>lambdaQuery()
                         .eq(PaymentOrder::getOrderNo, orderNo)
                         .eq(PaymentOrder::getChannel, DUMMY_CHANNEL));
-        if (order == null) throw new IllegalArgumentException("Dummy order not found: " + orderNo);
+        if (order == null) throw new BizException(404, "Dummy order not found: " + orderNo);
         return order;
     }
 

@@ -53,7 +53,8 @@ test('build contains the complete interactive prototype and local vendor assets'
   assert.match(html, /new URLSearchParams\(location\.search\)/);
   assert.match(html, /id=["']dummy-create-form["']/);
   assert.match(html, /\/api\/v1\/dummy\/orders/);
-  assert.match(html, /location\.pathname===['"]\/demo['"]/);
+  assert.match(html, /normalizedPath===['"]\/demo['"]/);
+  assert.match(html, /id=\\?"dummy-currency\\?" value=\\?"USD\\?" readonly/);
   assert.match(html, /Responsive Checkout/);
   assert.doesNotMatch(html, /data-screen=["']checkout-mobile["']/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);
@@ -62,6 +63,13 @@ test('build contains the complete interactive prototype and local vendor assets'
     const info = await stat(path.join(ROOT, 'dist', 'vendor', file));
     assert.ok(info.size > 0, `${file} must not be empty`);
   }
+
+  const merchantRoute = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
+  const demoRoute = await readFile(path.join(ROOT, 'dist', 'demo', 'index.html'), 'utf8');
+  const developerRoute = await readFile(path.join(ROOT, 'dist', 'developer', 'index.html'), 'utf8');
+  assert.match(merchantRoute, /id=["']dashboard["']/);
+  assert.match(demoRoute, /class=["']demo-nav["']/);
+  assert.match(developerRoute, /开发者门户本周暂缓/);
 });
 
 test('built frontend serves routes and proxies API requests to the backend', async (t) => {
@@ -102,13 +110,25 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.equal(merchant.status, 200);
   assert.match(await merchant.text(), /id=["']dummy-create-form["']/);
 
+  const merchantSlash = await fetch(`${baseUrl}/merchant/`);
+  assert.equal(merchantSlash.status, 200);
+  assert.match(await merchantSlash.text(), /id=["']dashboard["']/);
+
   const demo = await fetch(`${baseUrl}/demo?screen=developer`);
   assert.equal(demo.status, 200);
   assert.match(await demo.text(), /Prototype sample data/);
 
+  const demoSlash = await fetch(`${baseUrl}/demo/?screen=developer`);
+  assert.equal(demoSlash.status, 200);
+  assert.match(await demoSlash.text(), /normalizedPath/);
+
   const developer = await fetch(`${baseUrl}/developer`);
   assert.equal(developer.status, 200);
   assert.match(await developer.text(), /开发者门户本周暂缓/);
+
+  const developerSlash = await fetch(`${baseUrl}/developer/`);
+  assert.equal(developerSlash.status, 200);
+  assert.match(await developerSlash.text(), /开发者门户本周暂缓/);
 
   const paymentPage = await fetch(`${baseUrl}/pay/`);
   assert.equal(paymentPage.status, 200);
@@ -117,6 +137,10 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /id=["']success["']/);
   assert.match(paymentHtml, /id=["']fail["']/);
   assert.match(paymentHtml, /\/api\/v1\/dummy\/orders/);
+
+  const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
+  assert.equal(paymentWithoutSlash.status, 200);
+  assert.match(await paymentWithoutSlash.text(), /模拟付款成功/);
 
   const favicon = await fetch(`${baseUrl}/favicon.svg`);
   assert.equal(favicon.status, 200);

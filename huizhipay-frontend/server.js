@@ -93,15 +93,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  let pathname = req.url === '/' ? '/index.html' : req.url;
-  const queryIndex = pathname.indexOf('?');
-  if (queryIndex !== -1) {
-    pathname = pathname.substring(0, queryIndex);
-  }
+  const requestPath = new URL(req.url, 'http://localhost').pathname;
+  const normalizedPath = requestPath.replace(/\/+$/, '') || '/';
+  let pathname = requestPath;
 
-  if (pathname === '/merchant' || pathname === '/demo') {
+  if (normalizedPath === '/') pathname = '/index.html';
+  if (normalizedPath === '/merchant' || normalizedPath === '/demo') {
     pathname = '/index.html';
   }
+  if (normalizedPath === '/developer') pathname = '/developer.html';
+  if (normalizedPath === '/pay') pathname = '/pay/index.html';
 
   if (pathname.endsWith('/')) {
     pathname += 'index.html';
