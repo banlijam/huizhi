@@ -148,6 +148,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /id=["']fail["']/);
   assert.match(paymentHtml, /let seconds=10/);
   assert.match(paymentHtml, /id=["']transition["']/);
+  assert.match(paymentHtml, /pointer-events:none/);
   assert.match(paymentHtml, /正在提交付款结果/);
   assert.match(paymentHtml, /Dummy 付款成功/);
   assert.match(paymentHtml, /location\.href=['"]\/merchant['"]/);
