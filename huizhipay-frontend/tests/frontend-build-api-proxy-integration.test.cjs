@@ -52,10 +52,12 @@ test('build contains the complete interactive prototype and local vendor assets'
 
   assert.match(html, /new URLSearchParams\(location\.search\)/);
   assert.match(html, /id=["']dummy-create-form["']/);
-  assert.match(html, /\/api\/v1\/dummy\/orders/);
+  assert.match(html, /src=["']\/app-config\.js["']/);
+  assert.match(html, /APP_CONFIG\.ordersApi/);
   assert.match(html, /normalizedPath===['"]\/demo['"]/);
   assert.match(html, /applyState\(['"]loading['"]\)/);
-  assert.match(html, /正在创建 Dummy 订单/);
+  assert.match(html, /正在创建订单/);
+  assert.match(html, /Merchant Dashboard/);
   assert.match(html, /<select id=\\?"dummy-currency\\?">/);
   for (const currency of ['USD', 'HKD', 'EUR', 'GBP', 'CNY', 'JPY', 'SGD']) {
     assert.match(html, new RegExp(`<option>${currency}</option>`));
@@ -146,13 +148,15 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /HuizhiPay/);
   assert.match(paymentHtml, /id=["']success["']/);
   assert.match(paymentHtml, /id=["']fail["']/);
-  assert.match(paymentHtml, /let seconds=10/);
+  assert.match(paymentHtml, /AUTO_RETURN_SECONDS/);
   assert.match(paymentHtml, /id=["']transition["']/);
   assert.match(paymentHtml, /pointer-events:none/);
   assert.match(paymentHtml, /正在提交付款结果/);
-  assert.match(paymentHtml, /Dummy 付款成功/);
+  assert.match(paymentHtml, /付款成功/);
+  assert.match(paymentHtml, /refreshProductionStatus/);
+  assert.match(paymentHtml, /classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
   assert.match(paymentHtml, /location\.href=['"]\/merchant['"]/);
-  assert.match(paymentHtml, /\/api\/v1\/dummy\/orders/);
+  assert.match(paymentHtml, /APP_CONFIG\.ordersApi/);
 
   const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
   assert.equal(paymentWithoutSlash.status, 200);
@@ -161,6 +165,10 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   const favicon = await fetch(`${baseUrl}/favicon.svg`);
   assert.equal(favicon.status, 200);
   assert.match(favicon.headers.get('content-type') || '', /^image\/svg\+xml/);
+
+  const appConfig = await fetch(`${baseUrl}/app-config.js`);
+  assert.equal(appConfig.status, 200);
+  assert.match(await appConfig.text(), /mode:\s*['"]dummy['"]/);
 
   const payload = JSON.stringify({ amount: 10, currency: 'USD' });
   const api = await fetch(`${baseUrl}/api/v1/orders?mode=test`, {
