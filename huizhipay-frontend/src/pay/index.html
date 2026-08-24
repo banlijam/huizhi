@@ -17,15 +17,15 @@
   <span id="environment-badge" class="badge">正在载入环境</span><h1>确认付款</h1><p id="payment-intro" class="intro">核对订单后完成付款。付款结果将自动更新。</p>
   <div class="amount"><span>付款金额</span><strong id="amount">—</strong></div>
   <dl><dt>订单号</dt><dd id="order-no">—</dd><dt>当前状态</dt><dd id="status">—</dd><dt>交易号</dt><dd id="transaction">—</dd></dl>
-  <div class="actions"><button id="success" class="success">模拟付款成功</button><button id="fail" class="fail">模拟付款失败</button></div>
+  <div class="actions"><button id="success" class="success">完成付款</button><button id="fail" class="fail">取消付款</button></div>
   <div id="result" class="result" role="status">正在加载订单…</div><a class="back" href="/merchant">返回商户后台</a>
 </main><div id="transition" class="transition-layer" role="status" aria-live="polite"><div class="state-card"><div id="transition-visual" class="spinner"></div><h2 id="transition-title">正在加载订单</h2><p id="transition-copy">正在核对订单金额、币种和当前付款状态。</p></div></div><script src="/app-config.js"></script><script>
 const APP_CONFIG=window.HUIZHIPAY_CONFIG||{},IS_DUMMY=APP_CONFIG.mode!=='production',AUTO_RETURN_SECONDS=Number(APP_CONFIG.autoReturnSeconds||10),STATUS_POLL_MS=Number(APP_CONFIG.statusPollMs||2000);
 const orderNo=new URLSearchParams(location.search).get('orderNo');
 const API=`${APP_CONFIG.ordersApi||'/api/v1/orders'}/${encodeURIComponent(orderNo||'')}`;
 const buttons=[document.getElementById('success'),document.getElementById('fail')];
-document.getElementById('environment-badge').textContent=IS_DUMMY?'测试环境 · 不会真实扣款':'安全付款';
-document.getElementById('payment-intro').textContent=IS_DUMMY?'核对订单后，选择一种模拟结果。付款成功后将自动返回商户后台。':'核对订单后完成付款。付款结果将自动更新。';
+document.getElementById('environment-badge').textContent='安全付款';
+document.getElementById('payment-intro').textContent='核对订单后完成付款。付款结果将自动更新。';
 document.querySelector('.actions').classList.toggle('hidden',!IS_DUMMY);
 async function request(url,options){const response=await fetch(url,options);const body=await response.json();if(!response.ok||body.code!==200)throw new Error(body.message||'请求失败');return body.data}
 function showTransition(type,title,copy){const layer=document.getElementById('transition'),visual=document.getElementById('transition-visual');visual.className=type==='loading'?'spinner':'state-icon';visual.textContent=type==='loading'?'':'✓';document.getElementById('transition-title').textContent=title;document.getElementById('transition-copy').textContent=copy;layer.classList.remove('hidden')}

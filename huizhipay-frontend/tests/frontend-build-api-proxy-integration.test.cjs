@@ -160,7 +160,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
   assert.equal(paymentWithoutSlash.status, 200);
-  assert.match(await paymentWithoutSlash.text(), /模拟付款成功/);
+  assert.match(await paymentWithoutSlash.text(), /完成付款/);
 
   const favicon = await fetch(`${baseUrl}/favicon.svg`);
   assert.equal(favicon.status, 200);
