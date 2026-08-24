@@ -32,12 +32,9 @@ public class DummyPaymentController {
         if (request.amount() == null || request.amount().signum() <= 0) {
             throw new BizException(400, "Dummy amount must be greater than zero");
         }
-        if (request.currency() != null && !request.currency().isBlank()
-                && !"USD".equalsIgnoreCase(request.currency().trim())) {
-            throw new BizException(400, "Dummy MVP only supports USD");
-        }
         BigDecimal amount = request.amount();
-        String currency = "USD";
+        String currency = request.currency() == null || request.currency().isBlank()
+                ? "USD" : request.currency().trim().toUpperCase(Locale.ROOT);
         String orderNo = "DUMMY-" + UUID.randomUUID().toString().replace("-", "")
                 .substring(0, 12).toUpperCase(Locale.ROOT);
         LocalDateTime now = LocalDateTime.now();

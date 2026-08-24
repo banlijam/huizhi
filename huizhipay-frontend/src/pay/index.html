@@ -14,18 +14,19 @@
 </head>
 <body><main>
   <div class="brand"><span class="mark">H</span><span><b>HuizhiPay™</b><small>Dummy checkout</small></span></div>
-  <span class="badge">Dummy 演示 · 不会真实扣款</span><h1>确认测试付款</h1><p class="intro">核对订单后，选择一种模拟结果。页面刷新后仍会显示最终状态。</p>
+  <span class="badge">Dummy 演示 · 不会真实扣款</span><h1>确认测试付款</h1><p class="intro">核对订单后，选择一种模拟结果。付款成功后将自动返回商户后台。</p>
   <div class="amount"><span>付款金额</span><strong id="amount">—</strong></div>
   <dl><dt>订单号</dt><dd id="order-no">—</dd><dt>当前状态</dt><dd id="status">—</dd><dt>Dummy 交易号</dt><dd id="transaction">—</dd></dl>
   <div class="actions"><button id="success" class="success">模拟付款成功</button><button id="fail" class="fail">模拟付款失败</button></div>
-  <div id="result" class="result" role="status">正在加载订单…</div><a class="back" href="/">返回商户后台</a>
+  <div id="result" class="result" role="status">正在加载订单…</div><a class="back" href="/merchant">返回商户后台</a>
 </main><script>
 const orderNo=new URLSearchParams(location.search).get('orderNo');
 const API=`/api/v1/dummy/orders/${encodeURIComponent(orderNo||'')}`;
 const buttons=[document.getElementById('success'),document.getElementById('fail')];
 async function request(url,options){const response=await fetch(url,options);const body=await response.json();if(!response.ok||body.code!==200)throw new Error(body.message||'请求失败');return body.data}
 function render(order){document.getElementById('amount').textContent=`${order.currency} ${Number(order.amount).toFixed(2)}`;document.getElementById('order-no').textContent=order.orderNo;const status=document.getElementById('status');status.textContent=order.status;status.className=order.status;document.getElementById('transaction').textContent=order.transactionId||'—';const result=document.getElementById('result');result.textContent=order.result||'等待选择 Dummy 付款结果';result.className=`result ${order.status}`;buttons.forEach(button=>button.disabled=order.status!=='PENDING')}
-async function submit(result){buttons.forEach(button=>button.disabled=true);document.getElementById('result').textContent='正在写入 Dummy 结果…';try{render(await request(`${API}/result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result})}))}catch(error){document.getElementById('result').textContent=error.message;buttons.forEach(button=>button.disabled=false)}}
+function startMerchantCountdown(){const result=document.getElementById('result');let seconds=10;const update=()=>{result.textContent=`付款成功，${seconds} 秒后自动返回商户后台…`};update();const timer=setInterval(()=>{seconds-=1;if(seconds===0){clearInterval(timer);location.href='/merchant';return}update()},1000)}
+async function submit(result){buttons.forEach(button=>button.disabled=true);document.getElementById('result').textContent='正在写入 Dummy 结果…';try{const order=await request(`${API}/result`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result})});render(order);if(order.status==='SUCCESS')startMerchantCountdown()}catch(error){document.getElementById('result').textContent=error.message;buttons.forEach(button=>button.disabled=false)}}
 document.getElementById('success').onclick=()=>submit('SUCCESS');document.getElementById('fail').onclick=()=>submit('FAILED');
 if(!orderNo){document.getElementById('result').textContent='缺少 orderNo，无法加载订单';buttons.forEach(button=>button.disabled=true)}else request(API).then(render).catch(error=>{document.getElementById('result').textContent=error.message;buttons.forEach(button=>button.disabled=true)});
 </script></body></html>

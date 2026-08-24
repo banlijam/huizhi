@@ -54,7 +54,10 @@ test('build contains the complete interactive prototype and local vendor assets'
   assert.match(html, /id=["']dummy-create-form["']/);
   assert.match(html, /\/api\/v1\/dummy\/orders/);
   assert.match(html, /normalizedPath===['"]\/demo['"]/);
-  assert.match(html, /id=\\?"dummy-currency\\?" value=\\?"USD\\?" readonly/);
+  assert.match(html, /<select id=\\?"dummy-currency\\?">/);
+  for (const currency of ['USD', 'HKD', 'EUR', 'GBP', 'CNY', 'JPY', 'SGD']) {
+    assert.match(html, new RegExp(`<option>${currency}</option>`));
+  }
   assert.match(html, /Responsive Checkout/);
   assert.doesNotMatch(html, /data-screen=["']checkout-mobile["']/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);
@@ -141,6 +144,8 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /HuizhiPay/);
   assert.match(paymentHtml, /id=["']success["']/);
   assert.match(paymentHtml, /id=["']fail["']/);
+  assert.match(paymentHtml, /let seconds=10/);
+  assert.match(paymentHtml, /location\.href=['"]\/merchant['"]/);
   assert.match(paymentHtml, /\/api\/v1\/dummy\/orders/);
 
   const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
