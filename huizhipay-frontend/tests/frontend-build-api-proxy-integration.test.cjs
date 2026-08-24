@@ -78,6 +78,11 @@ test('built frontend serves routes and proxies API requests to the backend', asy
     request.setEncoding('utf8');
     request.on('data', (chunk) => { body += chunk; });
     request.on('end', () => {
+      if (request.headers.origin) {
+        response.writeHead(403, { 'content-type': 'text/plain' });
+        response.end('Invalid CORS request');
+        return;
+      }
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ method: request.method, url: request.url, body }));
     });
@@ -149,7 +154,10 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   const payload = JSON.stringify({ amount: 10, currency: 'USD' });
   const api = await fetch(`${baseUrl}/api/v1/orders?mode=test`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      origin: baseUrl,
+    },
     body: payload,
   });
   assert.equal(api.status, 200);

@@ -50,15 +50,14 @@ const serveStaticFile = (req, res, filePath) => {
 
 function proxyToBackend(req, res) {
   const url = new URL(req.url, BACKEND_API);
+  const headers = { ...req.headers, host: url.hostname };
+  delete headers.origin;
   const options = {
     hostname: url.hostname,
     port: url.port,
     path: url.pathname + url.search,
     method: req.method,
-    headers: {
-      ...req.headers,
-      host: url.hostname
-    }
+    headers
   };
 
   const protocol = url.protocol === 'https:' ? https : http;
