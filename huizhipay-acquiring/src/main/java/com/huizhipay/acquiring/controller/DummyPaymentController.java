@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class DummyPaymentController {
     private static final String DUMMY_MERCHANT = "M-DUMMY";
     private static final String DUMMY_CHANNEL = "DUMMY";
+    private static final int PAGE_SIZE = 5;
     private final PaymentOrderMapper paymentOrderMapper;
 
     @PostMapping
@@ -79,11 +81,25 @@ public class DummyPaymentController {
     }
 
     @GetMapping
-    public R<List<OrderView>> list() {
+    public R<?> list(@RequestParam(required = false) Integer page) {
+        if (page != null) {
+            if (page < 1) throw new BizException(400, "Page must be greater than zero");
+            long total = paymentOrderMapper.selectCount(
+                    Wrappers.<PaymentOrder>lambdaQuery()
+                            .eq(PaymentOrder::getChannel, DUMMY_CHANNEL));
+            int totalPages = (int) ((total + PAGE_SIZE - 1) / PAGE_SIZE);
+            List<OrderView> items = paymentOrderMapper.selectList(
+                            Wrappers.<PaymentOrder>lambdaQuery()
+                                    .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
+                                    .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
+                                    .last("limit " + PAGE_SIZE + " offset " + ((page - 1) * PAGE_SIZE)))
+                    .stream().map(this::toView).toList();
+            return R.ok(new OrderPage(items, total, page, PAGE_SIZE, totalPages));
+        }
         List<OrderView> orders = paymentOrderMapper.selectList(
                         Wrappers.<PaymentOrder>lambdaQuery()
                                 .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
-                                .orderByDesc(PaymentOrder::getCreatedAt)
+                                .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
                                 .last("limit 50"))
                 .stream().map(this::toView).toList();
         return R.ok(orders);
@@ -106,6 +122,7 @@ public class DummyPaymentController {
 
     public record CreateOrderRequest(BigDecimal amount, String currency) {}
     public record ResultRequest(String result) {}
+    public record OrderPage(List<OrderView> items, long total, int page, int size, int totalPages) {}
     public record OrderView(String orderNo, BigDecimal amount, String currency, String status,
                             String transactionId, String result, LocalDateTime createdAt,
                             LocalDateTime updatedAt, String paymentUrl) {}

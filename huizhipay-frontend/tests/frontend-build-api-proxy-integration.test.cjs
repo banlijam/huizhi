@@ -58,6 +58,10 @@ test('build contains the complete interactive prototype and local vendor assets'
   assert.match(html, /applyState\(['"]loading['"]\)/);
   assert.match(html, /正在创建订单/);
   assert.match(html, /Merchant Dashboard/);
+  assert.match(html, /id=\\?["']orders-prev\\?["']/);
+  assert.match(html, /id=\\?["']orders-next\\?["']/);
+  assert.match(html, /searchParams\.set\(['"]page['"],page\)/);
+  assert.match(html, /response\.items/);
   assert.match(html, /<select id=\\?"dummy-currency\\?">/);
   for (const currency of ['USD', 'HKD', 'EUR', 'GBP', 'CNY', 'JPY', 'SGD']) {
     assert.match(html, new RegExp(`<option>${currency}</option>`));
