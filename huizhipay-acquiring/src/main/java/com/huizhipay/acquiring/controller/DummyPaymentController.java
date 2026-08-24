@@ -26,7 +26,7 @@ import java.util.UUID;
 public class DummyPaymentController {
     private static final String DUMMY_MERCHANT = "M-DUMMY";
     private static final String DUMMY_CHANNEL = "DUMMY";
-    private static final int PAGE_SIZE = 5;
+    private static final int PAGE_SIZE = 7;
     private final PaymentOrderMapper paymentOrderMapper;
 
     @PostMapping
