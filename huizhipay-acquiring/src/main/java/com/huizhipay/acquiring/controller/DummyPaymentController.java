@@ -81,7 +81,7 @@ public class DummyPaymentController {
     }
 
     @GetMapping
-    public R<?> list(@RequestParam(required = false) Integer page) {
+    public R<?> list(@RequestParam(name = "page", required = false) Integer page) {
         if (page != null) {
             if (page < 1) throw new BizException(400, "Page must be greater than zero");
             long total = paymentOrderMapper.selectCount(

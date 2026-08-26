@@ -2,7 +2,7 @@
 # 请复制 application-secrets.example.yml 为 application-secrets.yml 并填入实际值
 spring:
   config:
-    import: classpath:application-secrets.yml
+    import: optional:classpath:application-secrets.yml
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?useSSL=false&serverTimezone=Asia/Shanghai
     driver-class-name: org.postgresql.Driver
