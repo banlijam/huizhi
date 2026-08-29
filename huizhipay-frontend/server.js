@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, process.argv.includes('--dist') ? 'dist' : 'src');
+const IS_DIST = process.argv.includes('--dist');
+const PUBLIC_DIR = path.join(__dirname, IS_DIST ? 'dist' : 'src');
 const BACKEND_API = process.env.BACKEND_API || 'http://localhost:8080';
 
 const transactions = [
@@ -96,11 +97,34 @@ const server = http.createServer(async (req, res) => {
   const normalizedPath = requestPath.replace(/\/+$/, '') || '/';
   let pathname = requestPath;
 
-  if (normalizedPath === '/') pathname = '/index.html';
-  if (normalizedPath === '/merchant' || normalizedPath === '/demo') {
-    pathname = '/index.html';
+  if (normalizedPath === '/') pathname = '/home.html';
+  if (normalizedPath === '/merchant') pathname = IS_DIST ? '/merchant/index.html' : '/index.html';
+  if (normalizedPath === '/demo') pathname = IS_DIST ? '/demo/index.html' : '/index.html';
+  const placeholderRoutes = new Set([
+    '/merchant/onboarding',
+    '/merchant/ledger',
+    '/merchant/risk',
+    '/merchant/wallet',
+    '/developer',
+    '/developer/api-keys',
+    '/developer/sandbox',
+    '/developer/webhooks',
+    '/developer/logs',
+  ]);
+  if (placeholderRoutes.has(normalizedPath)) pathname = '/portal.html';
+  if (normalizedPath === '/checkout/widget') pathname = '/checkout-placeholder.html';
+  if (normalizedPath === '/docs') pathname = '/docs.html';
+  if (normalizedPath === '/login') pathname = '/login.html';
+  if (normalizedPath === '/merchant/login') {
+    res.writeHead(302, { Location: '/login.html' });
+    res.end();
+    return;
   }
-  if (normalizedPath === '/developer') pathname = '/developer.html';
+  if (normalizedPath === '/developer/docs') {
+    res.writeHead(302, { Location: '/docs' });
+    res.end();
+    return;
+  }
   if (normalizedPath === '/pay') pathname = '/pay/index.html';
 
   if (pathname.endsWith('/')) {

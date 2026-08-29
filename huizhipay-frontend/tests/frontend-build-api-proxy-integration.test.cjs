@@ -42,8 +42,13 @@ async function waitFor(url, child) {
   throw new Error(`Frontend server did not become ready at ${url}`);
 }
 
-test('build contains the complete interactive prototype and local vendor assets', async () => {
-  const html = await readFile(path.join(ROOT, 'dist', 'index.html'), 'utf8');
+test('build separates the public entry, merchant workspace, developer tools, and checkout', async () => {
+  const homeHtml = await readFile(path.join(ROOT, 'dist', 'index.html'), 'utf8');
+  assert.match(homeHtml, /登录 Dashboard/);
+  assert.match(homeHtml, /查看开发文档/);
+  assert.doesNotMatch(homeHtml, /data-screen=/);
+
+  const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
   assert.match(html, /HuizhiPay Web-first Interactive Prototype/);
 
   for (const screen of ['checkout-web', 'checkout-mobile', 'dashboard', 'developer']) {
@@ -52,9 +57,15 @@ test('build contains the complete interactive prototype and local vendor assets'
 
   assert.match(html, /new URLSearchParams\(location\.search\)/);
   assert.match(html, /id=["']dummy-create-form["']/);
+  assert.match(html, /src=["']\/js\/api\.js["']/);
+  assert.match(html, /await isLoggedIn\(\)/);
+  assert.match(html, /location\.replace\(['"]\/login\.html['"]\)/);
+  assert.match(html, /body class=["']auth-pending["']/);
   assert.match(html, /src=["']\/app-config\.js["']/);
   assert.match(html, /APP_CONFIG\.ordersApi/);
   assert.match(html, /normalizedPath===['"]\/demo['"]/);
+  assert.doesNotMatch(html, /pageParams\.get\(['"]demo['"]\)/);
+  assert.doesNotMatch(html, /Huizhi Developers|Developer Portal/);
   assert.match(html, /applyState\(['"]loading['"]\)/);
   assert.match(html, /正在创建订单/);
   assert.match(html, /Merchant Dashboard/);
@@ -75,12 +86,38 @@ test('build contains the complete interactive prototype and local vendor assets'
     assert.ok(info.size > 0, `${file} must not be empty`);
   }
 
-  const merchantRoute = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
+  const merchantRoute = html;
   const demoRoute = await readFile(path.join(ROOT, 'dist', 'demo', 'index.html'), 'utf8');
   const developerRoute = await readFile(path.join(ROOT, 'dist', 'developer', 'index.html'), 'utf8');
   assert.match(merchantRoute, /id=["']dashboard["']/);
   assert.match(demoRoute, /class=["']demo-nav["']/);
-  assert.match(developerRoute, /开发者门户本周暂缓/);
+  assert.match(developerRoute, /HuizhiPay Merchant Workspace/);
+  assert.match(developerRoute, /src=["']\/js\/api\.js["']/);
+  assert.match(developerRoute, /await isLoggedIn\(\)/);
+  assert.match(developerRoute, /location\.replace\(['"]\/login\.html['"]\)/);
+
+  for (const route of [
+    'merchant/onboarding',
+    'merchant/ledger',
+    'merchant/risk',
+    'merchant/wallet',
+    'developer/api-keys',
+    'developer/sandbox',
+    'developer/webhooks',
+    'developer/logs',
+  ]) {
+    const routeHtml = await readFile(path.join(ROOT, 'dist', ...route.split('/'), 'index.html'), 'utf8');
+    assert.match(routeHtml, /HuizhiPay Merchant Workspace/);
+  }
+
+  assert.match(await readFile(path.join(ROOT, 'dist', 'checkout', 'widget', 'index.html'), 'utf8'), /Embedded Checkout Widget/);
+  assert.match(await readFile(path.join(ROOT, 'dist', 'merchant', 'login', 'index.html'), 'utf8'), /前往统一登录/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'developer', 'login', 'index.html'), 'utf8'), /ENOENT/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'developer.html'), 'utf8'), /ENOENT/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'pay', 'pay.js'), 'utf8'), /ENOENT/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'pay', 'style.css'), 'utf8'), /ENOENT/);
+  assert.match(await readFile(path.join(ROOT, 'dist', 'docs', 'index.html'), 'utf8'), /公开开发文档占位页/);
+  assert.match(await readFile(path.join(ROOT, 'dist', 'developer', 'docs', 'index.html'), 'utf8'), /前往公开开发文档/);
 });
 
 test('built frontend serves routes and proxies API requests to the backend', async (t) => {
@@ -118,9 +155,9 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   const baseUrl = `http://127.0.0.1:${frontendPort}`;
   await waitFor(`${baseUrl}/?screen=dashboard`, child);
 
-  const root = await fetch(`${baseUrl}/?screen=developer`);
+  const root = await fetch(`${baseUrl}/`);
   assert.equal(root.status, 200);
-  assert.match(await root.text(), /id=["']developer["']/);
+  assert.match(await root.text(), /登录 Dashboard/);
 
   const merchant = await fetch(`${baseUrl}/merchant`);
   assert.equal(merchant.status, 200);
@@ -140,11 +177,51 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const developer = await fetch(`${baseUrl}/developer`);
   assert.equal(developer.status, 200);
-  assert.match(await developer.text(), /开发者门户本周暂缓/);
+  assert.match(await developer.text(), /Developer Tools/);
 
   const developerSlash = await fetch(`${baseUrl}/developer/`);
   assert.equal(developerSlash.status, 200);
-  assert.match(await developerSlash.text(), /开发者门户本周暂缓/);
+  assert.match(await developerSlash.text(), /HuizhiPay Merchant Workspace/);
+
+  for (const route of [
+    '/merchant/onboarding',
+    '/merchant/ledger',
+    '/merchant/risk',
+    '/merchant/wallet',
+    '/developer/api-keys',
+    '/developer/sandbox',
+    '/developer/webhooks',
+    '/developer/logs',
+  ]) {
+    const response = await fetch(`${baseUrl}${route}`);
+    assert.equal(response.status, 200, route);
+    assert.match(await response.text(), /HuizhiPay Merchant Workspace/);
+  }
+
+  const widget = await fetch(`${baseUrl}/checkout/widget`);
+  assert.equal(widget.status, 200);
+  assert.match(await widget.text(), /Embedded Checkout Widget/);
+
+  const docs = await fetch(`${baseUrl}/docs`);
+  assert.equal(docs.status, 200);
+  assert.match(await docs.text(), /公开开发文档占位页/);
+
+  const oldDeveloperDocs = await fetch(`${baseUrl}/developer/docs`);
+  assert.equal(oldDeveloperDocs.status, 200);
+  assert.equal(oldDeveloperDocs.redirected, true);
+  assert.match(await oldDeveloperDocs.text(), /公开开发文档占位页/);
+
+  const oldMerchantLogin = await fetch(`${baseUrl}/merchant/login`);
+  assert.equal(oldMerchantLogin.status, 200);
+  assert.equal(oldMerchantLogin.redirected, true);
+  assert.match(await oldMerchantLogin.text(), /HuizhiPay - Login/);
+
+  const removedDeveloperLogin = await fetch(`${baseUrl}/developer/login`, { redirect: 'manual' });
+  assert.equal(removedDeveloperLogin.status, 404);
+  assert.equal(removedDeveloperLogin.headers.get('location'), null);
+
+  const removedDeveloperPage = await fetch(`${baseUrl}/developer.html`);
+  assert.equal(removedDeveloperPage.status, 404);
 
   const paymentPage = await fetch(`${baseUrl}/pay/`);
   assert.equal(paymentPage.status, 200);
@@ -157,9 +234,13 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /pointer-events:none/);
   assert.match(paymentHtml, /正在提交付款结果/);
   assert.match(paymentHtml, /付款成功/);
+  assert.match(paymentHtml, /get\(['"]checkoutToken['"]\)/);
+  assert.doesNotMatch(paymentHtml, /get\(['"]orderNo['"]\)/);
+  assert.match(paymentHtml, /id=["']merchant-name["']/);
+  assert.match(paymentHtml, /order\.returnUrl/);
+  assert.match(paymentHtml, /location\.href=returnUrl/);
   assert.match(paymentHtml, /refreshProductionStatus/);
   assert.match(paymentHtml, /classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
-  assert.match(paymentHtml, /location\.href=['"]\/merchant['"]/);
   assert.match(paymentHtml, /APP_CONFIG\.ordersApi/);
 
   const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
@@ -189,4 +270,28 @@ test('built frontend serves routes and proxies API requests to the backend', asy
     url: '/api/v1/orders?mode=test',
     body: payload,
   });
+});
+
+test('checkout token, return URL, and auth-gate contracts stay aligned across layers', async () => {
+  const apiJs = await readFile(path.join(ROOT, 'dist', 'js', 'api.js'), 'utf8');
+  assert.match(apiJs, /body\.code === 200/);
+  assert.match(apiJs, /Boolean\(body\.data\)/);
+
+  const controller = await readFile(path.join(
+    ROOT, '..', 'huizhipay-acquiring', 'src', 'main', 'java', 'com', 'huizhipay',
+    'acquiring', 'controller', 'DummyPaymentController.java'
+  ), 'utf8');
+  assert.match(controller, /@GetMapping\("\/\{checkoutToken\}"\)/);
+  assert.match(controller, /PaymentOrder::getCheckoutToken/);
+  assert.match(controller, /"\/pay\/\?checkoutToken="/);
+  assert.match(controller, /String returnUrl/);
+  assert.doesNotMatch(controller, /"\/pay\/\?orderNo="/);
+
+  const migration = await readFile(path.join(
+    ROOT, '..', 'huizhipay-bootstrap', 'src', 'main', 'resources', 'db', 'migration',
+    'V1.2__add_checkout_token_and_return_url.sql'
+  ), 'utf8');
+  assert.match(migration, /checkout_token/);
+  assert.match(migration, /return_url/);
+  assert.match(migration, /unique index/);
 });

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -25,7 +26,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DummyPaymentController {
     private static final String DUMMY_MERCHANT = "M-DUMMY";
+    private static final String DUMMY_MERCHANT_NAME = "Demo Merchant";
     private static final String DUMMY_CHANNEL = "DUMMY";
+    private static final String DEFAULT_RETURN_URL = "/merchant";
     private static final int PAGE_SIZE = 7;
     private final PaymentOrderMapper paymentOrderMapper;
 
@@ -39,9 +42,13 @@ public class DummyPaymentController {
                 ? "USD" : request.currency().trim().toUpperCase(Locale.ROOT);
         String orderNo = "DUMMY-" + UUID.randomUUID().toString().replace("-", "")
                 .substring(0, 12).toUpperCase(Locale.ROOT);
+        String checkoutToken = "ct_" + UUID.randomUUID().toString().replace("-", "");
+        String returnUrl = normalizeReturnUrl(request.returnUrl());
         LocalDateTime now = LocalDateTime.now();
         PaymentOrder order = new PaymentOrder()
                 .setOrderNo(orderNo)
+                .setCheckoutToken(checkoutToken)
+                .setReturnUrl(returnUrl)
                 .setMerchantId(DUMMY_MERCHANT)
                 .setAmount(amount)
                 .setCurrency(currency)
@@ -54,14 +61,14 @@ public class DummyPaymentController {
         return R.ok(toView(order));
     }
 
-    @GetMapping("/{orderNo}")
-    public R<OrderView> get(@PathVariable String orderNo) {
-        return R.ok(toView(requireOrder(orderNo)));
+    @GetMapping("/{checkoutToken}")
+    public R<OrderView> get(@PathVariable String checkoutToken) {
+        return R.ok(toView(requireOrder(checkoutToken)));
     }
 
-    @PostMapping("/{orderNo}/result")
-    public R<OrderView> result(@PathVariable String orderNo, @RequestBody ResultRequest request) {
-        PaymentOrder order = requireOrder(orderNo);
+    @PostMapping("/{checkoutToken}/result")
+    public R<OrderView> result(@PathVariable String checkoutToken, @RequestBody ResultRequest request) {
+        PaymentOrder order = requireOrder(checkoutToken);
         String requestedResult = request.result() == null ? "" : request.result().trim().toUpperCase(Locale.ROOT);
         if (!"SUCCESS".equals(requestedResult) && !"FAILED".equals(requestedResult)) {
             throw new BizException(400, "Dummy result must be SUCCESS or FAILED");
@@ -105,25 +112,40 @@ public class DummyPaymentController {
         return R.ok(orders);
     }
 
-    private PaymentOrder requireOrder(String orderNo) {
+    private PaymentOrder requireOrder(String checkoutToken) {
         PaymentOrder order = paymentOrderMapper.selectOne(
                 Wrappers.<PaymentOrder>lambdaQuery()
-                        .eq(PaymentOrder::getOrderNo, orderNo)
+                        .eq(PaymentOrder::getCheckoutToken, checkoutToken)
                         .eq(PaymentOrder::getChannel, DUMMY_CHANNEL));
-        if (order == null) throw new BizException(404, "Dummy order not found: " + orderNo);
+        if (order == null) throw new BizException(404, "Dummy checkout token not found");
         return order;
     }
 
     private OrderView toView(PaymentOrder order) {
-        return new OrderView(order.getOrderNo(), order.getAmount(), order.getCurrency(), order.getStatus().name(),
+        return new OrderView(order.getCheckoutToken(), DUMMY_MERCHANT_NAME, order.getOrderNo(),
+                order.getAmount(), order.getCurrency(), order.getStatus().name(),
                 order.getChannelTradeNo(), order.getRemark(), order.getCreatedAt(), order.getUpdatedAt(),
-                "/pay/?orderNo=" + order.getOrderNo());
+                order.getReturnUrl(), "/pay/?checkoutToken=" + order.getCheckoutToken());
     }
 
-    public record CreateOrderRequest(BigDecimal amount, String currency) {}
+    private String normalizeReturnUrl(String value) {
+        if (value == null || value.isBlank()) return DEFAULT_RETURN_URL;
+        String returnUrl = value.trim();
+        if (returnUrl.startsWith("/") && !returnUrl.startsWith("//")) return returnUrl;
+        try {
+            URI uri = URI.create(returnUrl);
+            if ("https".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null) return returnUrl;
+        } catch (IllegalArgumentException ignored) {
+            // Fall through to the bounded business error below.
+        }
+        throw new BizException(400, "returnUrl must be a relative path or an absolute HTTPS URL");
+    }
+
+    public record CreateOrderRequest(BigDecimal amount, String currency, String returnUrl) {}
     public record ResultRequest(String result) {}
     public record OrderPage(List<OrderView> items, long total, int page, int size, int totalPages) {}
-    public record OrderView(String orderNo, BigDecimal amount, String currency, String status,
+    public record OrderView(String checkoutToken, String merchantName, String orderNo,
+                            BigDecimal amount, String currency, String status,
                             String transactionId, String result, LocalDateTime createdAt,
-                            LocalDateTime updatedAt, String paymentUrl) {}
+                            LocalDateTime updatedAt, String returnUrl, String paymentUrl) {}
 }

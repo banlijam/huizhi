@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HuizhiPay Workspace</title>
+  <style>.auth-pending{visibility:hidden}</style>
+</head>
+<body class="auth-pending">
+  <header>
+    <strong>HuizhiPay Merchant Workspace</strong>
+    <nav>
+      <a href="/merchant">Merchant Dashboard</a> |
+      <a href="/developer">Developer Tools</a> |
+      <a href="/docs">Public API Docs</a>
+    </nav>
+  </header>
+  <main>
+    <h1 id="title">占位页面</h1>
+    <p id="description"></p>
+    <p>此页面目前只用于验证地址和跳转关系，尚未实现对应业务功能。</p>
+    <h2>Merchant</h2>
+    <ul>
+      <li><a href="/merchant">Dashboard 与订单</a></li>
+      <li><a href="/merchant/onboarding">入驻 / KYB</a></li>
+      <li><a href="/merchant/ledger">分账账本</a></li>
+      <li><a href="/merchant/risk">风控与路由</a></li>
+      <li><a href="/merchant/wallet">结算钱包</a></li>
+    </ul>
+    <h2>Developer Tools</h2>
+    <p>这些工具属于同一个 Merchant Workspace，不使用独立登录。</p>
+    <ul>
+      <li><a href="/developer">开发者工具概览</a></li>
+      <li><a href="/developer/api-keys">API Keys</a></li>
+      <li><a href="/developer/sandbox">Sandbox</a></li>
+      <li><a href="/developer/webhooks">Webhooks</a></li>
+      <li><a href="/developer/logs">API Logs</a></li>
+    </ul>
+  </main>
+  <script src="/js/api.js"></script>
+  <script>
+    const pages = {
+      '/merchant/onboarding': ['入驻 / KYB', '商户资料与审核流程。'],
+      '/merchant/ledger': ['分账账本', '查看订单金额、平台服务费和商户净收益。'],
+      '/merchant/risk': ['风控与路由', '配置支付风控和路由规则。'],
+      '/merchant/wallet': ['结算钱包', '管理商户结算地址。'],
+      '/developer': ['Developer Tools', '管理当前商户工作区的技术接入。'],
+      '/developer/api-keys': ['API Keys', '生成、查看和轮换商户 API 密钥。'],
+      '/developer/sandbox': ['Sandbox', '查看测试环境和测试数据说明。'],
+      '/developer/webhooks': ['Webhooks', '管理事件端点并查看投递记录。'],
+      '/developer/logs': ['API Logs', '查看当前商户的 API 请求日志。']
+    };
+    async function startWorkspace() {
+      if (!await isLoggedIn()) {
+        location.replace('/login.html');
+        return;
+      }
+      const path = location.pathname.replace(/\/+$/, '') || '/';
+      const page = pages[path] || ['占位页面', '规划页面。'];
+      document.title = `${page[0]} · HuizhiPay Merchant Workspace`;
+      document.getElementById('title').textContent = page[0];
+      document.getElementById('description').textContent = page[1];
+      document.body.classList.remove('auth-pending');
+    }
+    startWorkspace();
+  </script>
+</body>
+</html>

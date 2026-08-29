@@ -14,9 +14,10 @@ tags:
 
 | 地址 | 用途 |
 |---|---|
-| `/` 或 `/merchant` | 商户后台：创建 Dummy 订单、查看订单状态和结果 |
-| `/pay/?orderNo=...` | 付款页面：模拟付款成功或失败；自动适配桌面和手机 |
-| `/developer` | 本周暂缓说明，不展示虚构的线上能力 |
+| `/` | 公开首页 |
+| `/merchant` | 登录后的商户工作区：创建 Dummy 订单、查看订单状态和结果 |
+| `/pay/?checkoutToken=...` | 买家付款页面：根据 Checkout Token 加载商户名、金额和订单状态 |
+| `/developer` | 登录后商户工作区内的开发者工具 |
 | `/demo` 或 `/?demo=1` | 团队内部界面原型；切换器、状态选择器和样例数据只在这里出现 |
 
 ## 本地运行
@@ -32,10 +33,10 @@ npm run dev
 
 | 方法 | 地址 | 用途 |
 |---|---|---|
-| `POST` | `/api/v1/dummy/orders` | 创建订单 |
+| `POST` | `/api/v1/dummy/orders` | 创建订单；请求可带 `returnUrl`，返回 `checkoutToken` 和 HPP 地址 |
 | `GET` | `/api/v1/dummy/orders` | 查询最近 50 笔订单 |
-| `GET` | `/api/v1/dummy/orders/{orderNo}` | 查询单笔订单 |
-| `POST` | `/api/v1/dummy/orders/{orderNo}/result` | 写入 `SUCCESS` 或 `FAILED` |
+| `GET` | `/api/v1/dummy/orders/{checkoutToken}` | 买家按 Checkout Token 查询单笔订单 |
+| `POST` | `/api/v1/dummy/orders/{checkoutToken}/result` | 按 Checkout Token 写入 `SUCCESS` 或 `FAILED` |
 
 ## 验证
 

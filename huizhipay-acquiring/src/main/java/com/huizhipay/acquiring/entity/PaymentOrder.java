@@ -15,6 +15,10 @@ public class PaymentOrder {
     @TableId(type = IdType.AUTO)
     private Long id;
     private String orderNo;
+    /** 买家 Checkout 使用的公开随机令牌，不暴露内部订单号 */
+    private String checkoutToken;
+    /** Checkout 完成后返回商户网站的目标地址 */
+    private String returnUrl;
     private String merchantId;
     /** 主币单位（元/美元） */
     private BigDecimal amount;

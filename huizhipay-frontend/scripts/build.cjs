@@ -141,7 +141,19 @@ function writeRouteEntrypoints() {
   const routes = {
     merchant: 'index.html',
     demo: 'index.html',
-    developer: 'developer.html',
+    developer: 'portal.html',
+    docs: 'docs.html',
+    'checkout/widget': 'checkout-placeholder.html',
+    'merchant/login': 'login-redirect.html',
+    'merchant/onboarding': 'portal.html',
+    'merchant/ledger': 'portal.html',
+    'merchant/risk': 'portal.html',
+    'merchant/wallet': 'portal.html',
+    'developer/api-keys': 'portal.html',
+    'developer/sandbox': 'portal.html',
+    'developer/webhooks': 'portal.html',
+    'developer/logs': 'portal.html',
+    'developer/docs': 'docs-redirect.html',
   };
 
   for (const [route, source] of Object.entries(routes)) {
@@ -179,6 +191,9 @@ async function build() {
 
   console.log('🧭 生成静态部署路由入口...');
   writeRouteEntrypoints();
+
+  // 根地址是公开入口；Merchant 应用已经在上一步复制到 /merchant/。
+  fs.copyFileSync(path.join(DIST_DIR, 'home.html'), path.join(DIST_DIR, 'index.html'));
 
   console.log('✅ 构建完成，发布产物位于 dist/');
   console.log('   可直接将 dist/ 拷贝到 nginx 的 root 目录使用。');

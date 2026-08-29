@@ -43,9 +43,9 @@ async function isLoggedIn() {
       method: 'GET',
       credentials: 'include'
     });
-    if (response.ok) {
-      return true;
-    }
+    if (!response.ok) return false;
+    const body = await response.json();
+    return body.code === 200 && Boolean(body.data);
   } catch (e) {
     console.error('Failed to check login status', e);
   }
