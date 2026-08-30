@@ -100,12 +100,12 @@ const server = http.createServer(async (req, res) => {
   if (normalizedPath === '/') pathname = '/home.html';
   if (normalizedPath === '/merchant') pathname = IS_DIST ? '/merchant/index.html' : '/index.html';
   if (normalizedPath === '/demo') pathname = IS_DIST ? '/demo/index.html' : '/index.html';
+  if (normalizedPath === '/developer') pathname = IS_DIST ? '/developer/index.html' : '/index.html';
   const placeholderRoutes = new Set([
     '/merchant/onboarding',
     '/merchant/ledger',
     '/merchant/risk',
     '/merchant/wallet',
-    '/developer',
     '/developer/api-keys',
     '/developer/sandbox',
     '/developer/webhooks',

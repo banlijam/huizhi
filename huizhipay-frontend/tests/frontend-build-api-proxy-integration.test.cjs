@@ -91,7 +91,12 @@ test('build separates the public entry, merchant workspace, developer tools, and
   const developerRoute = await readFile(path.join(ROOT, 'dist', 'developer', 'index.html'), 'utf8');
   assert.match(merchantRoute, /id=["']dashboard["']/);
   assert.match(demoRoute, /class=["']demo-nav["']/);
-  assert.match(developerRoute, /HuizhiPay Merchant Workspace/);
+  assert.match(developerRoute, /id=["']developer["']/);
+  assert.match(developerRoute, /Developer Tools/);
+  assert.match(developerRoute, /Sandbox Request Builder/);
+  assert.match(developerRoute, /No webhook deliveries yet/);
+  assert.match(developerRoute, /backend not connected/);
+  assert.doesNotMatch(developerRoute, /sk_test_[a-z0-9]/i);
   assert.match(developerRoute, /src=["']\/js\/api\.js["']/);
   assert.match(developerRoute, /await isLoggedIn\(\)/);
   assert.match(developerRoute, /location\.replace\(['"]\/login\.html['"]\)/);
@@ -169,7 +174,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const demo = await fetch(`${baseUrl}/demo?screen=developer`);
   assert.equal(demo.status, 200);
-  assert.match(await demo.text(), /Prototype sample data/);
+  assert.match(await demo.text(), /Prototype preview/);
 
   const demoSlash = await fetch(`${baseUrl}/demo/?screen=developer`);
   assert.equal(demoSlash.status, 200);
@@ -181,7 +186,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const developerSlash = await fetch(`${baseUrl}/developer/`);
   assert.equal(developerSlash.status, 200);
-  assert.match(await developerSlash.text(), /HuizhiPay Merchant Workspace/);
+  assert.match(await developerSlash.text(), /Sandbox Request Builder/);
 
   for (const route of [
     '/merchant/onboarding',
@@ -276,6 +281,7 @@ test('checkout token, return URL, and merchant authorization contracts stay alig
   const apiJs = await readFile(path.join(ROOT, 'dist', 'js', 'api.js'), 'utf8');
   assert.match(apiJs, /body\.code === 200/);
   assert.match(apiJs, /Boolean\(body\.data\)/);
+  assert.match(apiJs, /error\.message \|\| error\.error/);
   assert.doesNotMatch(apiJs, /body\.data\?\.merchant(?:Id|Role)/);
 
   const controller = await readFile(path.join(

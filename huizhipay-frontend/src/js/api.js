@@ -102,7 +102,7 @@ async function apiPost(endpoint, data) {
       return await response.json();
     }
     const error = await response.json();
-    throw new Error(error.message || 'Unknown error');
+    throw new Error(error.message || error.error || `Request failed (${response.status})`);
   } catch (error) {
     if (!error.message.includes('Failed to fetch')) {
       throw error;

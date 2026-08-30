@@ -141,7 +141,7 @@ function writeRouteEntrypoints() {
   const routes = {
     merchant: 'index.html',
     demo: 'index.html',
-    developer: 'portal.html',
+    developer: 'index.html',
     docs: 'docs.html',
     'checkout/widget': 'checkout-placeholder.html',
     'merchant/login': 'login-redirect.html',
