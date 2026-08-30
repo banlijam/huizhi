@@ -97,21 +97,42 @@ const server = http.createServer(async (req, res) => {
   const normalizedPath = requestPath.replace(/\/+$/, '') || '/';
   let pathname = requestPath;
 
+  const legacyWorkspaceRedirects = new Map([
+    ['/merchant', '/merchant/orders'],
+    ['/developer', '/merchant/developer'],
+    ['/developer/api-keys', '/merchant/developer/api-keys'],
+    ['/developer/sandbox', '/merchant/developer/sandbox'],
+    ['/developer/webhooks', '/merchant/developer/webhooks'],
+    ['/developer/logs', '/merchant/developer/logs'],
+  ]);
+  if (legacyWorkspaceRedirects.has(normalizedPath)) {
+    res.writeHead(302, { Location: legacyWorkspaceRedirects.get(normalizedPath) });
+    res.end();
+    return;
+  }
+
   if (normalizedPath === '/') pathname = '/home.html';
-  if (normalizedPath === '/merchant') pathname = IS_DIST ? '/merchant/index.html' : '/index.html';
   if (normalizedPath === '/demo') pathname = IS_DIST ? '/demo/index.html' : '/index.html';
-  if (normalizedPath === '/developer') pathname = IS_DIST ? '/developer/index.html' : '/index.html';
-  const placeholderRoutes = new Set([
+  const merchantWorkspaceRoutes = new Set([
+    '/merchant/orders',
     '/merchant/onboarding',
     '/merchant/ledger',
     '/merchant/risk',
     '/merchant/wallet',
-    '/developer/api-keys',
-    '/developer/sandbox',
-    '/developer/webhooks',
-    '/developer/logs',
   ]);
-  if (placeholderRoutes.has(normalizedPath)) pathname = '/portal.html';
+  if (merchantWorkspaceRoutes.has(normalizedPath)) {
+    pathname = IS_DIST ? `${normalizedPath}/index.html` : '/index.html';
+  }
+  const developerWorkspaceRoutes = new Set([
+    '/merchant/developer',
+    '/merchant/developer/api-keys',
+    '/merchant/developer/sandbox',
+    '/merchant/developer/webhooks',
+    '/merchant/developer/logs',
+  ]);
+  if (developerWorkspaceRoutes.has(normalizedPath)) {
+    pathname = IS_DIST ? `${normalizedPath}/index.html` : '/index.html';
+  }
   if (normalizedPath === '/checkout/widget') pathname = '/checkout-placeholder.html';
   if (normalizedPath === '/docs') pathname = '/docs.html';
   if (normalizedPath === '/login') pathname = '/login.html';

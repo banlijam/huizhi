@@ -73,6 +73,11 @@ test('build separates the public entry, merchant workspace, developer tools, and
   assert.match(html, /id=\\?["']orders-next\\?["']/);
   assert.match(html, /searchParams\.set\(['"]page['"],page\)/);
   assert.match(html, /response\.items/);
+  assert.match(html, /history\[historyAction===['"]replace['"]\?['"]replaceState['"]:['"]pushState['"]\]/);
+  assert.match(html, /addEventListener\(['"]popstate['"]/);
+  assert.match(html, /data-developer-nav-toggle/);
+  assert.match(html, /\/merchant\/orders/);
+  assert.match(html, /\/merchant\/developer\/api-keys/);
   assert.match(html, /<select id=\\?"dummy-currency\\?">/);
   for (const currency of ['USD', 'HKD', 'EUR', 'GBP', 'CNY', 'JPY', 'SGD']) {
     assert.match(html, new RegExp(`<option>${currency}</option>`));
@@ -94,25 +99,48 @@ test('build separates the public entry, merchant workspace, developer tools, and
   assert.match(developerRoute, /id=["']developer["']/);
   assert.match(developerRoute, /Developer Tools/);
   assert.match(developerRoute, /Sandbox Request Builder/);
-  assert.match(developerRoute, /No webhook deliveries yet/);
-  assert.match(developerRoute, /backend not connected/);
+  assert.match(developerRoute, /Capability Map/);
+  assert.match(developerRoute, /backend (?:is )?not connected/i);
   assert.doesNotMatch(developerRoute, /sk_test_[a-z0-9]/i);
   assert.match(developerRoute, /src=["']\/js\/api\.js["']/);
   assert.match(developerRoute, /await isLoggedIn\(\)/);
   assert.match(developerRoute, /location\.replace\(['"]\/login\.html['"]\)/);
 
+  for (const route of ['merchant/onboarding', 'merchant/ledger', 'merchant/risk', 'merchant/wallet']) {
+    const workspaceRoute = await readFile(path.join(ROOT, 'dist', ...route.split('/'), 'index.html'), 'utf8');
+    assert.match(workspaceRoute, /id=["']merchant-workspace["']/);
+    assert.match(workspaceRoute, /workspace-nav/);
+    assert.match(workspaceRoute, /merchantPageConfig/);
+    assert.match(workspaceRoute, /await isLoggedIn\(\)/);
+    assert.doesNotMatch(workspaceRoute, /<h1 id=["']title["']>占位页面/);
+  }
+
   for (const route of [
-    'merchant/onboarding',
-    'merchant/ledger',
-    'merchant/risk',
-    'merchant/wallet',
     'developer/api-keys',
     'developer/sandbox',
     'developer/webhooks',
     'developer/logs',
   ]) {
     const routeHtml = await readFile(path.join(ROOT, 'dist', ...route.split('/'), 'index.html'), 'utf8');
-    assert.match(routeHtml, /HuizhiPay Merchant Workspace/);
+    assert.match(routeHtml, /id=["']developer["']/);
+    assert.match(routeHtml, /class=["']nav workspace-nav dev-route-nav["']/);
+    assert.match(routeHtml, /developerPageConfig/);
+    assert.match(routeHtml, /await isLoggedIn\(\)/);
+    assert.doesNotMatch(routeHtml, /<h1 id=["']title["']>占位页面/);
+  }
+
+  for (const route of [
+    'merchant/orders',
+    'merchant/developer',
+    'merchant/developer/api-keys',
+    'merchant/developer/sandbox',
+    'merchant/developer/webhooks',
+    'merchant/developer/logs',
+  ]) {
+    const routeHtml = await readFile(path.join(ROOT, 'dist', ...route.split('/'), 'index.html'), 'utf8');
+    assert.match(routeHtml, /workspace-nav/);
+    assert.match(routeHtml, /navigateWorkspace/);
+    assert.match(routeHtml, /await isLoggedIn\(\)/);
   }
 
   assert.match(await readFile(path.join(ROOT, 'dist', 'checkout', 'widget', 'index.html'), 'utf8'), /Embedded Checkout Widget/);
@@ -170,6 +198,8 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const merchantSlash = await fetch(`${baseUrl}/merchant/`);
   assert.equal(merchantSlash.status, 200);
+  assert.equal(merchantSlash.redirected, true);
+  assert.match(merchantSlash.url, /\/merchant\/orders$/);
   assert.match(await merchantSlash.text(), /id=["']dashboard["']/);
 
   const demo = await fetch(`${baseUrl}/demo?screen=developer`);
@@ -182,6 +212,8 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const developer = await fetch(`${baseUrl}/developer`);
   assert.equal(developer.status, 200);
+  assert.equal(developer.redirected, true);
+  assert.match(developer.url, /\/merchant\/developer$/);
   assert.match(await developer.text(), /Developer Tools/);
 
   const developerSlash = await fetch(`${baseUrl}/developer/`);
@@ -189,18 +221,41 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(await developerSlash.text(), /Sandbox Request Builder/);
 
   for (const route of [
+    '/merchant/orders',
     '/merchant/onboarding',
     '/merchant/ledger',
     '/merchant/risk',
     '/merchant/wallet',
-    '/developer/api-keys',
-    '/developer/sandbox',
-    '/developer/webhooks',
-    '/developer/logs',
+    '/merchant/developer',
+    '/merchant/developer/api-keys',
+    '/merchant/developer/sandbox',
+    '/merchant/developer/webhooks',
+    '/merchant/developer/logs',
   ]) {
     const response = await fetch(`${baseUrl}${route}`);
     assert.equal(response.status, 200, route);
-    assert.match(await response.text(), /HuizhiPay Merchant Workspace/);
+    const routeHtml = await response.text();
+    assert.match(routeHtml, /HuizhiPay Merchant Workspace/);
+    if (!route.startsWith('/merchant/developer')) {
+      assert.match(routeHtml, /id=["']merchant-workspace["']/);
+      assert.match(routeHtml, /workspace-nav/);
+      assert.doesNotMatch(routeHtml, /<h1 id=["']title["']>占位页面/);
+    } else {
+      assert.match(routeHtml, /id=["']developer["']/);
+      assert.match(routeHtml, /dev-route-nav/);
+      assert.doesNotMatch(routeHtml, /<h1 id=["']title["']>占位页面/);
+    }
+  }
+
+  for (const [legacy, canonical] of [
+    ['/developer/api-keys', '/merchant/developer/api-keys'],
+    ['/developer/sandbox', '/merchant/developer/sandbox'],
+    ['/developer/webhooks', '/merchant/developer/webhooks'],
+    ['/developer/logs', '/merchant/developer/logs'],
+  ]) {
+    const response = await fetch(`${baseUrl}${legacy}`, { redirect: 'manual' });
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get('location'), canonical);
   }
 
   const widget = await fetch(`${baseUrl}/checkout/widget`);
