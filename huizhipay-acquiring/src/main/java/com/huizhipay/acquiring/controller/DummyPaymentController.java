@@ -5,6 +5,7 @@ import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
+import com.huizhipay.common.security.MerchantResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,15 +26,16 @@ import java.util.UUID;
 @RequestMapping("/api/v1/dummy/orders")
 @RequiredArgsConstructor
 public class DummyPaymentController {
-    private static final String DUMMY_MERCHANT = "M-DUMMY";
     private static final String DUMMY_MERCHANT_NAME = "Demo Merchant";
     private static final String DUMMY_CHANNEL = "DUMMY";
     private static final String DEFAULT_RETURN_URL = "/merchant";
     private static final int PAGE_SIZE = 7;
     private final PaymentOrderMapper paymentOrderMapper;
+    private final MerchantResolver merchantResolver;
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
+        String merchantId = requireMerchantId();
         if (request.amount() == null || request.amount().signum() <= 0) {
             throw new BizException(400, "Dummy amount must be greater than zero");
         }
@@ -49,7 +51,7 @@ public class DummyPaymentController {
                 .setOrderNo(orderNo)
                 .setCheckoutToken(checkoutToken)
                 .setReturnUrl(returnUrl)
-                .setMerchantId(DUMMY_MERCHANT)
+                .setMerchantId(merchantId)
                 .setAmount(amount)
                 .setCurrency(currency)
                 .setChannel(DUMMY_CHANNEL)
@@ -89,14 +91,17 @@ public class DummyPaymentController {
 
     @GetMapping
     public R<?> list(@RequestParam(name = "page", required = false) Integer page) {
+        String merchantId = requireMerchantId();
         if (page != null) {
             if (page < 1) throw new BizException(400, "Page must be greater than zero");
             long total = paymentOrderMapper.selectCount(
                     Wrappers.<PaymentOrder>lambdaQuery()
+                            .eq(PaymentOrder::getMerchantId, merchantId)
                             .eq(PaymentOrder::getChannel, DUMMY_CHANNEL));
             int totalPages = (int) ((total + PAGE_SIZE - 1) / PAGE_SIZE);
             List<OrderView> items = paymentOrderMapper.selectList(
                             Wrappers.<PaymentOrder>lambdaQuery()
+                                    .eq(PaymentOrder::getMerchantId, merchantId)
                                     .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
                                     .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
                                     .last("limit " + PAGE_SIZE + " offset " + ((page - 1) * PAGE_SIZE)))
@@ -105,11 +110,20 @@ public class DummyPaymentController {
         }
         List<OrderView> orders = paymentOrderMapper.selectList(
                         Wrappers.<PaymentOrder>lambdaQuery()
+                                .eq(PaymentOrder::getMerchantId, merchantId)
                                 .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
                                 .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
                                 .last("limit 50"))
                 .stream().map(this::toView).toList();
         return R.ok(orders);
+    }
+
+    private String requireMerchantId() {
+        String merchantId = merchantResolver.getCurrentMerchantId();
+        if (merchantId == null) {
+            throw new BizException(403, "Merchant access required");
+        }
+        return merchantId;
     }
 
     private PaymentOrder requireOrder(String checkoutToken) {

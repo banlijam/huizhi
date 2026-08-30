@@ -4,6 +4,7 @@ import com.huizhipay.user.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,7 +28,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)   // 禁用CSRF（使用JWT）
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/dummy/**", "/actuator/health",
+                        // 买家 Checkout 仅凭随机 checkoutToken 访问单笔订单；后台建单和列表必须登录。
+                        .requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/dummy/orders/*/result")
+                        .permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/actuator/health",
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
                         .permitAll()
                         .anyRequest()

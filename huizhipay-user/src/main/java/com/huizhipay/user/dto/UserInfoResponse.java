@@ -14,4 +14,11 @@ public class UserInfoResponse {
     private Boolean emailVerified;
     private Boolean totpEnabled;
     private Integer status;  // 1启用 0禁用
+    private String merchantId;
+    private String merchantRole;
+
+    public UserInfoResponse(Long id, String email, String nickname, Boolean emailVerified,
+                            Boolean totpEnabled, Integer status) {
+        this(id, email, nickname, emailVerified, totpEnabled, status, null, null);
+    }
 }

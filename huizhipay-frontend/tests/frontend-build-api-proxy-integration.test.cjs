@@ -272,10 +272,11 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   });
 });
 
-test('checkout token, return URL, and auth-gate contracts stay aligned across layers', async () => {
+test('checkout token, return URL, and merchant authorization contracts stay aligned across layers', async () => {
   const apiJs = await readFile(path.join(ROOT, 'dist', 'js', 'api.js'), 'utf8');
   assert.match(apiJs, /body\.code === 200/);
   assert.match(apiJs, /Boolean\(body\.data\)/);
+  assert.doesNotMatch(apiJs, /body\.data\?\.merchant(?:Id|Role)/);
 
   const controller = await readFile(path.join(
     ROOT, '..', 'huizhipay-acquiring', 'src', 'main', 'java', 'com', 'huizhipay',
@@ -285,7 +286,18 @@ test('checkout token, return URL, and auth-gate contracts stay aligned across la
   assert.match(controller, /PaymentOrder::getCheckoutToken/);
   assert.match(controller, /"\/pay\/\?checkoutToken="/);
   assert.match(controller, /String returnUrl/);
+  assert.match(controller, /MerchantResolver/);
+  assert.match(controller, /setMerchantId\(merchantId\)/);
+  assert.match(controller, /PaymentOrder::getMerchantId, merchantId/);
   assert.doesNotMatch(controller, /"\/pay\/\?orderNo="/);
+
+  const securityConfig = await readFile(path.join(
+    ROOT, '..', 'huizhipay-user', 'src', 'main', 'java', 'com', 'huizhipay',
+    'user', 'config', 'SecurityConfig.java'
+  ), 'utf8');
+  assert.doesNotMatch(securityConfig, /"\/api\/v1\/dummy\/\*\*"/);
+  assert.match(securityConfig, /HttpMethod\.GET, "\/api\/v1\/dummy\/orders\/\*"/);
+  assert.match(securityConfig, /HttpMethod\.POST, "\/api\/v1\/dummy\/orders\/\*\/result"/);
 
   const migration = await readFile(path.join(
     ROOT, '..', 'huizhipay-bootstrap', 'src', 'main', 'resources', 'db', 'migration',

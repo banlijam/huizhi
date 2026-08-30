@@ -33,3 +33,5 @@ build/
 .vscode/
 /.mvn/wrapper
 .dev
+mvnw
+mvnw.cmd

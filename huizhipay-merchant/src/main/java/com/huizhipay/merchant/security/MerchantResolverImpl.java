@@ -3,12 +3,16 @@ package com.huizhipay.merchant.security;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.huizhipay.common.security.MerchantResolver;
 import com.huizhipay.merchant.entity.Merchant;
+import com.huizhipay.merchant.entity.MerchantTeam;
 import com.huizhipay.merchant.mapper.MerchantMapper;
+import com.huizhipay.merchant.mapper.MerchantTeamMapper;
 import com.huizhipay.user.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 商户解析器实现：从当前登录上下文取 userId，再查 t_merchant.owner_user_id。
@@ -19,9 +23,10 @@ import org.springframework.stereotype.Component;
 public class MerchantResolverImpl implements MerchantResolver {
 
     private final MerchantMapper merchantMapper;
+    private final MerchantTeamMapper merchantTeamMapper;
 
     @Override
-    public String getCurrentMerchantId() {
+    public MerchantAccess getCurrentMerchantAccess() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
             return null;
@@ -30,7 +35,18 @@ public class MerchantResolverImpl implements MerchantResolver {
         if (principal instanceof UserPrincipal up) {
             Merchant merchant = merchantMapper.selectOne(
                     new QueryWrapper<Merchant>().eq("owner_user_id", up.getId()));
-            return merchant == null ? null : merchant.getMerchantId();
+            if (merchant != null) {
+                return new MerchantAccess(merchant.getMerchantId(), "OWNER");
+            }
+
+            List<MerchantTeam> memberships = merchantTeamMapper.selectList(
+                    new QueryWrapper<MerchantTeam>()
+                            .eq("email", up.getEmail())
+                            .eq("status", MerchantTeam.TeamInviteStatus.ACCEPTED));
+            if (memberships.size() == 1 && memberships.getFirst().getRole() != null) {
+                MerchantTeam membership = memberships.getFirst();
+                return new MerchantAccess(membership.getMerchantId(), membership.getRole().name());
+            }
         }
         return null;
     }

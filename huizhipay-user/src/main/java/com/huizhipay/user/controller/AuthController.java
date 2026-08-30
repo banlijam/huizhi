@@ -2,6 +2,7 @@ package com.huizhipay.user.controller;
 
 import com.huizhipay.common.i18n.I18nUtils;
 import com.huizhipay.common.model.R;
+import com.huizhipay.common.security.MerchantResolver;
 import com.huizhipay.user.dto.*;
 import com.huizhipay.user.exception.AuthException;
 import com.huizhipay.user.security.UserPrincipal;
@@ -25,6 +26,7 @@ public class AuthController {
     private final AuthService authService;
     private final TotpService totpService;
     private final UserService userService;
+    private final MerchantResolver merchantResolver;
 
     @Value("${jwt.cookie.secure:false}")
     private boolean cookieSecure;
@@ -91,13 +93,16 @@ public class AuthController {
         if (principal == null) {
             return R.fail(401, "Unauthorized");
         }
+        MerchantResolver.MerchantAccess merchantAccess = merchantResolver.getCurrentMerchantAccess();
         return R.ok(new UserInfoResponse(
                 principal.getId(),
                 principal.getEmail(),
                 null,
                 null,
                 null,
-                null
+                null,
+                merchantAccess == null ? null : merchantAccess.merchantId(),
+                merchantAccess == null ? null : merchantAccess.role()
         ));
     }
 
