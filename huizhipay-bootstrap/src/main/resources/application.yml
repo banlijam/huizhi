@@ -39,6 +39,9 @@ jwt:
     secure: false  # 本地开发环境设为false，生产环境设为true
 # 自定义风控保理及 Stellar 参数
 huizhipay:
+  dummy:
+    # 仅本地沙箱允许浏览器模拟渠道回调；默认关闭，生产结果必须由受信任的支付渠道产生。
+    checkout-result-enabled: ${HUIZHIPAY_DUMMY_CHECKOUT_RESULT_ENABLED:false}
   security:
     use-aws-kms: false  # 测试环境关闭硬件密钥签名，走本地
   stellar:

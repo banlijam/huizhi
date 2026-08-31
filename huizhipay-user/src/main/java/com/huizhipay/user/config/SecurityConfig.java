@@ -2,6 +2,7 @@ package com.huizhipay.user.config;
 
 import com.huizhipay.user.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,22 +24,26 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${huizhipay.dummy.checkout-result-enabled:false}")
+    private boolean dummyCheckoutResultEnabled;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)   // 禁用CSRF（使用JWT）
-                .authorizeHttpRequests(auth -> auth
-                        // 买家 Checkout 仅凭随机 checkoutToken 访问单笔订单；后台建单和列表必须登录。
-                        .requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/dummy/orders/*/result")
-                        .permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/actuator/health",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    // 买家只可凭随机 checkoutToken 查询单笔订单；后台建单和列表必须登录。
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*").permitAll();
+                    if (dummyCheckoutResultEnabled) {
+                        auth.requestMatchers(HttpMethod.POST, "/api/v1/dummy/orders/*/result").permitAll();
+                    } else {
+                        auth.requestMatchers(HttpMethod.POST, "/api/v1/dummy/orders/*/result").denyAll();
+                    }
+                    auth.requestMatchers("/api/v1/auth/**", "/actuator/health",
+                                    "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
+                            .permitAll();
+                    auth.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -3,6 +3,7 @@ package com.huizhipay.acquiring.controller;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
+import com.huizhipay.acquiring.service.DummyPaymentPolicy;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
@@ -32,6 +33,7 @@ public class DummyPaymentController {
     private static final int PAGE_SIZE = 7;
     private final PaymentOrderMapper paymentOrderMapper;
     private final MerchantResolver merchantResolver;
+    private final DummyPaymentPolicy dummyPaymentPolicy;
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
@@ -70,6 +72,7 @@ public class DummyPaymentController {
 
     @PostMapping("/{checkoutToken}/result")
     public R<OrderView> result(@PathVariable String checkoutToken, @RequestBody ResultRequest request) {
+        dummyPaymentPolicy.requireBrowserResultSubmission();
         PaymentOrder order = requireOrder(checkoutToken);
         String requestedResult = request.result() == null ? "" : request.result().trim().toUpperCase(Locale.ROOT);
         if (!"SUCCESS".equals(requestedResult) && !"FAILED".equals(requestedResult)) {
