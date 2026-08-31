@@ -6,8 +6,11 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
+import com.huizhipay.acquiring.service.DummyPaymentPolicy;
 import com.huizhipay.common.exceptions.BizException;
+import com.huizhipay.common.security.MerchantAccessGuard;
 import com.huizhipay.common.security.MerchantResolver;
+import com.huizhipay.common.security.MerchantResolver.MerchantAccess;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,12 +27,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DummyPaymentControllerTest {
     @Mock private PaymentOrderMapper paymentOrderMapper;
     @Mock private MerchantResolver merchantResolver;
+    @Mock private MerchantAccessGuard merchantAccessGuard;
+    @Mock private DummyPaymentPolicy dummyPaymentPolicy;
     @InjectMocks private DummyPaymentController controller;
 
     @BeforeAll
@@ -40,7 +47,8 @@ class DummyPaymentControllerTest {
 
     @Test
     void createAlwaysUsesMerchantFromAuthenticatedContext() {
-        when(merchantResolver.getCurrentMerchantId()).thenReturn("M-A");
+        when(merchantAccessGuard.requireAnyRole("OWNER", "ADMIN"))
+                .thenReturn(new MerchantAccess("M-A", "ADMIN"));
         controller.create(new DummyPaymentController.CreateOrderRequest(
                 new BigDecimal("10.00"), "USD", "/merchant"));
         ArgumentCaptor<PaymentOrder> orderCaptor = ArgumentCaptor.forClass(PaymentOrder.class);
@@ -64,12 +72,41 @@ class DummyPaymentControllerTest {
 
     @Test
     void merchantlessUserCannotCreateOrListOrders() {
+        doThrow(new BizException(403, "Forbidden"))
+                .when(merchantAccessGuard).requireAnyRole("OWNER", "ADMIN");
         when(merchantResolver.getCurrentMerchantId()).thenReturn(null);
         assertThatThrownBy(() -> controller.create(new DummyPaymentController.CreateOrderRequest(
                 BigDecimal.ONE, "USD", "/merchant")))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
         assertThatThrownBy(() -> controller.list(1))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
+    }
+
+    @Test
+    void disabledBrowserResultFailsBeforeReadingOrUpdatingAnOrder() {
+        doThrow(new BizException(403, "Disabled"))
+                .when(dummyPaymentPolicy).requireBrowserResultSubmission();
+
+        assertThatThrownBy(() -> controller.result("ct_public", new DummyPaymentController.ResultRequest("SUCCESS")))
+                .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
+        verifyNoInteractions(paymentOrderMapper);
+    }
+
+    @Test
+    void localSandboxCanStillSimulateAResultWhenExplicitlyEnabled() {
+        PaymentOrder order = new PaymentOrder()
+                .setCheckoutToken("ct_local")
+                .setOrderNo("DUMMY-1")
+                .setMerchantId("M-A")
+                .setAmount(BigDecimal.ONE)
+                .setCurrency("USD")
+                .setStatus(PaymentOrder.PaymentStatus.PENDING);
+        when(paymentOrderMapper.selectOne(any())).thenReturn(order);
+
+        controller.result("ct_local", new DummyPaymentController.ResultRequest("SUCCESS"));
+
+        assertThat(order.getStatus()).isEqualTo(PaymentOrder.PaymentStatus.SUCCESS);
+        verify(paymentOrderMapper).updateById(order);
     }
 
     private void assertMerchantScope(Wrapper<PaymentOrder> query) {

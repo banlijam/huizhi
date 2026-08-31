@@ -359,6 +359,8 @@ test('checkout token, return URL, and merchant authorization contracts stay alig
   assert.doesNotMatch(securityConfig, /"\/api\/v1\/dummy\/\*\*"/);
   assert.match(securityConfig, /HttpMethod\.GET, "\/api\/v1\/dummy\/orders\/\*"/);
   assert.match(securityConfig, /HttpMethod\.POST, "\/api\/v1\/dummy\/orders\/\*\/result"/);
+  assert.match(securityConfig, /\.denyAll\(\)/);
+  assert.match(securityConfig, /dummyCheckoutResultEnabled/);
 
   const migration = await readFile(path.join(
     ROOT, '..', 'huizhipay-bootstrap', 'src', 'main', 'resources', 'db', 'migration',
