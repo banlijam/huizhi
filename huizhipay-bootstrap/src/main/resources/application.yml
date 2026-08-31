@@ -37,9 +37,6 @@ jwt:
   expiration: 86400000
   cookie:
     secure: false  # 本地开发环境设为false，生产环境设为true
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 # 自定义风控保理及 Stellar 参数
 huizhipay:
   security:
@@ -54,5 +51,16 @@ app:
     url: http://127.0.0.1:3000  # 前端域名，邮件中的链接会使用
 
 logging:
+  pattern:
+    level: "%5p [traceId:%X{traceId:-}]"
   level:
     org.flywaydb: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never

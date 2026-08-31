@@ -1,12 +1,12 @@
 package com.huizhipay.ledger.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.huizhipay.common.port.SettlementCountdownPort;
+import com.huizhipay.common.port.SettlementCountdownPort.SettlementCountdownSnapshot;
 import com.huizhipay.ledger.dto.*;
 import com.huizhipay.ledger.entity.LedgerEntry;
 import com.huizhipay.ledger.mapper.LedgerEntryMapper;
 import com.huizhipay.ledger.mapper.OverviewMapper;
-import com.huizhipay.settlement.dto.SettlementCountdown;
-import com.huizhipay.settlement.service.SettlementScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class OverviewService {
 
     private final OverviewMapper overviewMapper;
     private final LedgerEntryMapper ledgerEntryMapper;
-    private final SettlementScheduleService settlementScheduleService;
+    private final SettlementCountdownPort settlementCountdownPort;
 
     public OverviewStatsResponse getStats(String merchantId) {
         log.info("[Overview] 拉取指挥中心大盘 merchantId={}", merchantId);
@@ -49,11 +49,11 @@ public class OverviewService {
         split.setNetLabel("93");
         resp.setSplitRatio(split);
 
-        SettlementCountdown countdown = settlementScheduleService.getNextSettlement(merchantId);
+        SettlementCountdownSnapshot countdown = settlementCountdownPort.getNextSettlement(merchantId);
         log.debug("[Overview] 清算倒计时 merchantId={}, 剩余{}小时/总{}小时, 预计到账={}",
-                merchantId, countdown.getHoursRemaining(), countdown.getTotalHours(), countdown.getExpectedAt());
-        resp.setSettlementCountdownHours(countdown.getHoursRemaining());
-        resp.setSettlementCountdownTotal(countdown.getTotalHours());
+                merchantId, countdown.hoursRemaining(), countdown.totalHours(), countdown.expectedAt());
+        resp.setSettlementCountdownHours(countdown.hoursRemaining());
+        resp.setSettlementCountdownTotal(countdown.totalHours());
 
         if (merchantId == null) {
             log.debug("[Overview] 商户尚未入驻，返回空大盘");

@@ -3,6 +3,7 @@ package com.huizhipay.common.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.slf4j.MDC;
 
 @Data
 @AllArgsConstructor
@@ -12,9 +13,11 @@ public class R<T> {
     private String message;
     private T data;
     private Long timestamp;
+    private String traceId;
 
     public R() {
         setTimestamp(System.currentTimeMillis());
+        setTraceId(MDC.get("traceId"));
     }
 
     public R(T data) {
