@@ -4,6 +4,7 @@ import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.i18n.I18nUtils;
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
+import com.huizhipay.common.security.MerchantAccessGuard;
 import com.huizhipay.merchant.dto.BindWalletRequest;
 import com.huizhipay.merchant.dto.OnboardingStatusResponse;
 import com.huizhipay.merchant.dto.SubmitOnboardingRequest;
@@ -17,6 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import static com.huizhipay.common.security.MerchantAccessGuard.ADMIN;
+import static com.huizhipay.common.security.MerchantAccessGuard.OWNER;
+
 /**
  * 入驻与合规：KYB 表单 + 结算钱包绑定。
  * 钱包绑定逻辑委托给 huizhipay-settlement 的 SettlementWalletService。
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class OnboardingController {
 
     private final MerchantResolver merchantResolver;
+    private final MerchantAccessGuard merchantAccessGuard;
     private final MerchantService merchantService;
     private final SettlementWalletService settlementWalletService;
 
@@ -51,7 +56,7 @@ public class OnboardingController {
 
     @PostMapping("/wallet/bind")
     public R<WalletResponse> bindWallet(@Valid @RequestBody BindWalletRequest req) {
-        String merchantId = requireMerchant();
+        String merchantId = merchantAccessGuard.requireAnyRole(OWNER, ADMIN).merchantId();
         MerchantWallet.WalletTypeEnum type = MerchantWallet.WalletTypeEnum.valueOf(req.getType().toUpperCase());
         MerchantWallet.WalletNetworkEnum network;
         if (type == MerchantWallet.WalletTypeEnum.STELLAR) {

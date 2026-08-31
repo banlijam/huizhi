@@ -7,6 +7,7 @@ import com.huizhipay.acquiring.service.DummyPaymentPolicy;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
+import com.huizhipay.common.security.MerchantAccessGuard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.huizhipay.common.security.MerchantAccessGuard.ADMIN;
+import static com.huizhipay.common.security.MerchantAccessGuard.OWNER;
+
 @RestController
 @RequestMapping("/api/v1/dummy/orders")
 @RequiredArgsConstructor
@@ -33,11 +37,12 @@ public class DummyPaymentController {
     private static final int PAGE_SIZE = 7;
     private final PaymentOrderMapper paymentOrderMapper;
     private final MerchantResolver merchantResolver;
+    private final MerchantAccessGuard merchantAccessGuard;
     private final DummyPaymentPolicy dummyPaymentPolicy;
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
-        String merchantId = requireMerchantId();
+        String merchantId = merchantAccessGuard.requireAnyRole(OWNER, ADMIN).merchantId();
         if (request.amount() == null || request.amount().signum() <= 0) {
             throw new BizException(400, "Dummy amount must be greater than zero");
         }
