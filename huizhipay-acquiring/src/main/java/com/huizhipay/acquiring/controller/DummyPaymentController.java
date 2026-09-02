@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
 import com.huizhipay.acquiring.service.DummyPaymentPolicy;
+import com.huizhipay.acquiring.service.DummyPaymentCompletionService;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
@@ -39,6 +40,7 @@ public class DummyPaymentController {
     private final MerchantResolver merchantResolver;
     private final MerchantAccessGuard merchantAccessGuard;
     private final DummyPaymentPolicy dummyPaymentPolicy;
+    private final DummyPaymentCompletionService dummyPaymentCompletionService;
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
@@ -49,6 +51,9 @@ public class DummyPaymentController {
         BigDecimal amount = request.amount();
         String currency = request.currency() == null || request.currency().isBlank()
                 ? "USD" : request.currency().trim().toUpperCase(Locale.ROOT);
+        if (!"USD".equals(currency)) {
+            throw new BizException(400, "Dummy Sandbox currently supports USD only");
+        }
         String orderNo = "DUMMY-" + UUID.randomUUID().toString().replace("-", "")
                 .substring(0, 12).toUpperCase(Locale.ROOT);
         String checkoutToken = "ct_" + UUID.randomUUID().toString().replace("-", "");
@@ -78,23 +83,7 @@ public class DummyPaymentController {
     @PostMapping("/{checkoutToken}/result")
     public R<OrderView> result(@PathVariable String checkoutToken, @RequestBody ResultRequest request) {
         dummyPaymentPolicy.requireBrowserResultSubmission();
-        PaymentOrder order = requireOrder(checkoutToken);
-        String requestedResult = request.result() == null ? "" : request.result().trim().toUpperCase(Locale.ROOT);
-        if (!"SUCCESS".equals(requestedResult) && !"FAILED".equals(requestedResult)) {
-            throw new BizException(400, "Dummy result must be SUCCESS or FAILED");
-        }
-        if (order.getStatus() != PaymentOrder.PaymentStatus.PENDING) {
-            return R.ok(toView(order));
-        }
-        PaymentOrder.PaymentStatus status = PaymentOrder.PaymentStatus.valueOf(requestedResult);
-        order.setStatus(status)
-                .setChannelTradeNo("DUMMY_TXN_" + UUID.randomUUID().toString().replace("-", "")
-                        .substring(0, 10).toUpperCase(Locale.ROOT))
-                .setRemark(status == PaymentOrder.PaymentStatus.SUCCESS
-                        ? "Dummy payment succeeded" : "Dummy payment failed")
-                .setUpdatedAt(LocalDateTime.now());
-        paymentOrderMapper.updateById(order);
-        return R.ok(toView(order));
+        return R.ok(toView(dummyPaymentCompletionService.complete(checkoutToken, request.result())));
     }
 
     @GetMapping

@@ -79,9 +79,8 @@ test('build separates the public entry, merchant workspace, developer tools, and
   assert.match(html, /\/merchant\/orders/);
   assert.match(html, /\/merchant\/developer\/api-keys/);
   assert.match(html, /<select id=\\?"dummy-currency\\?">/);
-  for (const currency of ['USD', 'HKD', 'EUR', 'GBP', 'CNY', 'JPY', 'SGD']) {
-    assert.match(html, new RegExp(`<option>${currency}</option>`));
-  }
+  assert.match(html, /<select id=\\?"dummy-currency\\?"><option>USD<\/option><\/select>/);
+  assert.match(html, /USD Sandbox/);
   assert.match(html, /Responsive Checkout/);
   assert.doesNotMatch(html, /data-screen=["']checkout-mobile["']/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);

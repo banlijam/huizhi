@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-
-import static manifold.science.util.CoercionConstants.bd;
 
 @Service
 @RequiredArgsConstructor
@@ -25,28 +24,29 @@ public class LedgerTransferService {
     private final LedgerBookingService ledgerBookingService;
 
     private static final String PLATFORM_MERCHANT_ID = "__PLATFORM__";
-    private static final BigDecimal FEE_RATE = 0.07bd;
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.07");
 
     @Transactional
     public void payment(String merchantId, String currency, BigDecimal amount,
                         String bizId, String channel, String externalOrderId) {
-        Account assetAccount = accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
+        Account assetAccount = requireAccount(accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
                 .eq(Account::getMerchantId, merchantId)
                 .eq(Account::getAccountType, AccountTypeEnum.ASSET_AVAILABLE)
-                .eq(Account::getCurrency, currency));
+                .eq(Account::getCurrency, currency)), merchantId, currency, AccountTypeEnum.ASSET_AVAILABLE);
 
-        Account liabilityAccount = accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
+        Account liabilityAccount = requireAccount(accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
                 .eq(Account::getMerchantId, merchantId)
                 .eq(Account::getAccountType, AccountTypeEnum.LIABILITY_CUSTODY)
-                .eq(Account::getCurrency, currency));
+                .eq(Account::getCurrency, currency)), merchantId, currency, AccountTypeEnum.LIABILITY_CUSTODY);
 
-        Account platformIncomeAccount = accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
+        Account platformIncomeAccount = requireAccount(accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
                 .eq(Account::getMerchantId, PLATFORM_MERCHANT_ID)
                 .eq(Account::getAccountType, AccountTypeEnum.PLATFORM_INCOME)
-                .eq(Account::getCurrency, currency));
+                .eq(Account::getCurrency, currency)), PLATFORM_MERCHANT_ID, currency, AccountTypeEnum.PLATFORM_INCOME);
 
-        BigDecimal merchantNet = amount * (1bd - FEE_RATE);
-        BigDecimal platformFee = amount * FEE_RATE;
+        BigDecimal gross = amount.setScale(3, RoundingMode.HALF_UP);
+        BigDecimal platformFee = gross.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
+        BigDecimal merchantNet = gross.subtract(platformFee);
 
         AccountEntryDetail merchantDetail = new AccountEntryDetail()
                 .setAccountNo(assetAccount.getAccountNo())
@@ -69,11 +69,11 @@ public class LedgerTransferService {
         AccountEntryDetail liabilityDetail = new AccountEntryDetail()
                 .setAccountNo(liabilityAccount.getAccountNo())
                 .setMerchantId(merchantId)
-                .setAmount(-amount)
+                .setAmount(gross.negate())
                 .setBizType(BizTypeEnum.PAYMENT)
                 .setChannel(channel)
                 .setExternalOrderId(externalOrderId)
-                .setRemark("充值托管负债（全额 " + amount + "）");
+                .setRemark("充值托管负债（全额 " + gross + "）");
 
         ledgerBookingService.doubleEntryBooking(
                 merchantId,
@@ -124,5 +124,13 @@ public class LedgerTransferService {
 
         log.info("商户 {} 提现成功，金额 {}，业务号 {}",
                 merchantId, amount, bizId);
+    }
+
+    private Account requireAccount(Account account, String merchantId, String currency, AccountTypeEnum accountType) {
+        if (account == null) {
+            throw new com.huizhipay.common.exceptions.BizException(409,
+                    "Ledger account not configured: " + merchantId + "/" + currency + "/" + accountType);
+        }
+        return account;
     }
 }

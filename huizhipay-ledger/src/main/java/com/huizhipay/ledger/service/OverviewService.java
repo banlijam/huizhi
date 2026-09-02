@@ -101,14 +101,14 @@ public class OverviewService {
                 new QueryWrapper<LedgerEntry>()
                         .eq("merchant_id", merchantId)
                         .eq("biz_type", "PAYMENT")
-                        .gt("amount", BigDecimal.ZERO)
+                        .lt("amount", BigDecimal.ZERO)
                         .orderByDesc("created_at")
                         .last("limit 10"));
         List<LedgerRowResponse> rows = new ArrayList<>(entries.size());
         for (LedgerEntry e : entries) {
             LedgerRowResponse row = new LedgerRowResponse();
             row.setOrderId(e.getBizId());
-            BigDecimal gross = e.getAmount() == null ? BigDecimal.ZERO : e.getAmount();
+            BigDecimal gross = e.getAmount() == null ? BigDecimal.ZERO : e.getAmount().abs();
             row.setGross(gross.setScale(3, RoundingMode.HALF_UP));
             row.setFee(gross.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP));
             row.setNet(gross.multiply(NET_RATE).setScale(3, RoundingMode.HALF_UP));

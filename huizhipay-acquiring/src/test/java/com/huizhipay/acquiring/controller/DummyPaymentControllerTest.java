@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.huizhipay.acquiring.entity.PaymentOrder;
 import com.huizhipay.acquiring.mapper.PaymentOrderMapper;
 import com.huizhipay.acquiring.service.DummyPaymentPolicy;
+import com.huizhipay.acquiring.service.DummyPaymentCompletionService;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.security.MerchantAccessGuard;
 import com.huizhipay.common.security.MerchantResolver;
@@ -37,6 +38,7 @@ class DummyPaymentControllerTest {
     @Mock private MerchantResolver merchantResolver;
     @Mock private MerchantAccessGuard merchantAccessGuard;
     @Mock private DummyPaymentPolicy dummyPaymentPolicy;
+    @Mock private DummyPaymentCompletionService dummyPaymentCompletionService;
     @InjectMocks private DummyPaymentController controller;
 
     @BeforeAll
@@ -54,6 +56,17 @@ class DummyPaymentControllerTest {
         ArgumentCaptor<PaymentOrder> orderCaptor = ArgumentCaptor.forClass(PaymentOrder.class);
         verify(paymentOrderMapper).insert(orderCaptor.capture());
         assertThat(orderCaptor.getValue().getMerchantId()).isEqualTo("M-A");
+    }
+
+    @Test
+    void createRejectsCurrenciesWithoutSandboxLedgerAccounts() {
+        when(merchantAccessGuard.requireAnyRole("OWNER", "ADMIN"))
+                .thenReturn(new MerchantAccess("M-A", "ADMIN"));
+
+        assertThatThrownBy(() -> controller.create(new DummyPaymentController.CreateOrderRequest(
+                new BigDecimal("10.00"), "HKD", "/merchant")))
+                .isInstanceOf(BizException.class).extracting("code").isEqualTo(400);
+        verifyNoInteractions(paymentOrderMapper);
     }
 
     @Test
@@ -89,7 +102,7 @@ class DummyPaymentControllerTest {
 
         assertThatThrownBy(() -> controller.result("ct_public", new DummyPaymentController.ResultRequest("SUCCESS")))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
-        verifyNoInteractions(paymentOrderMapper);
+        verifyNoInteractions(paymentOrderMapper, dummyPaymentCompletionService);
     }
 
     @Test
@@ -101,12 +114,11 @@ class DummyPaymentControllerTest {
                 .setAmount(BigDecimal.ONE)
                 .setCurrency("USD")
                 .setStatus(PaymentOrder.PaymentStatus.PENDING);
-        when(paymentOrderMapper.selectOne(any())).thenReturn(order);
+        when(dummyPaymentCompletionService.complete("ct_local", "SUCCESS")).thenReturn(order);
 
         controller.result("ct_local", new DummyPaymentController.ResultRequest("SUCCESS"));
 
-        assertThat(order.getStatus()).isEqualTo(PaymentOrder.PaymentStatus.SUCCESS);
-        verify(paymentOrderMapper).updateById(order);
+        verify(dummyPaymentCompletionService).complete("ct_local", "SUCCESS");
     }
 
     private void assertMerchantScope(Wrapper<PaymentOrder> query) {

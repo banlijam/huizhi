@@ -37,7 +37,7 @@ public class LedgerBookingService {
         for (AccountEntryDetail detail : details) {
             total = total.add(detail.getAmount());
         }
-        if (total != ZERO) {
+        if (total.compareTo(ZERO) != 0) {
             log.error("[Ledger] 复式记账借贷不平衡 merchantId={}, bizId={}, total={}", merchantId, bizId, total);
             throw new BizException(500, "复式记账借贷不平衡，总和：" + total);
         }
@@ -49,19 +49,23 @@ public class LedgerBookingService {
         for (AccountEntryDetail detail : details) {
             Account account = accountMapper.selectOne(Wrappers.<Account>lambdaQuery()
                     .eq(Account::getAccountNo, detail.getAccountNo()));
+            if (account == null) {
+                throw new BizException(409, "账本账户不存在，账户号：" + detail.getAccountNo());
+            }
             log.debug("[Ledger] 处理账户 accountNo={}, amount={}", detail.getAccountNo(), detail.getAmount());
 
-            BigDecimal beforeBalance = account.getBalance();
-            BigDecimal afterBalance = beforeBalance + detail.getAmount();
+            BigDecimal beforeBalance = account.getBalance() == null ? ZERO : account.getBalance();
+            BigDecimal afterBalance = beforeBalance.add(detail.getAmount());
 
-            if (detail.getAmount() < ZERO && beforeBalance < detail.getAmount().abs()) {
+            if (account.getAccountType() == Account.AccountTypeEnum.ASSET_AVAILABLE
+                    && detail.getAmount().signum() < 0
+                    && beforeBalance.compareTo(detail.getAmount().abs()) < 0) {
                 log.warn("[Ledger] 账户余额不足 accountNo={}, before={}, 需扣减={}",
                         detail.getAccountNo(), beforeBalance, detail.getAmount().abs());
                 throw new BizException(400, "账户余额不足，账户号：" + detail.getAccountNo());
             }
 
             account.setBalance(afterBalance);
-            account.setVersion(account.getVersion() + 1);
             accountsToUpdate.add(account);
 
             entries.add(new LedgerEntry()
