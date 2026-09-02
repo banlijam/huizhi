@@ -42,11 +42,17 @@ async function waitFor(url, child) {
   throw new Error(`Frontend server did not become ready at ${url}`);
 }
 
-test('build separates the public entry, merchant workspace, developer tools, and checkout', async () => {
+test('build merges the public home and login entry while separating protected workspaces and checkout', async () => {
   const homeHtml = await readFile(path.join(ROOT, 'dist', 'index.html'), 'utf8');
-  assert.match(homeHtml, /登录 Dashboard/);
-  assert.match(homeHtml, /查看开发文档/);
+  const loginHtml = await readFile(path.join(ROOT, 'dist', 'login.html'), 'utf8');
+  assert.equal(homeHtml, loginHtml);
+  assert.match(homeHtml, /id=["']login-form["']/);
+  assert.match(homeHtml, /data-i18n=["']login\.heroTitle["']/);
+  assert.match(homeHtml, /href=["']\/docs["']/);
+  assert.match(homeHtml, /class=["']login-shell["']/);
+  assert.match(homeHtml, /radial-gradient/);
   assert.doesNotMatch(homeHtml, /data-screen=/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'home.html'), 'utf8'), /ENOENT/);
 
   const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
   assert.match(html, /HuizhiPay Web-first Interactive Prototype/);
@@ -67,7 +73,10 @@ test('build separates the public entry, merchant workspace, developer tools, and
   assert.doesNotMatch(html, /pageParams\.get\(['"]demo['"]\)/);
   assert.doesNotMatch(html, /Huizhi Developers|Developer Portal/);
   assert.match(html, /applyState\(['"]loading['"]\)/);
-  assert.match(html, /正在创建订单/);
+  assert.match(html, /orderText\(['"]creatingTitle['"]\)/);
+  assert.match(html, /id=["']language-toggle["']/);
+  assert.match(html, /src=["']\/i18n\/zh\.js["']/);
+  assert.match(html, /src=["']\/i18n\/en\.js["']/);
   assert.match(html, /Merchant Dashboard/);
   assert.match(html, /id=\\?["']orders-prev\\?["']/);
   assert.match(html, /id=\\?["']orders-next\\?["']/);
@@ -80,7 +89,8 @@ test('build separates the public entry, merchant workspace, developer tools, and
   assert.match(html, /\/merchant\/developer\/api-keys/);
   assert.match(html, /<select id=\\?"dummy-currency\\?">/);
   assert.match(html, /<select id=\\?"dummy-currency\\?"><option>USD<\/option><\/select>/);
-  assert.match(html, /USD Sandbox/);
+  assert.match(html, /orderText\(IS_DUMMY\?['"]sandboxNote['"]:['"]productionNote['"]\)/);
+  assert.match(await readFile(path.join(ROOT, 'dist', 'i18n', 'zh.js'), 'utf8'), /USD Sandbox，不会产生真实扣款/);
   assert.match(html, /Responsive Checkout/);
   assert.doesNotMatch(html, /data-screen=["']checkout-mobile["']/);
   assert.doesNotMatch(html, /<script[^>]+src=["']https:\/\//i);
@@ -189,7 +199,9 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const root = await fetch(`${baseUrl}/`);
   assert.equal(root.status, 200);
-  assert.match(await root.text(), /登录 Dashboard/);
+  const rootHtml = await root.text();
+  assert.match(rootHtml, /id=["']login-form["']/);
+  assert.match(rootHtml, /href=["']\/docs["']/);
 
   const merchant = await fetch(`${baseUrl}/merchant`);
   assert.equal(merchant.status, 200);
@@ -265,6 +277,18 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.equal(docs.status, 200);
   assert.match(await docs.text(), /公开开发文档占位页/);
 
+  const mergedHome = await fetch(`${baseUrl}/`);
+  const mergedLogin = await fetch(`${baseUrl}/login`);
+  assert.equal(mergedHome.status, 200);
+  assert.equal(mergedLogin.status, 200);
+  assert.equal(await mergedHome.text(), await mergedLogin.text());
+
+  for (const legacyHome of ['/home', '/home.html']) {
+    const response = await fetch(`${baseUrl}${legacyHome}`, { redirect: 'manual' });
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get('location'), '/');
+  }
+
   const oldDeveloperDocs = await fetch(`${baseUrl}/developer/docs`);
   assert.equal(oldDeveloperDocs.status, 200);
   assert.equal(oldDeveloperDocs.redirected, true);
@@ -291,8 +315,10 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /AUTO_RETURN_SECONDS/);
   assert.match(paymentHtml, /id=["']transition["']/);
   assert.match(paymentHtml, /pointer-events:none/);
-  assert.match(paymentHtml, /正在提交付款结果/);
-  assert.match(paymentHtml, /付款成功/);
+  assert.match(paymentHtml, /\.transition-layer\{position:fixed;z-index:20;inset:0;display:grid;place-items:center/);
+  assert.match(paymentHtml, /id=["']language-toggle["']/);
+  assert.match(paymentHtml, /showLocalizedTransition\(['"]loading['"],['"]submittingTitle['"],['"]submittingCopy['"]\)/);
+  assert.match(paymentHtml, /showLocalizedTransition\(['"]success['"],['"]success['"],['"]returnCountdown['"]/);
   assert.match(paymentHtml, /get\(['"]checkoutToken['"]\)/);
   assert.doesNotMatch(paymentHtml, /get\(['"]orderNo['"]\)/);
   assert.match(paymentHtml, /id=["']merchant-name["']/);

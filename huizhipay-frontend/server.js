@@ -133,9 +133,15 @@ const server = http.createServer(async (req, res) => {
   if (developerWorkspaceRoutes.has(normalizedPath)) {
     pathname = IS_DIST ? `${normalizedPath}/index.html` : '/index.html';
   }
+  if (normalizedPath === '/') pathname = '/login.html';
   if (normalizedPath === '/checkout/widget') pathname = '/checkout-placeholder.html';
   if (normalizedPath === '/docs') pathname = '/docs.html';
   if (normalizedPath === '/login') pathname = '/login.html';
+  if (normalizedPath === '/home' || normalizedPath === '/home.html') {
+    res.writeHead(302, { Location: '/' });
+    res.end();
+    return;
+  }
   if (normalizedPath === '/merchant/login') {
     res.writeHead(302, { Location: '/login.html' });
     res.end();

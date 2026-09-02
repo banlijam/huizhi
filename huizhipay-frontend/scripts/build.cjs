@@ -198,8 +198,8 @@ async function build() {
   console.log('🧭 生成静态部署路由入口...');
   writeRouteEntrypoints();
 
-  // 根地址是公开入口；Merchant 应用已经在上一步复制到 /merchant/。
-  fs.copyFileSync(path.join(DIST_DIR, 'home.html'), path.join(DIST_DIR, 'index.html'));
+  // 根地址与 /login 共用同一个公开登录入口；Merchant 应用位于 /merchant/。
+  fs.copyFileSync(path.join(DIST_DIR, 'login.html'), path.join(DIST_DIR, 'index.html'));
 
   console.log('✅ 构建完成，发布产物位于 dist/');
   console.log('   可直接将 dist/ 拷贝到 nginx 的 root 目录使用。');

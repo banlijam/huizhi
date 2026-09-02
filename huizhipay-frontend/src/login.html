@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>HuizhiPay - Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="styles.css">
   <script src="i18n/zh.js"></script>
@@ -13,136 +12,416 @@
   <script src="js/i18n.js"></script>
   <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
+  <style>
+    :root {
+      --hp-bg-canvas: #05070b;
+      --hp-bg-stage: #070a0f;
+      --hp-bg-sidebar: #090d13;
+      --hp-bg-panel: #101620;
+      --hp-bg-panel-raised: #151c28;
+      --hp-bg-input: #0c121c;
+      --hp-border: #273146;
+      --hp-border-subtle: #202839;
+      --hp-border-strong: #35425a;
+      --hp-text: #f4f7fb;
+      --hp-text-secondary: #aeb8c6;
+      --hp-text-muted: #8d98aa;
+      --hp-text-faint: #667287;
+      --hp-primary: #5a91ff;
+      --hp-success: #3bd49b;
+      --hp-warning: #f4c15d;
+      --hp-danger: #ff7278;
+      --hp-lime: #c0f96c;
+      --hp-sans: "Aptos Display", "Segoe UI Variable", sans-serif;
+      --hp-mono: "Cascadia Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-width: 320px; min-height: 100%; margin: 0; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 14% 13%, rgba(90, 145, 255, .13), transparent 29rem),
+        radial-gradient(circle at 86% 84%, rgba(59, 212, 155, .07), transparent 26rem),
+        var(--hp-bg-canvas);
+      color: var(--hp-text);
+      font-family: var(--hp-sans);
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .flex { display: flex !important; }
+    .mono { font-family: var(--hp-mono); }
+
+    .login-shell {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr);
+      width: min(1280px, calc(100vw - 48px));
+      min-height: min(820px, calc(100vh - 48px));
+      margin: 24px auto;
+      overflow: hidden;
+      border: 1px solid var(--hp-border-subtle);
+      border-radius: 24px;
+      background: linear-gradient(145deg, #0a0e15, #0d131d 58%, #101926);
+      box-shadow: 0 34px 100px rgba(0, 0, 0, .42);
+    }
+    .login-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .2;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(110deg, #000, transparent 72%);
+    }
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--hp-text);
+      text-decoration: none;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #78a7ff, var(--hp-lime));
+      box-shadow: 0 8px 24px rgba(90, 145, 255, .18);
+      color: #071017;
+      font-size: 16px;
+      font-weight: 950;
+    }
+    .brand strong { display: block; font-size: 16px; font-weight: 850; line-height: 1.15; }
+    .brand small { display: block; margin-top: 4px; color: #758197; font-size: 10px; font-weight: 650; letter-spacing: .08em; }
+
+    .login-context {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      padding: 48px 54px 42px;
+      border-right: 1px solid var(--hp-border-subtle);
+      background: linear-gradient(145deg, rgba(9,13,19,.97), rgba(12,18,28,.75));
+    }
+    .context-copy { margin: auto 0; max-width: 610px; }
+    .eyebrow {
+      color: #8fb5ff;
+      font-family: var(--hp-mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .context-copy h1 {
+      max-width: 560px;
+      margin: 18px 0 16px;
+      font-size: clamp(40px, 5vw, 68px);
+      font-weight: 820;
+      letter-spacing: -.055em;
+      line-height: .99;
+    }
+    .context-copy > p {
+      max-width: 520px;
+      margin: 0;
+      color: var(--hp-text-muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    .context-line {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 44px;
+    }
+    .context-item {
+      min-height: 108px;
+      padding: 15px;
+      border: 1px solid var(--hp-border);
+      border-radius: 14px;
+      background: rgba(16, 22, 32, .72);
+    }
+    .context-item i {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      background: #172237;
+      color: #92b8ff;
+    }
+    .context-item i svg { width: 14px; height: 14px; }
+    .context-item strong { display: block; font-size: 12px; }
+    .context-item span { display: block; margin-top: 5px; color: var(--hp-text-faint); font-size: 10px; line-height: 1.4; }
+    .context-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 9px;
+      color: #748095;
+      font-size: 11px;
+    }
+    .context-status { display: inline-flex; align-items: center; gap: 9px; }
+    .context-link { display: inline-flex; align-items: center; gap: 7px; color: #8fb5ff; font-weight: 750; text-decoration: none; transition: color 180ms ease; }
+    .context-link:hover { color: #c2d6ff; }
+    .context-link svg { width: 14px; height: 14px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hp-success); box-shadow: 0 0 0 4px rgba(59,212,155,.09); }
+
+    .login-access {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 76px clamp(32px, 5vw, 72px) 46px;
+    }
+    .language-switcher { position: absolute; top: 28px; right: 30px; }
+    .language-button {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: transparent;
+      color: var(--hp-text-muted);
+      font-size: 12px;
+      transition: 180ms ease;
+    }
+    .language-button:hover, .language-button:focus-visible { border-color: var(--hp-border); background: var(--hp-bg-panel-raised); color: var(--hp-text); outline: 0; }
+    .language-button svg { width: 15px; height: 15px; }
+    .language-menu {
+      position: absolute;
+      z-index: 60;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 126px;
+      padding: 5px;
+      border: 1px solid var(--hp-border-strong);
+      border-radius: 10px;
+      background: #111824;
+      box-shadow: 0 18px 40px rgba(0,0,0,.42);
+    }
+    .language-menu button { width: 100%; border: 0; border-radius: 7px; padding: 8px 10px; background: transparent; color: var(--hp-text-secondary); text-align: left; font-size: 12px; }
+    .language-menu button:hover { background: #1a2433; color: #fff; }
+    .form-intro { margin-bottom: 28px; }
+    .form-intro .access-badge { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #31415c; border-radius: 999px; padding: 7px 10px; background: #151c28; color: #aeb8c6; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+    .form-intro .access-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--hp-primary); }
+    .form-intro h2 { margin: 16px 0 8px; font-size: 29px; font-weight: 820; letter-spacing: -.035em; }
+    .form-intro p { margin: 0; color: var(--hp-text-muted); font-size: 13px; line-height: 1.55; }
+    .field-group { margin-top: 17px; }
+    .field-group label { display: block; margin-bottom: 8px; color: var(--hp-text-secondary); font-size: 12px; font-weight: 700; }
+    .control-wrap { position: relative; }
+    .control-icon { position: absolute; top: 50%; left: 13px; width: 17px; height: 17px; transform: translateY(-50%); color: #667287; pointer-events: none; }
+    .hp-control {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--hp-border-strong);
+      border-radius: 10px;
+      padding: 0 43px 0 40px;
+      outline: 0;
+      background: var(--hp-bg-input);
+      color: var(--hp-text);
+      caret-color: var(--hp-primary);
+      transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+    .hp-control::placeholder { color: #556174; }
+    .hp-control:hover { border-color: #44536c; }
+    .hp-control:focus { border-color: #6b9dff; background: #0e1520; box-shadow: 0 0 0 3px rgba(90,145,255,.12); }
+    .password-toggle { position: absolute; top: 50%; right: 10px; display: grid; place-items: center; width: 31px; height: 31px; transform: translateY(-50%); border: 0; border-radius: 7px; background: transparent; color: #667287; }
+    .password-toggle:hover { background: #182130; color: var(--hp-text-secondary); }
+    .password-toggle svg { width: 17px; height: 17px; }
+    .field-hint { margin: 7px 0 0; color: var(--hp-text-faint); font-size: 11px; }
+    .form-options { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 19px 0; }
+    .remember { display: inline-flex; align-items: center; gap: 9px; color: var(--hp-text-muted); font-size: 12px; cursor: pointer; }
+    .remember input { width: 15px; height: 15px; margin: 0; accent-color: var(--hp-primary); }
+    .text-button { border: 0; padding: 0; background: transparent; color: #8fb5ff; font-size: 12px; font-weight: 700; }
+    .text-button:hover { color: #b4ceff; }
+    .primary-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      width: 100%;
+      min-height: 46px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(110deg, #407fff, #76aaff);
+      box-shadow: 0 14px 30px rgba(64,127,255,.21);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 850;
+      transition: filter 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+    .primary-button:hover { filter: brightness(1.08); box-shadow: 0 16px 36px rgba(64,127,255,.3); transform: translateY(-1px); }
+    .primary-button:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(90,145,255,.2), 0 16px 36px rgba(64,127,255,.28); }
+    .primary-button:disabled { cursor: wait; filter: saturate(.6); opacity: .72; transform: none; }
+    .primary-button svg { width: 16px; height: 16px; }
+    .account-prompt { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--hp-border-subtle); text-align: center; }
+    .account-prompt p { margin: 0; color: var(--hp-text-muted); font-size: 12px; }
+    .account-prompt button { margin-top: 8px; }
+    .security-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 30px; color: #667287; font-family: var(--hp-mono); font-size: 10px; }
+    .security-note svg { width: 13px; height: 13px; color: var(--hp-success); }
+    .login-copyright { margin: 22px 0 0; color: #4f5a6a; text-align: center; font-size: 10px; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.76); backdrop-filter: blur(8px); }
+    .modal-panel { width: min(420px, 100%); border: 1px solid var(--hp-border); border-radius: 16px; padding: 23px; background: linear-gradient(145deg, rgba(24,31,45,.99), rgba(14,19,28,.99)); box-shadow: 0 28px 80px rgba(0,0,0,.48); }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-head h3 { margin: 0; font-size: 17px; }
+    .modal-close { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--hp-text-muted); }
+    .modal-close:hover { border-color: var(--hp-border); background: var(--hp-bg-panel-raised); color: #fff; }
+    .modal-copy { color: var(--hp-text-muted); font-size: 12px; line-height: 1.55; }
+    #toast-container { position: fixed; z-index: 80; top: 18px; right: 18px; display: flex; flex-direction: column; gap: 8px; }
+
+    @media (max-width: 920px) {
+      .login-shell { grid-template-columns: 1fr; width: min(600px, calc(100vw - 28px)); margin: 14px auto; }
+      .login-context { min-height: auto; padding: 30px 32px; border-right: 0; border-bottom: 1px solid var(--hp-border-subtle); }
+      .context-copy { margin: 50px 0 0; }
+      .context-copy h1 { max-width: 470px; font-size: 44px; }
+      .context-copy > p, .context-footer { display: none; }
+      .context-line { margin-top: 26px; }
+      .login-access { padding: 44px 32px 34px; }
+    }
+    @media (max-width: 560px) {
+      .login-shell { width: 100%; min-height: 100vh; margin: 0; border: 0; border-radius: 0; }
+      .login-context { padding: 24px 22px 26px; }
+      .brand small { display: none; }
+      .context-copy { margin-top: 44px; }
+      .context-copy h1 { margin: 12px 0 0; font-size: 36px; }
+      .context-line { grid-template-columns: 1fr; margin-top: 24px; }
+      .context-item { display: flex; align-items: center; gap: 12px; min-height: 0; padding: 11px 13px; }
+      .context-item i { flex: 0 0 auto; margin: 0; }
+      .context-item span { margin-top: 2px; }
+      .login-access { padding: 48px 22px 28px; }
+      .language-switcher { top: 16px; right: 16px; }
+      .form-options { align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
 </head>
-<body class="bg-[#0a0f1e] text-slate-300 font-sans h-screen flex items-center justify-center relative">
-
-  <!-- 语言切换 -->
-  <div class="absolute top-4 right-4">
-    <div class="relative">
-      <button onclick="toggleLanguageMenu()" class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800">
-        <span id="current-lang">中文</span>
-        <i data-lucide="chevron-down" class="w-4 h-4"></i>
-      </button>
-      <div id="language-menu" class="absolute right-0 top-full z-50 mt-1 hidden rounded-md border border-slate-700 bg-slate-900 p-1 shadow-lg">
-        <button onclick="switchLanguage('zh'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="zh">中文</button>
-        <button onclick="switchLanguage('en'); toggleLanguageMenu()" class="w-full rounded px-3 py-1.5 text-sm text-left text-slate-300 transition-colors hover:bg-slate-800" data-lang="en">English</button>
+<body>
+  <main class="login-shell">
+    <section class="login-context" aria-labelledby="login-context-title">
+      <a class="brand" href="/" aria-label="HuizhiPay home">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span><strong>HuizhiPay™</strong><small>COMPLIANT PAYMENT ORCHESTRATION</small></span>
+      </a>
+      <div class="context-copy">
+        <span class="eyebrow" data-i18n="login.eyebrow">Merchant operations workspace</span>
+        <h1 id="login-context-title" data-i18n="login.heroTitle">Operate every payment with clarity.</h1>
+        <p data-i18n="login.heroDescription">One secure workspace for orders, payment status, reconciliation and settlement operations.</p>
+        <div class="context-line" aria-label="Workspace capabilities">
+          <div class="context-item"><i data-lucide="route"></i><div><strong data-i18n="login.capabilityOrders">Order control</strong><span data-i18n="login.capabilityOrdersDesc">Create and inspect payment flows</span></div></div>
+          <div class="context-item"><i data-lucide="split"></i><div><strong data-i18n="login.capabilityLedger">Split ledger</strong><span data-i18n="login.capabilityLedgerDesc">Reconcile gross, fee and net</span></div></div>
+          <div class="context-item"><i data-lucide="shield-check"></i><div><strong data-i18n="login.capabilityAccess">Merchant access</strong><span data-i18n="login.capabilityAccessDesc">Protected business workspace</span></div></div>
+        </div>
       </div>
-    </div>
-  </div>
+      <div class="context-footer">
+        <span class="context-status"><span class="status-dot"></span><span data-i18n="login.environmentStatus">Merchant workspace · Secure access</span></span>
+        <a class="context-link" href="/docs"><span data-i18n="publicHome.docs">View developer docs</span><i data-lucide="arrow-up-right"></i></a>
+      </div>
+    </section>
 
-  <div class="w-full max-w-md px-6">
-    <div class="text-center mb-10">
-      <h1 class="text-3xl font-bold text-white mb-2">Huizhi<span class="text-indigo-500">Pay</span></h1>
-      <p class="text-slate-400" data-i18n="login.subtitle">Merchant Console</p>
-    </div>
-
-    <div class="bg-[#111827] border border-slate-800/80 rounded-xl shadow-2xl p-8">
-      <h2 class="text-xl font-semibold text-white mb-6 text-center" data-i18n="login.title">Sign In</h2>
-
-      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.email">Email</label>
-          <div class="relative">
-            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
-            <input type="email" id="email" required
-              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              placeholder="you@example.com">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.password">Password</label>
-          <div class="relative">
-            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
-            <input type="password" id="password" required
-              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-12 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              placeholder="••••••••">
-            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-              <i data-lucide="eye" id="password-toggle" class="w-5 h-5"></i>
-            </button>
-          </div>
-        </div>
-
-        <div id="totp-field" class="hidden">
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="login.totp">Two-Factor Code</label>
-          <div class="relative">
-            <i data-lucide="shield-check" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
-            <input type="number" id="totp-code"
-              class="w-full bg-slate-950 border border-slate-700 rounded-md pl-10 pr-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-              placeholder="6-digit code">
-          </div>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="login.totpHint">Enter the 6-digit code from your authenticator app</p>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <label class="flex items-center text-sm text-slate-400">
-            <input type="checkbox" id="remember-me" class="w-4 h-4 rounded border-slate-600 bg-slate-950 text-indigo-500 focus:ring-indigo-500">
-            <span class="ml-2" data-i18n="login.remember">Remember me</span>
-          </label>
-          <button type="button" onclick="showForgotPassword()" class="text-sm text-indigo-400 hover:text-indigo-300" data-i18n="login.forgot">Forgot password?</button>
-        </div>
-
-        <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-md transition-colors flex items-center justify-center gap-2">
-          <span data-i18n="login.signin">Sign In</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    <section class="login-access" aria-labelledby="login-form-title">
+      <div class="language-switcher">
+        <button type="button" onclick="toggleLanguageMenu()" class="language-button" aria-haspopup="menu" aria-controls="language-menu">
+          <i data-lucide="languages"></i><span id="current-lang">中文</span><i data-lucide="chevron-down"></i>
         </button>
+        <div id="language-menu" class="language-menu hidden" role="menu">
+          <button onclick="switchLanguage('zh'); toggleLanguageMenu()" data-lang="zh" role="menuitem">中文</button>
+          <button onclick="switchLanguage('en'); toggleLanguageMenu()" data-lang="en" role="menuitem">English</button>
+        </div>
+      </div>
+
+      <div class="form-intro">
+        <span class="access-badge" data-i18n="login.accessBadge">AUTHENTICATED WORKSPACE</span>
+        <h2 id="login-form-title" data-i18n="login.title">Sign In</h2>
+        <p data-i18n="login.subtitle">Merchant Console</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="field-group">
+          <label for="email" data-i18n="login.email">Email</label>
+          <div class="control-wrap"><i data-lucide="mail" class="control-icon"></i><input type="email" id="email" required autocomplete="username" class="hp-control" placeholder="you@example.com"></div>
+        </div>
+        <div class="field-group">
+          <label for="password" data-i18n="login.password">Password</label>
+          <div class="control-wrap">
+            <i data-lucide="lock-keyhole" class="control-icon"></i>
+            <input type="password" id="password" required autocomplete="current-password" class="hp-control" placeholder="••••••••">
+            <button type="button" onclick="togglePassword()" class="password-toggle" aria-label="Show or hide password"><i data-lucide="eye" id="password-toggle"></i></button>
+          </div>
+        </div>
+        <div id="totp-field" class="field-group hidden">
+          <label for="totp-code" data-i18n="login.totp">Two-Factor Code</label>
+          <div class="control-wrap"><i data-lucide="shield-check" class="control-icon"></i><input type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" id="totp-code" class="hp-control mono" placeholder="000000"></div>
+          <p class="field-hint" data-i18n="login.totpHint">Enter the 6-digit code from your authenticator app</p>
+        </div>
+        <div class="form-options">
+          <label class="remember"><input type="checkbox" id="remember-me"><span data-i18n="login.remember">Remember me</span></label>
+          <button type="button" onclick="showForgotPassword()" class="text-button" data-i18n="login.forgot">Forgot password?</button>
+        </div>
+        <button type="submit" id="login-btn" class="primary-button"><span data-i18n="login.signin">Sign In</span><i data-lucide="arrow-right"></i></button>
       </form>
 
-      <div class="mt-6 pt-6 border-t border-slate-800">
-        <p class="text-center text-sm text-slate-400" data-i18n="login.noAccount">Don't have an account?</p>
-        <button onclick="showRegister()" class="w-full mt-3 py-3 text-indigo-400 hover:text-indigo-300 font-medium transition-colors" data-i18n="login.signup">Create account</button>
+      <div class="account-prompt">
+        <p data-i18n="login.noAccount">Don't have an account?</p>
+        <button onclick="showRegister()" class="text-button" data-i18n="login.signup">Create account</button>
       </div>
-    </div>
-
-    <p class="text-center text-xs text-slate-600 mt-6">
-      &copy; 2026 HuizhiPay. All rights reserved.
-    </p>
-  </div>
+      <div class="security-note"><i data-lucide="lock"></i><span data-i18n="login.securityNote">SESSION PROTECTED · MERCHANT SCOPED</span></div>
+      <p class="login-copyright">© 2026 HuizhiPay. All rights reserved.</p>
+    </section>
+  </main>
 
   <!-- Register Modal -->
-  <div id="register-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
-    <div class="bg-[#111827] border border-slate-800/80 w-[400px] rounded-xl shadow-2xl p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-semibold text-white" data-i18n="register.title">Create Account</h3>
-        <button onclick="closeRegister()" class="text-slate-400 hover:text-white">✕</button>
+  <div id="register-modal" class="modal-backdrop hidden">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h3 data-i18n="register.title">Create Account</h3>
+        <button onclick="closeRegister()" class="modal-close" aria-label="Close">✕</button>
       </div>
-      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="register.email">Email</label>
-          <input type="email" id="reg-email" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+      <form id="register-form" onsubmit="handleRegister(event)">
+        <div class="field-group">
+          <label for="reg-email" data-i18n="register.email">Email</label>
+          <input type="email" id="reg-email" required autocomplete="email" class="hp-control">
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="register.password">Password</label>
-          <input type="password" id="reg-password" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+        <div class="field-group">
+          <label for="reg-password" data-i18n="register.password">Password</label>
+          <input type="password" id="reg-password" required autocomplete="new-password" class="hp-control">
         </div>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-md">
-          <span data-i18n="register.create">Create Account</span>
-        </button>
+        <button type="submit" class="primary-button" style="margin-top:20px"><span data-i18n="register.create">Create Account</span></button>
       </form>
     </div>
   </div>
 
   <!-- Forgot Password Modal -->
-  <div id="forgot-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
-    <div class="bg-[#111827] border border-slate-800/80 w-[400px] rounded-xl shadow-2xl p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-semibold text-white" data-i18n="forgot.title">Reset Password</h3>
-        <button onclick="closeForgotPassword()" class="text-slate-400 hover:text-white">✕</button>
+  <div id="forgot-modal" class="modal-backdrop hidden">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h3 data-i18n="forgot.title">Reset Password</h3>
+        <button onclick="closeForgotPassword()" class="modal-close" aria-label="Close">✕</button>
       </div>
-      <form id="forgot-form" onsubmit="handleForgotPassword(event)" class="space-y-4">
-        <p class="text-sm text-slate-400" data-i18n="forgot.desc">Enter your email and we'll send you a reset link.</p>
-        <div>
-          <label class="block text-sm font-medium text-slate-400 mb-1.5" data-i18n="forgot.email">Email</label>
-          <input type="email" id="forgot-email" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+      <form id="forgot-form" onsubmit="handleForgotPassword(event)">
+        <p class="modal-copy" data-i18n="forgot.desc">Enter your email and we'll send you a reset link.</p>
+        <div class="field-group">
+          <label for="forgot-email" data-i18n="forgot.email">Email</label>
+          <input type="email" id="forgot-email" required autocomplete="email" class="hp-control">
         </div>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-md">
-          <span data-i18n="forgot.send">Send Reset Link</span>
-        </button>
+        <button type="submit" class="primary-button" style="margin-top:20px"><span data-i18n="forgot.send">Send Reset Link</span></button>
       </form>
     </div>
   </div>
 
-  <div id="toast-container" class="fixed right-4 top-4 z-50 flex flex-col gap-2"></div>
+  <div id="toast-container"></div>
 
   <script>
     let totpRequired = false;
