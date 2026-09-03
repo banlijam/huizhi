@@ -75,6 +75,9 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(html, /applyState\(['"]loading['"]\)/);
   assert.match(html, /orderText\(['"]creatingTitle['"]\)/);
   assert.match(html, /id=["']language-toggle["']/);
+  assert.match(html, /id=["']developer-language-toggle["']/);
+  assert.equal((html.match(/<button[^>]*data-workspace-language-toggle/g) || []).length, 2);
+  assert.match(html, /#merchant-workspace \.side>huizhi-brand/);
   assert.match(html, /src=["']\/i18n\/zh\.js["']/);
   assert.match(html, /src=["']\/i18n\/en\.js["']/);
   assert.match(html, /Merchant Dashboard/);
