@@ -331,7 +331,7 @@
     }
 
     async function submitKyb() {
-      await submitOnboarding(formDraft);
+      const result = await submitOnboarding(formDraft);
       editMode = false;
       // 提交后重新拉取最新状态，刷新 UI
       onboardingData = await fetchOnboardingStatus();
@@ -339,10 +339,10 @@
       renderForm();
       renderStatus();
       renderWallet();
-      window.parent.postMessage({
-        type: 'toast',
-        message: t('toast.onboardingSubmitted', currentLang)
-      }, '*');
+      const message = isPlaceholder(result)
+        ? (placeholderNotice(result) || '待开发：入驻提交接口尚未接通')
+        : t('toast.onboardingSubmitted', currentLang);
+      window.parent.postMessage({ type: 'toast', message: message }, '*');
     }
 
     function enterEditMode() {
@@ -416,7 +416,10 @@
         const address = accounts[0];
         walletData = await bindWallet('metamask', address, 'Polygon');
         renderWallet();
-        window.parent.postMessage({ type: 'toast', message: t('toast.walletMetamask', currentLang) }, '*');
+        const message = isPlaceholder(walletData)
+          ? (placeholderNotice(walletData) || '待开发：钱包绑定接口尚未接通')
+          : t('toast.walletMetamask', currentLang);
+        window.parent.postMessage({ type: 'toast', message: message }, '*');
       } catch (e) {
         window.parent.postMessage({ type: 'toast', message: t('onboarding.installMetamask', currentLang) }, '*');
       }
@@ -432,7 +435,10 @@
       }
       walletData = await bindWallet('stellar', addr, 'Stellar');
       renderWallet();
-      window.parent.postMessage({ type: 'toast', message: t('toast.walletStellar', currentLang) }, '*');
+      const message = isPlaceholder(walletData)
+        ? (placeholderNotice(walletData) || '待开发：钱包绑定接口尚未接通')
+        : t('toast.walletStellar', currentLang);
+      window.parent.postMessage({ type: 'toast', message: message }, '*');
     }
 
     window.addEventListener('message', (event) => {

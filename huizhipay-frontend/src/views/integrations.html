@@ -14,6 +14,7 @@
 </head>
 <body class="bg-transparent text-slate-300">
   <div class="flex flex-col gap-6 pb-8">
+    <div id="placeholder-banner"></div>
     <div class="grid gap-4 md:grid-cols-2" id="integrations-container"></div>
   </div>
 
@@ -34,7 +35,15 @@
 
     async function loadIntegrations() {
       integrations = await fetchIntegrations();
+      renderPlaceholderBanner();
       renderIntegrations();
+    }
+
+    // TODO(待开发): 幽灵接口 /integrations 占位提示，接入真实后端后此函数与横幅可移除
+    function renderPlaceholderBanner() {
+      const banner = document.getElementById('placeholder-banner');
+      if (!banner) return;
+      banner.innerHTML = isPlaceholder(integrations) ? placeholderBanner(placeholderNotice(integrations)) : '';
     }
 
     function renderIntegrations() {
@@ -66,7 +75,7 @@
                 <label class="text-sm font-medium text-slate-300" data-i18n="integrations.connection">${t('integrations.connection', currentLang)}</label>
                 <p class="text-xs text-slate-500">${integration.version} · ${integration.authType}</p>
               </div>
-              <button onclick="toggleIntegration('${integration.id}')" class="${isRunning ? 'relative h-6 w-11 rounded-full bg-indigo-600 transition-colors' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors'}">
+              <button onclick="toggleIntegrationCard('${integration.id}')" class="${isRunning ? 'relative h-6 w-11 rounded-full bg-indigo-600 transition-colors' : 'relative h-6 w-11 rounded-full bg-slate-700 transition-colors'}">
                 <span class="${isRunning ? 'absolute right-1 top-1 h-4 w-4 rounded-full bg-white transition-transform' : 'absolute left-1 top-1 h-4 w-4 rounded-full bg-slate-400 transition-transform'}"></span>
               </button>
             </div>
@@ -90,27 +99,31 @@
       applyLanguage(currentLang);
     }
 
-    async function toggleIntegration(id) {
+    async function toggleIntegrationCard(id) {
       const integration = integrations.find(i => i.id === id);
       const enabled = !integration || integration.status !== 'running';
-      
-      await toggleIntegrationApi(id, enabled);
-      
-      if (integration) {
+
+      const result = await toggleIntegration(id, enabled);
+      const isGhost = isPlaceholder(result);
+
+      // 幽灵接口：不落本地状态，避免 UI 假切换
+      if (integration && !isGhost) {
         integration.status = enabled ? 'running' : 'disabled';
       }
-      
+
       renderIntegrations();
-      
+
       const name = id === 'shopify' ? 'Shopify' : 'WooCommerce';
-      const desc = enabled 
+      const desc = enabled
         ? t('toast.integrationEnabledDesc', currentLang)
         : t('toast.integrationDisabledDesc', currentLang);
-      
-      window.parent.postMessage({ 
-        type: 'toast', 
-        message: `${name} ${enabled ? t('toast.integrationEnabled', currentLang) : t('toast.integrationDisabled', currentLang)}`,
-        description: desc
+
+      window.parent.postMessage({
+        type: 'toast',
+        message: isGhost
+          ? (placeholderNotice(result) || '待开发：集成开关接口尚未接通')
+          : `${name} ${enabled ? t('toast.integrationEnabled', currentLang) : t('toast.integrationDisabled', currentLang)}`,
+        description: isGhost ? '' : desc
       }, '*');
     }
 

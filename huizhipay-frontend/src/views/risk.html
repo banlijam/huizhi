@@ -126,12 +126,12 @@
       const rule = riskRules.find(r => r.id === 'strictMode');
       if (!rule) return;
       rule.enabled = !rule.enabled;
-      await toggleRiskRule('strictMode', rule.enabled);
+      const result = await toggleRiskRule('strictMode', rule.enabled);
       renderStrictMode();
-      window.parent.postMessage({
-        type: 'toast',
-        message: rule.enabled ? t('toast.strictModeOn', currentLang) : t('toast.strictModeOff', currentLang)
-      }, '*');
+      const message = isPlaceholder(result)
+        ? (placeholderNotice(result) || '待开发：风控规则接口尚未接通')
+        : (rule.enabled ? t('toast.strictModeOn', currentLang) : t('toast.strictModeOff', currentLang));
+      window.parent.postMessage({ type: 'toast', message: message }, '*');
     }
 
     function renderRules() {
@@ -181,18 +181,21 @@
       const rule = riskRules.find(r => r.id === id);
       if (!rule) return;
       rule.enabled = !rule.enabled;
-      await toggleRiskRule(id, rule.enabled);
+      const result = await toggleRiskRule(id, rule.enabled);
       renderRules();
       const label = t(`risk.${id}`, currentLang);
-      window.parent.postMessage({
-        type: 'toast',
-        message: `${label} ${rule.enabled ? t('toast.ruleEnabled', currentLang) : t('toast.ruleDisabled', currentLang)}`
-      }, '*');
+      const message = isPlaceholder(result)
+        ? (placeholderNotice(result) || '待开发：风控规则接口尚未接通')
+        : `${label} ${rule.enabled ? t('toast.ruleEnabled', currentLang) : t('toast.ruleDisabled', currentLang)}`;
+      window.parent.postMessage({ type: 'toast', message: message }, '*');
     }
 
     async function inviteMember() {
-      await inviteTeamMember('newmember@example.com', 'analyst');
-      window.parent.postMessage({ type: 'toast', message: t('toast.inviteCreated', currentLang) }, '*');
+      const result = await inviteTeamMember('newmember@example.com', 'analyst');
+      const message = isPlaceholder(result)
+        ? (placeholderNotice(result) || '待开发：团队邀请接口尚未接通')
+        : t('toast.inviteCreated', currentLang);
+      window.parent.postMessage({ type: 'toast', message: message }, '*');
     }
 
     window.addEventListener('message', (event) => {

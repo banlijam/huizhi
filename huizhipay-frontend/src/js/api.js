@@ -1,5 +1,31 @@
 const API_BASE = '/api/v1';
 
+// ===== 占位数据标识 =====
+// 后端未接通、或接口为“幽灵接口”（前端有实现、后端无对应 Controller）时，
+// 返回的数据一律打上 __placeholder 标记，禁止以假乱真。
+// UI 侧看到 __placeholder 时应显式展示“非真实功能 / 待开发”提示。
+const PLACEHOLDER_NOTICE = '占位数据 · 非真实功能：该接口后端尚未接通（待开发）';
+
+function markPlaceholder(value, notice) {
+  const target = (value && typeof value === 'object') ? value : {};
+  target.__placeholder = true;
+  target.__notice = notice || PLACEHOLDER_NOTICE;
+  return target;
+}
+
+function isPlaceholder(value) {
+  return !!(value && value.__placeholder);
+}
+
+function placeholderNotice(value) {
+  return (value && value.__notice) || null;
+}
+
+function placeholderBanner(notice) {
+  const text = notice || PLACEHOLDER_NOTICE;
+  return '<div style="margin-bottom:16px;padding:10px 14px;border:1px solid #69541b;border-radius:12px;background:#2d2611;color:#ffd16b;font-size:12px;line-height:1.5"><b>⚠ 占位数据 · 非真实功能</b><br>' + text + '</div>';
+}
+
 function getApiUrl(endpoint) {
   return `${API_BASE}${endpoint}`;
 }
@@ -259,34 +285,40 @@ const mockUserProfile = {
   company: 'HuizhiPay'
 };
 
+// TODO(待开发): 幽灵接口 — 后端无 /3ds/transactions Controller，当前返回占位数据，接入后删除 mock
 async function fetchTransactions() {
   const data = await apiGet('/3ds/transactions');
-  return data || mockTransactions;
+  return data || markPlaceholder(mockTransactions, '占位数据 · 待开发：/api/v1/3ds/transactions 后端接口不存在');
 }
 
+// TODO(待开发): 后端已有 /overview/stats，请求失败时兜底返回占位数据，接入真实错误处理后删除 mock
 async function fetchOverviewStats() {
   const data = await apiGet('/overview/stats');
-  return data || mockOverviewStats;
+  return data || markPlaceholder(mockOverviewStats, '占位数据 · 后端接口 /overview/stats 暂不可用，以下为演示数据');
 }
 
+// TODO(待开发): 幽灵接口 — 后端无 /factoring/stats Controller，当前返回占位数据
 async function fetchFactoringStats() {
   const data = await apiGet('/factoring/stats');
-  return data || mockFactoringStats;
+  return data || markPlaceholder(mockFactoringStats, '占位数据 · 待开发：/api/v1/factoring/stats 后端接口不存在');
 }
 
+// TODO(待开发): 幽灵接口 — 后端无 /factoring/settlements Controller，当前返回占位数据
 async function fetchSettlements() {
   const data = await apiGet('/factoring/settlements');
-  return data || mockFactoringStats.settlements;
+  return data || markPlaceholder(mockFactoringStats.settlements, '占位数据 · 待开发：/api/v1/factoring/settlements 后端接口不存在');
 }
 
+// TODO(待开发): 幽灵接口 — 后端无 /integrations Controller，当前返回占位数据
 async function fetchIntegrations() {
   const data = await apiGet('/integrations');
-  return data || mockIntegrations;
+  return data || markPlaceholder(mockIntegrations, '占位数据 · 待开发：/api/v1/integrations 后端接口不存在');
 }
 
+// TODO(待开发): 幽灵接口 — 后端无 /integrations/{id} Controller，切换未真正生效
 async function toggleIntegration(id, enabled) {
   const data = await apiPut(`/integrations/${id}`, { enabled });
-  return (data && data.data) || { id, enabled };
+  return (data && data.data) || markPlaceholder({ id, enabled, success: false }, '待开发：集成开关接口尚未接通，本次切换未真正生效');
 }
 
 async function fetchRiskRules() {
@@ -294,9 +326,10 @@ async function fetchRiskRules() {
   return data;
 }
 
+// TODO(待开发): 后端已有 PUT /risk/rules/{id}，失败兜底占位，接入真实错误处理后删除 mock
 async function toggleRiskRule(id, enabled) {
   const data = await apiPut(`/risk/rules/${id}`, { enabled });
-  return (data && data.data) || { id, enabled };
+  return (data && data.data) || markPlaceholder({ id, enabled, success: false }, '待开发：风控规则接口尚未接通，本次切换未真正生效');
 }
 
 async function fetchTeamMembers() {
@@ -304,9 +337,10 @@ async function fetchTeamMembers() {
   return data;
 }
 
+// TODO(待开发): 后端已有 POST /team/invite，失败兜底占位，接入真实错误处理后删除 mock
 async function inviteTeamMember(email, role) {
   const data = await apiPost('/team/invite', { email, role });
-  return (data && data.data) || { success: true };
+  return (data && data.data) || markPlaceholder({ success: false }, '待开发：团队邀请接口尚未接通，未真正发送邀请');
 }
 
 async function fetchUserProfile() {
@@ -314,15 +348,16 @@ async function fetchUserProfile() {
   return data;
 }
 
+// TODO(待开发): 幽灵接口 — 后端无 /topup/invoice Controller，当前生成模拟发票号（DEMO-INV-）
 async function createTopUpInvoice(amount) {
   const data = await apiPost('/topup/invoice', { amount });
   if (data && data.data) return data.data;
 
-  return {
-    invoiceId: `INV-${Date.now().toString().slice(-8)}`,
+  return markPlaceholder({
+    invoiceId: `DEMO-INV-${Date.now().toString().slice(-8)}`,
     amount: Number(amount),
     network: 'TRON (TRC20)'
-  };
+  }, '模拟发票 · 待开发：充值接口尚未接通，未生成真实收款地址');
 }
 
 // ===== 指挥中心：透明分账账本 =====
@@ -337,9 +372,10 @@ async function fetchOnboardingStatus() {
   return data;
 }
 
+// TODO(待开发): 后端已有 POST /onboarding/submit，失败兜底占位，接入真实错误处理后删除 mock
 async function submitOnboarding(payload) {
   const data = await apiPost('/onboarding/submit', payload);
-  return (data && data.data) || { success: true, status: 'pending' };
+  return (data && data.data) || markPlaceholder({ success: false, status: 'pending' }, '待开发：入驻提交接口尚未接通，未真正提交');
 }
 
 async function fetchWallet() {
@@ -347,7 +383,8 @@ async function fetchWallet() {
   return data;
 }
 
+// TODO(待开发): 后端已有 POST /onboarding/wallet/bind，失败兜底占位，接入真实错误处理后删除 mock
 async function bindWallet(type, address, network) {
   const data = await apiPost('/onboarding/wallet/bind', { type, address, network });
-  return (data && data.data) || { success: true, bound: true, type, address, network };
+  return (data && data.data) || markPlaceholder({ success: false, bound: false }, '待开发：钱包绑定接口尚未接通，未真正绑定');
 }
