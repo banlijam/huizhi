@@ -56,8 +56,11 @@ test('build merges the public home and login entry while separating protected wo
 
   const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
   assert.match(html, /HuizhiPay Web-first Interactive Prototype/);
-  assert.match(html, /Math\.min\(innerWidth\/root\.offsetWidth,innerHeight\/root\.offsetHeight\)/);
+  assert.match(html, /fitBaseDevicePixelRatio=devicePixelRatio\|\|1/);
+  assert.match(html, /innerWidth\*browserZoom\/root\.offsetWidth/);
+  assert.match(html, /innerHeight\*browserZoom\/root\.offsetHeight/);
   assert.doesNotMatch(html, /innerHeight\/root\.offsetHeight,1\)/);
+  assert.match(html, /\.stage\{overflow:auto\}\.screen\{transform-origin:top left\}/);
   assert.match(html, /one-step desktop type lift without changing the 1440×1024 layout/);
 
   for (const screen of ['checkout-web', 'checkout-mobile', 'dashboard', 'developer']) {
