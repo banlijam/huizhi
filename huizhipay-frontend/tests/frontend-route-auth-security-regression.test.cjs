@@ -37,6 +37,49 @@ test('auth state requires HTTP success plus a successful business envelope and i
   assert.equal(authenticated.calls[0].options.credentials, 'include');
 });
 
+test('risk rule IDs are translated between the backend enum and frontend i18n contract', async () => {
+  const calls = [];
+  const responses = [
+    {
+      ok: true,
+      json: async () => ({
+        code: 200,
+        data: [
+          { id: 'STRICT_MODE', enabled: false, category: 'MASTER' },
+          { id: 'BLOCK_PREPAID', enabled: true, category: 'NORMAL' },
+        ],
+      }),
+    },
+    {
+      ok: true,
+      json: async () => ({
+        code: 200,
+        data: { id: 'STRICT_MODE', enabled: true, category: 'MASTER' },
+      }),
+    },
+  ];
+  const context = {
+    console: { error() {}, log() {} },
+    fetch: async (url, options = {}) => {
+      calls.push({ url, options });
+      return responses.shift();
+    },
+    localStorage: { getItem: () => null },
+    window: { location: {} },
+  };
+  vm.createContext(context);
+  vm.runInContext(await readFile(path.join(ROOT, 'dist', 'js', 'api.js'), 'utf8'), context);
+
+  const rules = await context.fetchRiskRules();
+  assert.deepEqual(rules.map((rule) => rule.id), ['strictMode', 'blockPrepaid']);
+
+  const toggled = await context.toggleRiskRule('strictMode', true);
+  assert.equal(toggled.id, 'strictMode');
+  assert.equal(calls[1].url, '/api/v1/risk/rules/STRICT_MODE');
+  assert.equal(calls[1].options.method, 'PUT');
+  assert.equal(calls[1].options.body, JSON.stringify({ enabled: true }));
+});
+
 test('public routes stay public while every merchant and developer workspace route has an auth gate', async () => {
   for (const route of ['index.html', 'docs/index.html', 'pay/index.html']) {
     const html = await readFile(path.join(ROOT, 'dist', ...route.split('/')), 'utf8');

@@ -247,6 +247,22 @@ const mockRiskRules = [
   { id: 'blockHighRiskRegion', name: 'Block High-Risk Regions', description: 'Block transactions originating from high-risk jurisdictions.', enabled: false, category: 'normal' }
 ];
 
+const riskRuleIdMap = {
+  STRICT_MODE: 'strictMode',
+  BLOCK_PREPAID: 'blockPrepaid',
+  FORCE_US_3DS: 'forceUs3ds',
+  KYT_SCREENING: 'kytScreening',
+  BLOCK_HIGH_RISK_REGION: 'blockHighRiskRegion'
+};
+
+const riskRuleApiIdMap = Object.fromEntries(
+  Object.entries(riskRuleIdMap).map(([apiId, uiId]) => [uiId, apiId])
+);
+
+function normalizeRiskRule(rule) {
+  return { ...rule, id: riskRuleIdMap[rule.id] || rule.id };
+}
+
 // 入驻与合规 (Onboarding & KYB) 状态
 // 枚举与后端保持一致：KybStatus ∈ {DRAFT,PENDING,APPROVED,REJECTED}，SettlementPref ∈ {CRYPTO,FIAT}
 const mockOnboarding = {
@@ -323,13 +339,14 @@ async function toggleIntegration(id, enabled) {
 
 async function fetchRiskRules() {
   const data = await apiGet('/risk/rules');
-  return data;
+  return Array.isArray(data) ? data.map(normalizeRiskRule) : data;
 }
 
 // TODO(待开发): 后端已有 PUT /risk/rules/{id}，失败兜底占位，接入真实错误处理后删除 mock
 async function toggleRiskRule(id, enabled) {
-  const data = await apiPut(`/risk/rules/${id}`, { enabled });
-  return (data && data.data) || markPlaceholder({ id, enabled, success: false }, '待开发：风控规则接口尚未接通，本次切换未真正生效');
+  const apiId = riskRuleApiIdMap[id] || id;
+  const data = await apiPut(`/risk/rules/${apiId}`, { enabled });
+  return (data && data.data && normalizeRiskRule(data.data)) || markPlaceholder({ id, enabled, success: false }, '待开发：风控规则接口尚未接通，本次切换未真正生效');
 }
 
 async function fetchTeamMembers() {
