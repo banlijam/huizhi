@@ -53,6 +53,12 @@ app:
   frontend:
     url: http://127.0.0.1:3000  # 前端域名，邮件中的链接会使用
 
+# TransFi 第三方 API 客户端配置
+client:
+  transfi:
+    url: https://sandbox-api.transfi.com/v3
+    mid: HODQSB_NA_NA
+
 logging:
   pattern:
     level: "%5p [traceId:%X{traceId:-}]"
