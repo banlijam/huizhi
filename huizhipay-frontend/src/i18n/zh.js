@@ -61,7 +61,8 @@ window.i18nZh = {
     waiting: '等待付款',
     pay: '付款',
     view: '查看',
-    empty: '本页没有订单。'
+    empty: '本页没有订单。',
+    logout: '退出登录'
   },
   checkoutPage: {
     language: '切换为 English',
@@ -414,7 +415,8 @@ window.i18nZh = {
     title: '创建账户',
     email: '邮箱',
     password: '密码',
-    create: '创建账户'
+    create: '创建账户',
+    passwordHint: '6-20 位，需包含大写、小写、数字及特殊字符'
   },
   forgot: {
     title: '重置密码',
@@ -435,6 +437,7 @@ window.i18nZh = {
   reset: {
     title: '重置密码',
     password: '新密码',
+    passwordHint: '6-20 位，需包含大写、小写、数字及特殊字符',
     confirm: '确认密码',
     submit: '重置密码',
     login: '返回登录'

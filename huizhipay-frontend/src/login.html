@@ -396,7 +396,8 @@
         </div>
         <div class="field-group">
           <label for="reg-password" data-i18n="register.password">Password</label>
-          <input type="password" id="reg-password" required autocomplete="new-password" class="hp-control">
+          <input type="password" id="reg-password" required autocomplete="new-password" minlength="6" maxlength="20" class="hp-control">
+          <p class="field-hint" data-i18n="register.passwordHint">6-20 chars, must include uppercase, lowercase, digit and special character</p>
         </div>
         <button type="submit" class="primary-button" style="margin-top:20px"><span data-i18n="register.create">Create Account</span></button>
       </form>
@@ -496,6 +497,13 @@
       e.preventDefault();
       const email = document.getElementById('reg-email').value;
       const password = document.getElementById('reg-password').value;
+
+      const pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).*$/;
+      const isZh = (getLanguageHeader() || '').startsWith('zh');
+      if (!pwRegex.test(password)) {
+        showToast(isZh ? '密码需包含大写、小写、数字及特殊字符' : 'Password must include uppercase, lowercase, digit and special character', 'error');
+        return;
+      }
 
       try {
         await register(email, password);

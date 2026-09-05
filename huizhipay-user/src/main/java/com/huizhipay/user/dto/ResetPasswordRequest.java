@@ -1,6 +1,7 @@
 package com.huizhipay.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -10,5 +11,6 @@ public class ResetPasswordRequest {
     private String token;   // 邮件中的重置令牌
     @NotBlank(message = "validate.new_password.not_blank")
     @Size(min = 6, max = 20, message = "validate.password.length")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*\\p{Punct}).*$", message = "validate.password.complexity")
     private String newPassword;
 }

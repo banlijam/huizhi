@@ -61,7 +61,8 @@ window.i18nEn = {
     waiting: 'Awaiting payment',
     pay: 'Pay',
     view: 'View',
-    empty: 'There are no orders on this page.'
+    empty: 'There are no orders on this page.',
+    logout: 'Log out'
   },
   checkoutPage: {
     language: '切换为中文',
@@ -414,7 +415,8 @@ window.i18nEn = {
     title: 'Create Account',
     email: 'Email',
     password: 'Password',
-    create: 'Create Account'
+    create: 'Create Account',
+    passwordHint: '6-20 chars, must include uppercase, lowercase, digit and special character'
   },
   forgot: {
     title: 'Reset Password',
@@ -435,6 +437,7 @@ window.i18nEn = {
   reset: {
     title: 'Reset Password',
     password: 'New Password',
+    passwordHint: '6-20 chars, must include uppercase, lowercase, digit and special character',
     confirm: 'Confirm Password',
     submit: 'Reset Password',
     login: 'Back to Login'

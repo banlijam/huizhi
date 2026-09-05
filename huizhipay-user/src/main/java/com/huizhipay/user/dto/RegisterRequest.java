@@ -2,6 +2,7 @@ package com.huizhipay.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "validate.password.not_blank")
     @Size(min = 6, max = 20, message = "validate.password.length")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*\\p{Punct}).*$", message = "validate.password.complexity")
     private String password;
 
     @Size(max = 64, message = "validate.nickname.length")
