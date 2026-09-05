@@ -2,7 +2,7 @@ package com.huizhipay.ledger.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.huizhipay.common.port.SettlementCountdownPort;
-import com.huizhipay.ledger.dto.LedgerRowResponse;
+import com.huizhipay.ledger.dto.LedgerResponse;
 import com.huizhipay.ledger.entity.LedgerEntry;
 import com.huizhipay.ledger.mapper.LedgerEntryMapper;
 import com.huizhipay.ledger.mapper.OverviewMapper;
@@ -38,16 +38,45 @@ class OverviewServiceTest {
                 .setEntryStatus(LedgerEntry.EntryStatusEnum.SETTLED)
                 .setCreatedAt(LocalDateTime.now());
         when(ledgerEntryMapper.selectList(any())).thenReturn(List.of(custody));
+        when(ledgerEntryMapper.sumPaymentGross("M-A")).thenReturn(new BigDecimal("100.000"));
+        when(ledgerEntryMapper.countPaymentGross("M-A")).thenReturn(1L);
 
-        List<LedgerRowResponse> rows = service.getLedger("M-A");
+        LedgerResponse resp = service.getLedger("M-A");
 
-        assertThat(rows).hasSize(1);
-        assertThat(rows.getFirst().getGross()).isEqualByComparingTo("100.000");
-        assertThat(rows.getFirst().getFee()).isEqualByComparingTo("7.000");
-        assertThat(rows.getFirst().getNet()).isEqualByComparingTo("93.000");
+        assertThat(resp.getRows()).hasSize(1);
+        assertThat(resp.getRows().getFirst().getGross()).isEqualByComparingTo("100.000");
+        assertThat(resp.getRows().getFirst().getFee()).isEqualByComparingTo("7.000");
+        assertThat(resp.getRows().getFirst().getNet()).isEqualByComparingTo("93.000");
+        assertThat(resp.getTotalGross()).isEqualByComparingTo("100.000");
+        assertThat(resp.getTotalFee()).isEqualByComparingTo("7.000");
+        assertThat(resp.getTotalNet()).isEqualByComparingTo("93.000");
+        assertThat(resp.getTotalCount()).isEqualTo(1L);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Wrapper<LedgerEntry>> query = ArgumentCaptor.forClass(Wrapper.class);
         verify(ledgerEntryMapper).selectList(query.capture());
         assertThat(query.getValue().getSqlSegment()).contains("merchant_id", "amount <");
+    }
+
+    @Test
+    void ledgerTotalUsesFullCumulativeAggregateIndependentOfDetailRows() {
+        LedgerEntry recent = new LedgerEntry()
+                .setMerchantId("M-A")
+                .setBizId("DUMMY-NEW")
+                .setAmount(new BigDecimal("-10.000"))
+                .setEntryStatus(LedgerEntry.EntryStatusEnum.SETTLED)
+                .setCreatedAt(LocalDateTime.now());
+        when(ledgerEntryMapper.selectList(any())).thenReturn(List.of(recent));
+        when(ledgerEntryMapper.sumPaymentGross("M-A")).thenReturn(new BigDecimal("10000.000"));
+        when(ledgerEntryMapper.countPaymentGross("M-A")).thenReturn(120L);
+
+        LedgerResponse resp = service.getLedger("M-A");
+
+        // 总额来自全量聚合，明细行仍只取最近记录，二者解耦
+        assertThat(resp.getTotalGross()).isEqualByComparingTo("10000.000");
+        assertThat(resp.getTotalFee()).isEqualByComparingTo("700.000");
+        assertThat(resp.getTotalNet()).isEqualByComparingTo("9300.000");
+        assertThat(resp.getTotalCount()).isEqualTo(120L);
+        assertThat(resp.getRows()).hasSize(1);
+        assertThat(resp.getRows().getFirst().getGross()).isEqualByComparingTo("10.000");
     }
 }

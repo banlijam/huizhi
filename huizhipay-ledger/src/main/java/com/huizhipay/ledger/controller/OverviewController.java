@@ -2,15 +2,13 @@ package com.huizhipay.ledger.controller;
 
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
-import com.huizhipay.ledger.dto.LedgerRowResponse;
+import com.huizhipay.ledger.dto.LedgerResponse;
 import com.huizhipay.ledger.dto.OverviewStatsResponse;
 import com.huizhipay.ledger.service.OverviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 指挥中心：今日大盘 + 透明分账账本。
@@ -29,7 +27,7 @@ public class OverviewController {
     }
 
     @GetMapping("/ledger")
-    public R<List<LedgerRowResponse>> ledger() {
+    public R<LedgerResponse> ledger() {
         return R.ok(overviewService.getLedger(merchantResolver.getCurrentMerchantId()));
     }
 }

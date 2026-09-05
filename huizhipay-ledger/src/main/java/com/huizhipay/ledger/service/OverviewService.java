@@ -92,11 +92,27 @@ public class OverviewService {
         return resp;
     }
 
-    public List<LedgerRowResponse> getLedger(String merchantId) {
+    public LedgerResponse getLedger(String merchantId) {
+        LedgerResponse resp = new LedgerResponse();
         if (merchantId == null) {
-            return List.of();
+            resp.setTotalGross(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
+            resp.setTotalFee(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
+            resp.setTotalNet(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
+            resp.setTotalCount(0L);
+            resp.setRows(List.of());
+            return resp;
         }
         log.debug("[Overview] 拉取透明分账账本 merchantId={}", merchantId);
+
+        BigDecimal totalGross = ledgerEntryMapper.sumPaymentGross(merchantId);
+        if (totalGross == null) {
+            totalGross = BigDecimal.ZERO;
+        }
+        resp.setTotalGross(totalGross.setScale(3, RoundingMode.HALF_UP));
+        resp.setTotalFee(totalGross.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP));
+        resp.setTotalNet(totalGross.multiply(NET_RATE).setScale(3, RoundingMode.HALF_UP));
+        resp.setTotalCount(ledgerEntryMapper.countPaymentGross(merchantId));
+
         List<LedgerEntry> entries = ledgerEntryMapper.selectList(
                 new QueryWrapper<LedgerEntry>()
                         .eq("merchant_id", merchantId)
@@ -116,8 +132,9 @@ public class OverviewService {
             row.setTime(e.getCreatedAt());
             rows.add(row);
         }
+        resp.setRows(rows);
         log.debug("[Overview] 账本返回{}条记录 merchantId={}", rows.size(), merchantId);
-        return rows;
+        return resp;
     }
 
     private OverviewStatsResponse.ChartData buildChart(String merchantId, LocalDate today) {
