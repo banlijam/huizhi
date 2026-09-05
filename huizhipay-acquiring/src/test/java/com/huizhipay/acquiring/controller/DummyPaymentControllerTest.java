@@ -11,6 +11,7 @@ import com.huizhipay.acquiring.service.DummyPaymentCompletionService;
 import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.security.MerchantAccessGuard;
 import com.huizhipay.common.security.MerchantResolver;
+import com.huizhipay.common.security.MerchantKybGuard;
 import com.huizhipay.common.security.MerchantResolver.MerchantAccess;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +39,7 @@ class DummyPaymentControllerTest {
     @Mock private PaymentOrderMapper paymentOrderMapper;
     @Mock private MerchantResolver merchantResolver;
     @Mock private MerchantAccessGuard merchantAccessGuard;
+    @Mock private MerchantKybGuard merchantKybGuard;
     @Mock private DummyPaymentPolicy dummyPaymentPolicy;
     @Mock private DummyPaymentCompletionService dummyPaymentCompletionService;
     @InjectMocks private DummyPaymentController controller;
@@ -56,6 +59,26 @@ class DummyPaymentControllerTest {
         ArgumentCaptor<PaymentOrder> orderCaptor = ArgumentCaptor.forClass(PaymentOrder.class);
         verify(paymentOrderMapper).insert(orderCaptor.capture());
         assertThat(orderCaptor.getValue().getMerchantId()).isEqualTo("M-A");
+        var ordered = inOrder(merchantAccessGuard, merchantKybGuard, paymentOrderMapper);
+        ordered.verify(merchantAccessGuard).requireAnyRole("OWNER", "ADMIN");
+        ordered.verify(merchantKybGuard).requireApproved("M-A");
+        ordered.verify(paymentOrderMapper).insert(any(PaymentOrder.class));
+    }
+
+    @Test
+    void createRejectsMerchantWithoutApprovedKybBeforePersistingAnOrder() {
+        when(merchantAccessGuard.requireAnyRole("OWNER", "ADMIN"))
+                .thenReturn(new MerchantAccess("M-PENDING", "OWNER"));
+        doThrow(new BizException(403, "KYB approval required before creating a payment order"))
+                .when(merchantKybGuard).requireApproved("M-PENDING");
+
+        assertThatThrownBy(() -> controller.create(new DummyPaymentController.CreateOrderRequest(
+                new BigDecimal("10.00"), "USD", "/merchant/orders")))
+                .isInstanceOf(BizException.class)
+                .extracting("code").isEqualTo(403);
+
+        verify(merchantKybGuard).requireApproved("M-PENDING");
+        verifyNoInteractions(paymentOrderMapper);
     }
 
     @Test

@@ -9,6 +9,7 @@ import com.huizhipay.common.exceptions.BizException;
 import com.huizhipay.common.model.R;
 import com.huizhipay.common.security.MerchantResolver;
 import com.huizhipay.common.security.MerchantAccessGuard;
+import com.huizhipay.common.security.MerchantKybGuard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,12 +40,14 @@ public class DummyPaymentController {
     private final PaymentOrderMapper paymentOrderMapper;
     private final MerchantResolver merchantResolver;
     private final MerchantAccessGuard merchantAccessGuard;
+    private final MerchantKybGuard merchantKybGuard;
     private final DummyPaymentPolicy dummyPaymentPolicy;
     private final DummyPaymentCompletionService dummyPaymentCompletionService;
 
     @PostMapping
     public R<OrderView> create(@RequestBody CreateOrderRequest request) {
         String merchantId = merchantAccessGuard.requireAnyRole(OWNER, ADMIN).merchantId();
+        merchantKybGuard.requireApproved(merchantId);
         if (request.amount() == null || request.amount().signum() <= 0) {
             throw new BizException(400, "Dummy amount must be greater than zero");
         }
