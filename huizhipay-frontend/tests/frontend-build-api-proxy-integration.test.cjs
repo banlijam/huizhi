@@ -116,9 +116,9 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(demoRoute, /class=["']demo-nav["']/);
   assert.match(developerRoute, /id=["']developer["']/);
   assert.match(developerRoute, /Developer Tools/);
-  assert.match(developerRoute, /Sandbox Request Builder/);
+  assert.match(developerRoute, /Dummy Order \+ HPP/);
   assert.match(developerRoute, /Capability Map/);
-  assert.match(developerRoute, /backend (?:is )?not connected/i);
+  assert.match(developerRoute, /Issuance service is not connected/i);
   assert.doesNotMatch(developerRoute, /sk_test_[a-z0-9]/i);
   assert.match(developerRoute, /src=["']\/js\/api\.js["']/);
   assert.match(developerRoute, /await isLoggedIn\(\)/);
@@ -167,7 +167,10 @@ test('build merges the public home and login entry while separating protected wo
   await assert.rejects(readFile(path.join(ROOT, 'dist', 'developer.html'), 'utf8'), /ENOENT/);
   await assert.rejects(readFile(path.join(ROOT, 'dist', 'pay', 'pay.js'), 'utf8'), /ENOENT/);
   await assert.rejects(readFile(path.join(ROOT, 'dist', 'pay', 'style.css'), 'utf8'), /ENOENT/);
-  assert.match(await readFile(path.join(ROOT, 'dist', 'docs', 'index.html'), 'utf8'), /公开开发文档占位页/);
+  const docsHtml = await readFile(path.join(ROOT, 'dist', 'docs', 'index.html'), 'utf8');
+  assert.match(docsHtml, /POST \/api\/v1\/dummy\/orders/);
+  assert.match(docsHtml, /GET \/api\/v1\/developer\/query-logs/);
+  assert.match(docsHtml, /Server-to-Server 接入尚未开放/);
   assert.match(await readFile(path.join(ROOT, 'dist', 'developer', 'docs', 'index.html'), 'utf8'), /前往公开开发文档/);
 });
 
@@ -238,7 +241,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const developerSlash = await fetch(`${baseUrl}/developer/`);
   assert.equal(developerSlash.status, 200);
-  assert.match(await developerSlash.text(), /Sandbox Request Builder/);
+  assert.match(await developerSlash.text(), /Business API Query Logs/);
 
   for (const route of [
     '/merchant/orders',
@@ -284,7 +287,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
 
   const docs = await fetch(`${baseUrl}/docs`);
   assert.equal(docs.status, 200);
-  assert.match(await docs.text(), /公开开发文档占位页/);
+  assert.match(await docs.text(), /真实 Dummy Order 与 HPP/);
 
   const mergedHome = await fetch(`${baseUrl}/`);
   const mergedLogin = await fetch(`${baseUrl}/login`);
@@ -301,7 +304,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   const oldDeveloperDocs = await fetch(`${baseUrl}/developer/docs`);
   assert.equal(oldDeveloperDocs.status, 200);
   assert.equal(oldDeveloperDocs.redirected, true);
-  assert.match(await oldDeveloperDocs.text(), /公开开发文档占位页/);
+  assert.match(await oldDeveloperDocs.text(), /真实 Dummy Order 与 HPP/);
 
   const oldMerchantLogin = await fetch(`${baseUrl}/merchant/login`);
   assert.equal(oldMerchantLogin.status, 200);

@@ -4,20 +4,416 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>API Documentation · HuizhiPay</title>
+  <meta name="description" content="HuizhiPay 公开开发文档与支付集成指南。">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05070b;
+      --sidebar: #090d13;
+      --panel: #101620;
+      --input: #0c121c;
+      --line: #273146;
+      --line-soft: #202839;
+      --line-strong: #35425a;
+      --text: #f4f7fb;
+      --text-secondary: #aeb8c6;
+      --muted: #8d98aa;
+      --faint: #667287;
+      --blue: #5a91ff;
+      --amber: #f4c15d;
+      --lime: #c0f96c;
+      --sans: "Aptos Display", "Segoe UI Variable", sans-serif;
+      --mono: "Cascadia Mono", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(90,145,255,.11), transparent 28rem),
+        radial-gradient(circle at 88% 100%, rgba(59,212,155,.06), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      font: 14px/1.6 var(--sans);
+    }
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      opacity: .16;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, #000, transparent 78%);
+    }
+    a { color: inherit; }
+    a:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; border-radius: 8px; }
+    .docs-shell { display: grid; grid-template-columns: 304px minmax(0, 1fr); min-height: 100vh; }
+    .docs-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 10;
+      display: flex;
+      width: 304px;
+      flex-direction: column;
+      padding: 25px 20px 20px;
+      border-right: 1px solid var(--line-soft);
+      background: rgba(9,13,19,.94);
+      backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 25px; text-decoration: none; }
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #78a7ff, var(--lime));
+      box-shadow: 0 12px 30px rgba(90,145,255,.16);
+      color: #071017;
+      font-size: 18px;
+      font-weight: 950;
+    }
+    .brand-copy { display: grid; line-height: 1.15; }
+    .brand-copy strong { font-size: 16px; font-weight: 850; letter-spacing: -.02em; }
+    .brand-copy small { margin-top: 5px; color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .11em; }
+    .nav-label, .eyebrow {
+      color: var(--muted);
+      font: 800 10px var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .nav-label { padding: 0 12px 9px; }
+    .docs-nav { display: grid; gap: 6px; }
+    .docs-nav { scrollbar-width: none; }
+    .docs-nav::-webkit-scrollbar { display: none; }
+    .docs-nav a {
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 13px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+    .docs-nav a:hover { color: var(--text); background: rgba(21,28,40,.65); }
+    .docs-nav a.active { border-color: #2c3850; background: #192131; color: var(--text); }
+    .nav-icon { color: var(--blue); font: 15px var(--mono); text-align: center; }
+    .nav-state { color: var(--faint); font: 9px var(--mono); letter-spacing: .08em; }
+    .sidebar-note {
+      margin-top: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(24,31,45,.9), rgba(14,19,28,.9));
+    }
+    .sidebar-note strong { display: block; margin: 8px 0 4px; font-size: 13px; }
+    .sidebar-note p { margin: 0; color: var(--muted); font-size: 12px; }
+    .docs-main { grid-column: 2; min-width: 0; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      display: flex;
+      min-height: 88px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--line-soft);
+      background: rgba(13,17,25,.87);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-title strong { display: block; font-size: 18px; font-weight: 850; letter-spacing: -.025em; }
+    .topbar-title span { color: var(--muted); font-size: 12px; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .status-badge {
+      display: inline-flex;
+      min-height: 32px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1px solid rgba(244,193,93,.26);
+      border-radius: 999px;
+      background: rgba(244,193,93,.07);
+      color: var(--amber);
+      font: 800 10px var(--mono);
+      letter-spacing: .08em;
+    }
+    .status-badge::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; content: ""; }
+    .button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 17px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--input);
+      color: var(--text-secondary);
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+    .button:hover { border-color: #50617e; color: var(--text); transform: translateY(-1px); }
+    .button.primary { border-color: transparent; background: linear-gradient(110deg, #407fff, #76aaff); color: #fff; }
+    .docs-content { width: min(100%, 1140px); margin: 0 auto; padding: 52px 42px 80px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 44px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(24,31,45,.97), rgba(14,19,28,.97));
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .hero::after {
+      position: absolute;
+      top: -100px;
+      right: -90px;
+      width: 300px;
+      height: 300px;
+      border: 1px solid rgba(90,145,255,.16);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(90,145,255,.12), transparent 68%);
+      content: "";
+    }
+    .hero h1 { max-width: 700px; margin: 13px 0 14px; font-size: clamp(34px, 5vw, 58px); line-height: 1.02; letter-spacing: -.055em; }
+    .hero p { max-width: 650px; margin: 0; color: var(--text-secondary); font-size: 15px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 26px; }
+    .chip { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--input); color: var(--muted); font: 700 10px var(--mono); }
+    .section-heading { margin: 40px 0 16px; }
+    .section-heading h2 { margin: 6px 0 0; font-size: 22px; letter-spacing: -.025em; }
+    .doc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .doc-card {
+      position: relative;
+      min-height: 250px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(24,31,45,.97), rgba(14,19,28,.97));
+      box-shadow: 0 20px 60px rgba(0,0,0,.16);
+      transition: border-color 180ms ease, transform 180ms ease;
+    }
+    .doc-card:hover { border-color: #35425a; transform: translateY(-2px); }
+    .card-index {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid rgba(90,145,255,.28);
+      border-radius: 10px;
+      background: rgba(90,145,255,.08);
+      color: var(--blue);
+      font: 800 11px var(--mono);
+    }
+    .doc-card h3 { margin: 23px 0 8px; font-size: 17px; }
+    .doc-card p { margin: 0; color: var(--muted); font-size: 13px; }
+    .card-state { position: absolute; right: 20px; bottom: 20px; color: var(--amber); font: 800 9px var(--mono); letter-spacing: .1em; }
+    .card-state.ready { color: var(--lime); }
+    .guide { display: grid; gap: 16px; }
+    .guide-step, .reference { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(24,31,45,.97), rgba(14,19,28,.97)); }
+    .guide-step { display: grid; grid-template-columns: 42px 1fr; gap: 16px; }
+    .guide-step b { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(90,145,255,.28); border-radius: 10px; color: var(--blue); font: 800 11px var(--mono); }
+    .guide-step h3 { margin: 0 0 6px; font-size: 15px; }
+    .guide-step p, .reference p { margin: 0; color: var(--muted); font-size: 13px; }
+    pre { margin: 16px 0 0; overflow: auto; padding: 18px; border: 1px solid var(--line-soft); border-radius: 12px; background: #080c12; color: #c7d8f3; font: 12px/1.65 var(--mono); }
+    code { font-family: var(--mono); }
+    .contract-table { width: 100%; margin-top: 16px; border-collapse: collapse; font-size: 12px; }
+    .contract-table th, .contract-table td { padding: 12px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+    .contract-table th { color: var(--faint); font: 800 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .contract-table td { color: var(--text-secondary); }
+    .notice {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      margin-top: 16px;
+      padding: 18px 20px;
+      border: 1px solid rgba(244,193,93,.22);
+      border-radius: 14px;
+      background: rgba(244,193,93,.055);
+    }
+    .notice-icon { color: var(--amber); font: 900 14px var(--mono); }
+    .notice strong { display: block; margin-bottom: 2px; font-size: 13px; }
+    .notice p { margin: 0; color: var(--muted); font-size: 12px; }
+    .docs-footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line-soft); color: var(--faint); font: 10px var(--mono); }
+    @media (max-width: 980px) {
+      .docs-shell { grid-template-columns: 232px minmax(0, 1fr); }
+      .docs-sidebar { width: 232px; }
+      .brand-copy small { display: none; }
+      .docs-content { padding-inline: 28px; }
+      .doc-grid { grid-template-columns: 1fr; }
+      .doc-card { min-height: 190px; }
+    }
+    @media (max-width: 720px) {
+      .docs-shell { display: block; }
+      .docs-sidebar { position: static; width: 100%; padding: 18px 18px 10px; border-right: 0; border-bottom: 1px solid var(--line-soft); }
+      .brand { padding-bottom: 12px; }
+      .docs-nav { display: flex; overflow-x: auto; padding-bottom: 8px; }
+      .docs-nav a { min-width: max-content; }
+      .nav-state, .nav-label, .sidebar-note { display: none; }
+      .docs-main { grid-column: auto; }
+      .topbar { min-height: 72px; padding: 0 18px; }
+      .topbar-title span, .status-badge, .button.secondary { display: none; }
+      .docs-content { padding: 26px 18px 54px; }
+      .hero { padding: 28px 24px; }
+      .hero h1 { font-size: 38px; }
+      .docs-footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <a href="/">HuizhiPay</a> |
-    <a href="/login.html">登录 Dashboard</a>
-  </header>
-  <main>
-    <h1>API Documentation</h1>
-    <p>公开开发文档占位页，无需登录。</p>
-    <ul>
-      <li>Quickstart（待实现）</li>
-      <li>API Reference（待实现）</li>
-      <li>错误码与请求示例（待实现）</li>
-    </ul>
-  </main>
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="开发文档导航">
+      <a class="brand" href="/" aria-label="HuizhiPay 首页">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy">
+          <strong>HuizhiPay™</strong>
+          <small>COMPLIANT PAYMENT ORCHESTRATION</small>
+        </span>
+      </a>
+
+      <span class="nav-label">Documentation</span>
+      <nav class="docs-nav">
+        <a class="active" href="#overview" aria-current="page"><span class="nav-icon">⌁</span><span>概览</span><span class="nav-state">01</span></a>
+        <a href="#quickstart"><span class="nav-icon">⌘</span><span>Quickstart</span><span class="nav-state">02</span></a>
+        <a href="#api-reference"><span class="nav-icon">▤</span><span>API Reference</span><span class="nav-state">03</span></a>
+        <a href="#query-logs"><span class="nav-icon">↗</span><span>查询日志</span><span class="nav-state">04</span></a>
+        <a href="#boundaries"><span class="nav-icon">◇</span><span>能力边界</span><span class="nav-state">05</span></a>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="eyebrow">Access</span>
+        <strong>公开文档</strong>
+        <p>无需登录即可查看。尚未发布的接口会明确标记。</p>
+      </div>
+    </aside>
+
+    <main class="docs-main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <strong>API Documentation</strong>
+          <span>支付接入、接口契约与问题排查</span>
+        </div>
+        <div class="topbar-actions">
+          <span class="status-badge">SANDBOX CONTRACT</span>
+          <a class="button secondary" href="/">返回首页</a>
+          <a class="button primary" href="/login.html">登录 Dashboard</a>
+        </div>
+      </header>
+
+      <div class="docs-content">
+        <section class="hero" id="overview">
+          <span class="eyebrow">Developer integration surface</span>
+          <h1>Build payments against a visible contract.</h1>
+          <p>用真实 Dummy Order 与 HPP 验证 USD 支付跳转、买家结果和商户返回地址。页面明确区分当前可运行能力与尚未开放的生产架构。</p>
+          <div class="hero-meta" aria-label="文档属性">
+            <span class="chip">PUBLIC ACCESS</span>
+            <span class="chip">SANDBOX FIRST</span>
+            <span class="chip">VERSION v1</span>
+            <span class="chip">AUTHENTICATED MERCHANT</span>
+          </div>
+        </section>
+
+        <div class="section-heading">
+          <span class="eyebrow">Documentation map</span>
+          <h2>从第一次请求到问题定位</h2>
+        </div>
+
+        <section class="doc-grid" aria-label="文档章节">
+          <article class="doc-card" id="quickstart">
+            <span class="card-index">01</span>
+            <h3>Quickstart</h3>
+            <p>创建真实 Sandbox 订单、打开 HPP，并把买家带回你提供的 HTTPS returnUrl。</p>
+            <span class="card-state ready">AVAILABLE</span>
+          </article>
+          <article class="doc-card">
+            <span class="card-index">02</span>
+            <h3>API Reference</h3>
+            <p>当前开放 Dummy Orders 与商户业务查询日志；两者都要求已登录的商户身份。</p>
+            <span class="card-state ready">AVAILABLE</span>
+          </article>
+          <article class="doc-card" id="query-logs">
+            <span class="card-index">03</span>
+            <h3>API Query Logs</h3>
+            <p>通过 queryNo、productId、费用、状态与错误信息定位业务 API 查询结果。</p>
+            <span class="card-state ready">AVAILABLE</span>
+          </article>
+        </section>
+
+        <div class="section-heading" id="quickstart-guide">
+          <span class="eyebrow">Website integration · current sandbox</span>
+          <h2>把真实 HPP 返回流程接到你的网站</h2>
+        </div>
+        <section class="guide" aria-label="Sandbox 网站接入步骤">
+          <article class="guide-step"><b>01</b><div><h3>准备你网站的 HTTPS 返回页</h3><p>例如 <code>https://merchant.example/checkout/result</code>。HuizhiPay 会把这个地址原样保存为订单 returnUrl，买家完成 HPP 后可返回该页面。</p></div></article>
+          <article class="guide-step"><b>02</b><div><h3>在已登录的 Merchant Workspace 创建 USD 测试订单</h3><p>当前凭证签发尚未开放，因此请求只能由 HuizhiPay 同源、已登录的商户会话发起，不能把登录 Cookie 复制到你的网站服务端。</p><pre>const response = await fetch('/api/v1/dummy/orders', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    amount: 10.00,
+    currency: 'USD',
+    returnUrl: 'https://merchant.example/checkout/result'
+  })
+});
+const { data: order } = await response.json();</pre></div></article>
+          <article class="guide-step"><b>03</b><div><h3>把买家送到返回的 paymentUrl</h3><p>打开订单响应中的 paymentUrl，买家在 HPP 选择 Sandbox 成功或失败。之后检查订单状态和 returnUrl 返回行为，确认你的网站能恢复自己的 checkout 上下文。</p></div></article>
+        </section>
+
+        <div class="section-heading" id="api-reference">
+          <span class="eyebrow">Published endpoints</span>
+          <h2>当前真实接口</h2>
+        </div>
+        <section class="reference">
+          <table class="contract-table">
+            <thead><tr><th>Endpoint</th><th>用途</th><th>认证</th><th>关键结果</th></tr></thead>
+            <tbody>
+              <tr><td><code>POST /api/v1/dummy/orders</code></td><td>创建 USD Sandbox 订单</td><td>商户 OWNER / ADMIN，会校验 KYB</td><td>orderNo、checkoutToken、paymentUrl、returnUrl、status</td></tr>
+              <tr><td><code>GET /api/v1/dummy/orders?page=1</code></td><td>查看当前商户测试订单</td><td>已登录商户</td><td>分页订单与真实状态</td></tr>
+              <tr><td><code>GET /api/v1/developer/query-logs</code></td><td>查看当前商户最近 100 条业务 API 查询</td><td>商户所有只读及以上角色</td><td>queryNo、productId、costAmount、status、errorMessage、createdAt</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="section-heading" id="query-logs-guide">
+          <span class="eyebrow">Troubleshooting</span>
+          <h2>用业务查询日志定位问题</h2>
+        </div>
+        <section class="reference">
+          <p>登录后打开 <code>/merchant/developer/logs</code>。SUCCESS 表示业务查询完成，PROCESSING 表示仍在执行，FAIL 会同时展示错误摘要，REFUNDED 表示该次查询费用已退款。日志由服务端按当前商户隔离，不返回 queryParams 或第三方原始响应。</p>
+        </section>
+
+        <aside class="notice" id="boundaries" aria-label="内容状态说明">
+          <span class="notice-icon" aria-hidden="true">!</span>
+          <div>
+            <strong>生产网站的 Server-to-Server 接入尚未开放</strong>
+            <p>API Key、商户 Webhook、Onramper、CREATE2 订单合约分账和 BTCPay Settled 状态同步仍未形成当前后端闭环。不要把 Sandbox 登录 Cookie 当成网站凭证；这些能力上线后再切换到生产集成。</p>
+          </div>
+        </aside>
+
+        <footer class="docs-footer">
+          <span>HuizhiPay Developer Documentation</span>
+          <span>Dark Payment Operations Console · v1</span>
+        </footer>
+      </div>
+    </main>
+  </div>
 </body>
 </html>

@@ -113,6 +113,18 @@ async function apiGet(endpoint) {
   return null;
 }
 
+async function fetchDeveloperQueryLogs() {
+  const response = await fetch(getApiUrl('/developer/query-logs'), {
+    credentials: 'include',
+    headers: { 'Accept-Language': getLanguageHeader() }
+  });
+  const body = await response.json();
+  if (!response.ok || body.code !== 200 || !Array.isArray(body.data)) {
+    throw new Error(body.message || 'Failed to load API query logs');
+  }
+  return body.data;
+}
+
 async function apiPost(endpoint, data) {
   try {
     const response = await fetch(getApiUrl(endpoint), {

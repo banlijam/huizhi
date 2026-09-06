@@ -27,7 +27,7 @@ window.i18nZh = {
     navApiKeys: 'API 密钥',
     navSandbox: '沙盒',
     navWebhooks: 'Webhook',
-    navLogs: 'API 日志',
+    navLogs: '业务查询日志',
     allOrders: '全部订单',
     fromApi: '来自订单接口',
     pendingThisPage: '本页等待付款',

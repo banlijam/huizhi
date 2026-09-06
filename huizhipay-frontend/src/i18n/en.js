@@ -27,7 +27,7 @@ window.i18nEn = {
     navApiKeys: 'API Keys',
     navSandbox: 'Sandbox',
     navWebhooks: 'Webhooks',
-    navLogs: 'API Logs',
+    navLogs: 'API Query Logs',
     allOrders: 'All Orders',
     fromApi: 'From the orders API',
     pendingThisPage: 'Pending on This Page',

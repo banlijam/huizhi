@@ -36,7 +36,7 @@ public class DummyPaymentController {
     private static final String DUMMY_MERCHANT_NAME = "Demo Merchant";
     private static final String DUMMY_CHANNEL = "DUMMY";
     private static final String DEFAULT_RETURN_URL = "/merchant";
-    private static final int PAGE_SIZE = 7;
+    private static final int PAGE_SIZE = 8;
     private final PaymentOrderMapper paymentOrderMapper;
     private final MerchantResolver merchantResolver;
     private final MerchantAccessGuard merchantAccessGuard;
