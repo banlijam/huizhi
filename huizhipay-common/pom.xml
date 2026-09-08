@@ -49,6 +49,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- OpenPDF (LibrePDF) — iText 4 的开源分支 -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
         <!-- Spring Boot 测试（common 的测试需要） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -1,19 +1,26 @@
 package com.huizhipay.acquiring.transfi;
 
 import com.huizhipay.acquiring.config.AppConfig;
-import com.huizhipay.acquiring.transfi.dto.OrderListData;
-import com.huizhipay.acquiring.transfi.dto.TransFiOrder;
-import com.huizhipay.acquiring.transfi.dto.TransFiResponse;
-import com.huizhipay.acquiring.transfi.dto.TransFiUser;
+import com.huizhipay.acquiring.transfi.dto.*;
+import com.huizhipay.acquiring.transfi.util.PdfUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,5 +92,108 @@ class TransFiClientIntegrationTest {
                     + ", type=" + first.getType()
                     + ", status=" + first.getStatus());
         }
+    }
+
+    @Test
+    void createOrder() {
+        TransFiResponse<TransFiOrder> response = client.createOrder(new CreateOrderRequest()
+                .setUserId("test@gmail.com")
+                .setPartnerId("test-fi-1")
+                .setCustomerMetaData(new HashMap<>())
+                .setSourceUrl("https://www.huizhipay.org/")
+                .setSuccessRedirectUrl("https://www.huizhipay.org/success")
+                .setFailureRedirectUrl("https://www.huizhipay.org/failure")
+                .setHeadlessMode(false)
+                .setPurposeCode("service_charges")
+                .setOrderType("payin")
+                .setInvoiceId("IN-260908153234882457856001992")
+                .setDeviceDetails(new CreateOrderRequest.DeviceDetails()
+                        .setIpInfo(new CreateOrderRequest.IpInfo()
+                                .setIp("127.0.0.1")))
+                .setSource(new OrderSource()
+                        .setUserId("UX-250512094340333")
+                        .setCurrency("USD")
+                        .setAmount("")
+                        .setAdditionalPaymentDetails(new HashMap<>())
+                        .setSendersWalletAddress("")
+                        .setPaymentType("card")  // 'bank_transfer' | 'card' | 'local_wallet'
+                        .setPaymentCode(""))
+                .setDestination(new OrderDestination()
+                        .setCurrency("USDT")
+                        .setAmount("")
+                        .setQrCode("")
+                        .setAdditionalPaymentDetails(new HashMap<>())
+                        .setWalletAddress("")
+                        .setPaymentType("local_wallet") // 'bank_transfer' | 'card' | 'local_wallet'
+                        .setPaymentCode("")
+                        .setUserId(""))
+                .setCustomization(new CreateOrderRequest.Customization("en")));
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo("success");
+        assertThat(response.getData()).isNotNull();
+        System.out.println(response);
+    }
+
+    // ==================== Invoices ====================
+
+    @Test
+    void renderInvoice_toLocalFile() throws IOException {
+        Map<String, String> data = buildInvoiceData();
+        Resource pdf = PdfUtil.renderInvoice(data);
+
+        assertThat(pdf).isNotNull();
+        assertThat(pdf.getFilename()).startsWith("invoice-");
+
+        byte[] pdfBytes;
+        try (InputStream is = pdf.getInputStream()) {
+            pdfBytes = is.readAllBytes();
+        }
+        assertThat(pdfBytes).isNotEmpty();
+        assertThat(pdfBytes[0]).isEqualTo((byte) '%'); // PDF magic: %PDF-1.x
+
+        Path target = Paths.get(System.getProperty("java.io.tmpdir"),
+                "huizhipay-invoices", pdf.getFilename());
+        Files.createDirectories(target.getParent());
+        Files.write(target, pdfBytes);
+
+        System.out.println("[renderInvoice_toLocalFile] written=" + target.toAbsolutePath()
+                + ", size=" + pdfBytes.length + " bytes");
+    }
+
+    @Test
+    void uploadInvoice_returnsInvoiceId() {
+        Map<String, String> data = buildInvoiceData();
+        Resource pdf = PdfUtil.renderInvoice(data);
+
+        assertThat(pdf).isNotNull();
+        assertThat(pdf.getFilename()).startsWith("invoice-");
+        System.out.println("[uploadInvoice] filename=" + pdf.getFilename());
+
+        TransFiResponse<UploadInvoiceResponse> response = client.uploadInvoice(
+                pdf, "deposit", "UX-250512094340333", "invoice");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo("success");
+        assertThat(response.getData()).isNotNull();
+        assertThat(response.getData().getInvoiceId()).isNotBlank();
+        System.out.println("[uploadInvoice] invoiceId=" + response.getData().getInvoiceId());
+    }
+
+    /**
+     * 构造发票占位数据，两个测试共用。
+     */
+    private static Map<String, String> buildInvoiceData() {
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("order_id", "ORD-20260908-0001");
+        data.put("created_at", "2026-09-08 15:23:41 UTC");
+        data.put("buyer_name", "Alice Demo");
+        data.put("buyer_email_masked", "a****@example.com");
+        data.put("buyer_country", "US");
+        data.put("merchant_clean_name", "HuizhiPay Demo Merchant");
+        data.put("safe_product_description", "Digital Gift Card — $100");
+        data.put("mapped_sku", "SKU-GC-100");
+        data.put("fiat_amount", "100.00");
+        data.put("fiat_currency", "USD");
+        return data;
     }
 }

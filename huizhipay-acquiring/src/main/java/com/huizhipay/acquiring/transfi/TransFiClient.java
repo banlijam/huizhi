@@ -1,8 +1,11 @@
 package com.huizhipay.acquiring.transfi;
 
 import com.huizhipay.acquiring.transfi.dto.*;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -92,4 +95,16 @@ public interface TransFiClient {
      */
     @PostExchange("/orders/cancel")
     TransFiResponse<CancelOrderResponse> cancelOrder(@RequestBody CancelOrderRequest request);
+
+    // ==================== Invoices ====================
+
+    /**
+     * 上传发票文件（PDF，最大 4MB），返回 invoiceId 用于关联 Payin/Payout 订单
+     */
+    @PostExchange(url = "/invoices/create", contentType = MediaType.MULTIPART_FORM_DATA_VALUE)
+    TransFiResponse<UploadInvoiceResponse> uploadInvoice(
+            @RequestPart("invoice") Resource file,
+            @RequestPart("direction") String direction,
+            @RequestPart("userId") String userId,
+            @RequestPart(value = "invoiceType", required = false) String invoiceType);
 }
