@@ -30,6 +30,15 @@ huizhipay:
     checkout-result-enabled: false
   transfi:
     outbound-enabled: false
+    checkout:
+      base-url: https://checkout-server.transfi.com
+      outbound-enabled: ${TRANSFI_CHECKOUT_OUTBOUND_ENABLED:false}
+      sandbox-credentials-confirmed: ${TRANSFI_CHECKOUT_SANDBOX_CREDENTIALS_CONFIRMED:false}
+      public-key: ${TRANSFI_CHECKOUT_PUBLIC_KEY:}
+      secret-key: ${TRANSFI_CHECKOUT_SECRET_KEY:}
+      payment-link-id: ${TRANSFI_CHECKOUT_PAYMENT_LINK_ID:}
+  sandbox:
+    merchant-return-origin: ${SANDBOX_MERCHANT_RETURN_ORIGIN:https://merchant-sandbox.example.test}
 
 app:
   frontend:

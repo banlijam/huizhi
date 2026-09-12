@@ -39,6 +39,31 @@ public class SandboxStartupGuard implements ApplicationRunner {
         if (environment.getProperty("huizhipay.transfi.outbound-enabled", Boolean.class, true)) {
             throw new IllegalStateException("Task 1 sandbox requires TransFi outbound calls to remain disabled");
         }
+        validateCheckout();
+    }
+
+    private void validateCheckout() {
+        if (!environment.getProperty("huizhipay.transfi.checkout.outbound-enabled", Boolean.class, false)) return;
+        String baseUrl = required("huizhipay.transfi.checkout.base-url");
+        if (!"https://checkout-server.transfi.com".equalsIgnoreCase(baseUrl)) {
+            throw new IllegalStateException("Sandbox TransFi Checkout requires the fixed official HTTPS endpoint");
+        }
+        if (!environment.getProperty("huizhipay.transfi.checkout.sandbox-credentials-confirmed", Boolean.class, false)) {
+            throw new IllegalStateException("TransFi Checkout outbound requires explicit Sandbox credential confirmation");
+        }
+        if (!required("huizhipay.transfi.checkout.public-key").matches("^pk_[A-Za-z0-9]+$")) {
+            throw new IllegalStateException("TransFi Checkout public key format is invalid");
+        }
+        if (required("huizhipay.transfi.checkout.secret-key").length() < 24) {
+            throw new IllegalStateException("TransFi Checkout secret key is missing or too short");
+        }
+        if (!required("huizhipay.transfi.checkout.payment-link-id").matches("^[a-f0-9]{24}$")) {
+            throw new IllegalStateException("TransFi Checkout payment link id is invalid");
+        }
+        String returnOrigin = required("huizhipay.sandbox.merchant-return-origin").toLowerCase(Locale.ROOT);
+        if (!returnOrigin.matches("^https://[a-z0-9.-]+(?::[0-9]+)?$")) {
+            throw new IllegalStateException("Sandbox merchant return origin must be an HTTPS origin without a path");
+        }
     }
 
     private String required(String name) {

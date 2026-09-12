@@ -32,6 +32,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)   // 禁用CSRF（使用JWT）
                 .authorizeHttpRequests(auth -> {
+                    // Server-to-server Sandbox API performs its own merchant-key authentication.
+                    auth.requestMatchers("/api/v1/sandbox/payments/**").permitAll();
                     // 买家只可凭随机 checkoutToken 查询单笔订单；后台建单和列表必须登录。
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*").permitAll();
                     if (dummyCheckoutResultEnabled) {

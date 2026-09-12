@@ -1,0 +1,10 @@
+{
+  "name": "huizhipay-external-merchant-sandbox",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node --experimental-sqlite src/server.js",
+    "test": "node --experimental-sqlite --test test/*.test.js"
+  },
+  "engines": { "node": ">=22.5" }
+}

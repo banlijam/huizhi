@@ -20,6 +20,8 @@ public class PaymentOrder {
     /** Checkout 完成后返回商户网站的目标地址 */
     private String returnUrl;
     private String merchantId;
+    /** Merchant-owned idempotency key for server-to-server payment creation. */
+    private String merchantOrderNo;
     /** 主币单位（元/美元） */
     private BigDecimal amount;
     private String currency;
@@ -28,6 +30,10 @@ public class PaymentOrder {
     private String fingerprint;
     /** 存 Airwallex 的 payment_intent_id */
     private String channelTradeNo;
+    /** Hosted checkout URL returned by the payment channel. */
+    private String paymentUrl;
+    /** More precise channel lifecycle without weakening the stable platform status enum. */
+    private String channelStatus;
     /** 支付状态 */
     private PaymentStatus status;
     private String clientSecret;

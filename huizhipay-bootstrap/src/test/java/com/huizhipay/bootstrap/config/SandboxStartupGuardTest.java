@@ -25,6 +25,25 @@ class SandboxStartupGuardTest {
                 .hasMessageContaining("loopback SMTP");
     }
 
+    @Test
+    void checkoutOutboundNeedsExactEndpointAndConfirmedSandboxCredentials() {
+        MockEnvironment unconfirmed = validEnvironment()
+                .withProperty("huizhipay.transfi.checkout.outbound-enabled", "true")
+                .withProperty("huizhipay.transfi.checkout.base-url", "https://checkout-server.transfi.com");
+        assertThatThrownBy(() -> new SandboxStartupGuard(unconfirmed).run(null))
+                .hasMessageContaining("credential confirmation");
+
+        MockEnvironment valid = validEnvironment()
+                .withProperty("huizhipay.transfi.checkout.outbound-enabled", "true")
+                .withProperty("huizhipay.transfi.checkout.base-url", "https://checkout-server.transfi.com")
+                .withProperty("huizhipay.transfi.checkout.sandbox-credentials-confirmed", "true")
+                .withProperty("huizhipay.transfi.checkout.public-key", "pk_sandboxexample")
+                .withProperty("huizhipay.transfi.checkout.secret-key", "sandbox_secret_at_least_24_chars")
+                .withProperty("huizhipay.transfi.checkout.payment-link-id", "68f86e65a530b2baa9866831")
+                .withProperty("huizhipay.sandbox.merchant-return-origin", "https://merchant-sandbox.example.test");
+        assertThatCode(() -> new SandboxStartupGuard(valid).run(null)).doesNotThrowAnyException();
+    }
+
     private MockEnvironment validEnvironment() {
         return new MockEnvironment()
                 .withProperty("server.address", "127.0.0.1")
