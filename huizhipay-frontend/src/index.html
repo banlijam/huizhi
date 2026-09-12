@@ -232,6 +232,7 @@
       const config=developerPageConfig[path]||developerPageConfig['/merchant/developer'],content=document.getElementById('developer-page-content');
       mountWorkspaceAccount('#developer');
       document.getElementById('developer-page-title').textContent=config.title;document.getElementById('developer-page-description').textContent=config.description;document.getElementById('developer-page-badge').textContent=config.badge;
+      if(!demoMode){try{if(!await requireMerchantWorkspace(content))return}catch(error){content.innerHTML=workspaceError('Unable to load merchant context',error.message);return}}
       content.innerHTML=config.render();
       const toast=document.getElementById('developer-toast'),showToast=message=>{toast.textContent=message;toast.classList.remove('hidden');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.add('hidden'),1800)};
       document.getElementById('copy-quickstart')?.addEventListener('click',async()=>{const text='curl -X POST '+location.origin+ORDERS_API+' -H "Content-Type: application/json" -d \'{"amount":10.00,"currency":"USD","returnUrl":"/merchant/orders"}\'';try{await navigator.clipboard.writeText(text);showToast('Request example copied')}catch(error){showToast('Copy unavailable · select the example manually')}});
@@ -256,6 +257,8 @@
     const displayValue=value=>value===null||value===undefined||value===''?'—':escapeHtml(value);
     const fixed=value=>Number(value||0).toFixed(3);
     function workspaceError(title,message){return `<div class="ops-card"><div class="ops-empty"><div><div class="ops-empty-icon" style="color:var(--red)">!</div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(message)}</p><a class="ops-link" href="${escapeHtml(location.pathname)}">Retry</a></div></div></div>`}
+    function merchantPrerequisite(){return `<div class="ops-card"><div class="ops-empty"><div><div class="ops-empty-icon">✓</div><h3>Complete merchant onboarding</h3><p>此账户已经登录，但尚未建立商户主体。请先提交 KYB 资料；审核通过后即可使用订单、账本和开发者功能。</p><a class="ops-link" href="/merchant/onboarding">Start onboarding</a></div></div></div>`}
+    async function requireMerchantWorkspace(content){const identity=await merchantApi('/api/v1/auth/me');if(identity?.merchantId)return true;content.innerHTML=merchantPrerequisite();return false}
     function renderOnboarding(data){
       const status=String(data?.status||'DRAFT').toUpperCase(),step=Math.min(Math.max(Number(data?.currentStep||1),1),4),company=data?.company||{};
       const statusClass=status==='APPROVED'?'success':status==='REJECTED'?'danger':status==='PENDING'?'warning':'';
@@ -282,6 +285,7 @@
       const config=merchantPageConfig[path],content=document.getElementById('merchant-page-content');if(!config)return;
       document.getElementById('merchant-page-title').textContent=path==='/merchant/orders'?orderText('title'):config.title;document.getElementById('merchant-page-description').textContent=path==='/merchant/orders'?orderText('description'):config.description;document.getElementById('merchant-page-badge').textContent=path==='/merchant/orders'?orderText('badge'):config.badge;
       mountWorkspaceAccount('#merchant-workspace');
+      if(!demoMode&&path!=='/merchant/onboarding'){try{if(!await requireMerchantWorkspace(content))return}catch(error){content.innerHTML=workspaceError('Unable to load merchant context',error.message);return}}
       if(path==='/merchant/orders'){mountOrdersPage();return;}
       content.innerHTML='<div class="ops-card"><div class="ops-empty"><div><div class="spinner"></div><h3>Loading live workspace data</h3><p>正在从商户后端读取页面状态。</p></div></div></div>';
       try{const data=await merchantApi(config.endpoint);if(navigationId===workspaceNavigationId)content.innerHTML=config.render(data)}catch(error){if(navigationId===workspaceNavigationId)content.innerHTML=workspaceError('Unable to load '+config.title,error.message)}

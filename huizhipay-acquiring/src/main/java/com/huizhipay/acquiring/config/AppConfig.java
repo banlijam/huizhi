@@ -1,5 +1,6 @@
 package com.huizhipay.acquiring.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huizhipay.acquiring.transfi.TransFiClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,11 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 @Configuration
 public class AppConfig {
 
+    @Bean
+    public ObjectMapper transFiWebhookObjectMapper() {
+        return new ObjectMapper();
+    }
+
     @Value("${client.transfi.url}")
     private String transfiUrl;
 
@@ -20,14 +26,22 @@ public class AppConfig {
     @Value("${client.transfi.authorization}")
     private String transfiAuthorization;
 
+    @Value("${huizhipay.transfi.outbound-enabled:true}")
+    private boolean transfiOutboundEnabled;
+
     @Bean
     public RestClient restClient() {
-        return RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .baseUrl(transfiUrl)
                 .defaultHeader("MID", transfiMid)
                 .defaultHeader("accept", "application/json")
-                .defaultHeader("authorization", transfiAuthorization)
-                .build();
+                .defaultHeader("authorization", transfiAuthorization);
+        if (!transfiOutboundEnabled) {
+            builder.requestInterceptor((request, body, execution) -> {
+                throw new IllegalStateException("TransFi outbound calls are disabled for this environment");
+            });
+        }
+        return builder.build();
     }
 
     @Bean

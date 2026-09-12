@@ -4,6 +4,7 @@ import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 
@@ -16,10 +17,13 @@ import javax.sql.DataSource;
 public class FlywayConfig {
 
     @Bean(initMethod = "migrate")
-    public Flyway flyway(DataSource dataSource) {
+    public Flyway flyway(DataSource dataSource, Environment environment) {
+        String[] locations = environment.getProperty(
+                        "spring.flyway.locations", "classpath:db/migration")
+                .split("\\s*,\\s*");
         FluentConfiguration config = Flyway.configure()
                 .dataSource(dataSource)
-                .locations("classpath:db/migration")
+                .locations(locations)
                 .baselineOnMigrate(true)
                 .schemas("public")
                 .table("flyway_schema_history")

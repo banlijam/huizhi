@@ -1,0 +1,46 @@
+server:
+  address: 127.0.0.1
+  port: ${SERVER_PORT:14329}
+
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/sandbox
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:15432/huizhipay_sandbox}
+    username: ${SPRING_DATASOURCE_USERNAME:huizhipay}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  mail:
+    # Point these values at a local Mailpit/MailHog instance. No external SMTP
+    # server is used by the sandbox defaults.
+    host: ${SPRING_MAIL_HOST:127.0.0.1}
+    port: ${SPRING_MAIL_PORT:1025}
+    username: ${SPRING_MAIL_USERNAME:sandbox}
+    password: ${SPRING_MAIL_PASSWORD:sandbox}
+    properties.mail.smtp:
+      auth: ${SPRING_MAIL_AUTH:false}
+      ssl.enable: false
+
+jwt:
+  secret: ${JWT_SECRET:change_this_sandbox_jwt_secret_before_shared_use_32_chars}
+  cookie:
+    secure: false
+
+huizhipay:
+  dummy:
+    checkout-result-enabled: false
+  transfi:
+    outbound-enabled: false
+
+app:
+  frontend:
+    url: ${APP_FRONTEND_URL:http://127.0.0.1:14328}
+
+client:
+  transfi:
+    url: https://sandbox-api.transfi.com/v3
+    mid: SANDBOX_DISABLED_TASK1
+    authorization: ""
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

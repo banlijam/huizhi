@@ -87,6 +87,8 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(html, /src=["']\/i18n\/zh\.js["']/);
   assert.match(html, /src=["']\/i18n\/en\.js["']/);
   assert.match(html, /Merchant Dashboard/);
+  assert.match(html, /Complete merchant onboarding/);
+  assert.match(html, /requireMerchantWorkspace/);
   assert.match(html, /id=\\?["']orders-prev\\?["']/);
   assert.match(html, /id=\\?["']orders-next\\?["']/);
   assert.match(html, /searchParams\.set\(['"]page['"],page\)/);
