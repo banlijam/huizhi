@@ -4,6 +4,7 @@ const http = require('node:http');
 const { mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
+const { createHmac } = require('node:crypto');
 const { createApp } = require('../src/app');
 
 function listen(server) { return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port))); }
@@ -52,4 +53,33 @@ test('platform timeout keeps a durable pending-confirmation order without a fake
     assert.equal(created.status, 'PENDING_CONFIRMATION');
     assert.equal(created.paymentUrl, null);
   } finally { await close(app.server); app.db.close(); rmSync(dir,{recursive:true,force:true}); }
+});
+
+test('webhook verifies signature, persists idempotently, and only matching payment updates the order', async () => {
+  const platform = http.createServer(async (req,res) => { let raw=''; for await(const c of req)raw+=c;
+    const merchantOrderNo=req.method==='POST'?JSON.parse(raw).merchantOrderNo:'SHOP-X';
+    res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({code:200,data:{platformOrderNo:'TFI-WEBHOOK',merchantOrderNo,amount:'12.00',currency:'USD',status:'PENDING',channelStatus:'INITIATED'}})); });
+  const platformPort=await listen(platform),dir=mkdtempSync(join(tmpdir(),'hzp-webhook-')),secret='whsec_test_secret';
+  const app=createApp({databasePath:join(dir,'orders.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,apiKey:'hzp_test_'+'c'.repeat(48),publicOrigin:'https://merchant-sandbox.example.test',webhookSecret:secret});
+  const port=await listen(app.server);
+  try{
+    const created=await(await fetch(`http://127.0.0.1:${port}/api/orders`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({productId:'sandbox-mug'})})).json();
+    const event={eventId:'evt_stable_1',type:'payment.succeeded',sandbox:true,data:{platformOrderNo:'TFI-WEBHOOK',merchantOrderNo:created.merchantOrderNo,amount:'12.00',currency:'USD',status:'SUCCESS'}};
+    const raw=JSON.stringify(event),timestamp=Math.floor(Date.now()/1000).toString(),signature='v1='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
+    const bad=await fetch(`http://127.0.0.1:${port}/webhooks/huizhipay`,{method:'POST',headers:{'x-huizhipay-timestamp':timestamp,'x-huizhipay-signature':'v1=bad'},body:raw});assert.equal(bad.status,401);
+    const send=body=>fetch(`http://127.0.0.1:${port}/webhooks/huizhipay`,{method:'POST',headers:{'x-huizhipay-timestamp':timestamp,'x-huizhipay-signature':'v1='+createHmac('sha256',secret).update(timestamp+'.'+body).digest('hex')},body});
+    assert.equal((await send(raw)).status,200);assert.equal((await send(raw)).status,200);
+    assert.equal(app.db.prepare('select status from merchant_order where merchant_order_no=?').get(created.merchantOrderNo).status,'SUCCESS');
+    assert.equal((await send(JSON.stringify({...event,type:'payment.failed'}))).status,409);
+    assert.equal(app.db.prepare('select count(*) n from webhook_event').get().n,1);
+  }finally{await close(app.server);await close(platform);app.db.close();rmSync(dir,{recursive:true,force:true});}
+});
+
+test('test notification is persisted without changing an order', async () => {
+  const dir=mkdtempSync(join(tmpdir(),'hzp-webhook-test-')),secret='whsec_test_secret';
+  const app=createApp({databasePath:join(dir,'orders.sqlite'),publicOrigin:'https://merchant-sandbox.example.test',webhookSecret:secret});const port=await listen(app.server);
+  try{const event={eventId:'evt_test',type:'webhook.test',data:{message:'test'}},raw=JSON.stringify(event),timestamp=Math.floor(Date.now()/1000).toString(),signature='v1='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
+    assert.equal((await fetch(`http://127.0.0.1:${port}/webhooks/huizhipay`,{method:'POST',headers:{'x-huizhipay-timestamp':timestamp,'x-huizhipay-signature':signature},body:raw})).status,200);
+    assert.equal(app.db.prepare('select count(*) n from merchant_order').get().n,0);
+  }finally{await close(app.server);app.db.close();rmSync(dir,{recursive:true,force:true});}
 });

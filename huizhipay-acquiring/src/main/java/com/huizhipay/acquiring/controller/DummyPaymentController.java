@@ -35,6 +35,7 @@ import static com.huizhipay.common.security.MerchantAccessGuard.OWNER;
 public class DummyPaymentController {
     private static final String DUMMY_MERCHANT_NAME = "Demo Merchant";
     private static final String DUMMY_CHANNEL = "DUMMY";
+    private static final String TRANSFI_CHECKOUT_CHANNEL = "TRANSFI_CHECKOUT";
     private static final String DEFAULT_RETURN_URL = "/merchant";
     private static final int PAGE_SIZE = 8;
     private final PaymentOrderMapper paymentOrderMapper;
@@ -97,12 +98,12 @@ public class DummyPaymentController {
             long total = paymentOrderMapper.selectCount(
                     Wrappers.<PaymentOrder>lambdaQuery()
                             .eq(PaymentOrder::getMerchantId, merchantId)
-                            .eq(PaymentOrder::getChannel, DUMMY_CHANNEL));
+                            .in(PaymentOrder::getChannel, DUMMY_CHANNEL, TRANSFI_CHECKOUT_CHANNEL));
             int totalPages = (int) ((total + PAGE_SIZE - 1) / PAGE_SIZE);
             List<OrderView> items = paymentOrderMapper.selectList(
                             Wrappers.<PaymentOrder>lambdaQuery()
                                     .eq(PaymentOrder::getMerchantId, merchantId)
-                                    .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
+                                    .in(PaymentOrder::getChannel, DUMMY_CHANNEL, TRANSFI_CHECKOUT_CHANNEL)
                                     .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
                                     .last("limit " + PAGE_SIZE + " offset " + ((page - 1) * PAGE_SIZE)))
                     .stream().map(this::toView).toList();
@@ -111,7 +112,7 @@ public class DummyPaymentController {
         List<OrderView> orders = paymentOrderMapper.selectList(
                         Wrappers.<PaymentOrder>lambdaQuery()
                                 .eq(PaymentOrder::getMerchantId, merchantId)
-                                .eq(PaymentOrder::getChannel, DUMMY_CHANNEL)
+                                .in(PaymentOrder::getChannel, DUMMY_CHANNEL, TRANSFI_CHECKOUT_CHANNEL)
                                 .orderByDesc(PaymentOrder::getCreatedAt, PaymentOrder::getId)
                                 .last("limit 50"))
                 .stream().map(this::toView).toList();
@@ -136,10 +137,12 @@ public class DummyPaymentController {
     }
 
     private OrderView toView(PaymentOrder order) {
+        String paymentUrl = DUMMY_CHANNEL.equals(order.getChannel())
+                ? "/pay/?checkoutToken=" + order.getCheckoutToken() : order.getPaymentUrl();
         return new OrderView(order.getCheckoutToken(), DUMMY_MERCHANT_NAME, order.getOrderNo(),
                 order.getAmount(), order.getCurrency(), order.getStatus().name(),
                 order.getChannelTradeNo(), order.getRemark(), order.getCreatedAt(), order.getUpdatedAt(),
-                order.getReturnUrl(), "/pay/?checkoutToken=" + order.getCheckoutToken());
+                order.getReturnUrl(), paymentUrl);
     }
 
     private String normalizeReturnUrl(String value) {

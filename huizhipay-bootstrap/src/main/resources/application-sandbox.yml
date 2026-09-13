@@ -37,6 +37,11 @@ huizhipay:
       public-key: ${TRANSFI_CHECKOUT_PUBLIC_KEY:}
       secret-key: ${TRANSFI_CHECKOUT_SECRET_KEY:}
       payment-link-id: ${TRANSFI_CHECKOUT_PAYMENT_LINK_ID:}
+      webhook-enabled: ${TRANSFI_CHECKOUT_WEBHOOK_ENABLED:false}
+      webhook-secret: ${TRANSFI_CHECKOUT_WEBHOOK_SECRET:}
+  webhooks:
+    master-key: ${HUIZHIPAY_WEBHOOK_MASTER_KEY:}
+    allowed-hosts: ${HUIZHIPAY_WEBHOOK_ALLOWED_HOSTS:merchant-sandbox.example.test}
   sandbox:
     merchant-return-origin: ${SANDBOX_MERCHANT_RETURN_ORIGIN:https://merchant-sandbox.example.test}
 

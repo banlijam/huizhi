@@ -1,6 +1,6 @@
 const http = require('node:http');
 const { DatabaseSync } = require('node:sqlite');
-const { randomBytes, randomUUID } = require('node:crypto');
+const { randomBytes, randomUUID, createHmac, createHash, timingSafeEqual } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
@@ -20,6 +20,10 @@ function createApp(options = {}) {
     product_id text not null, amount text not null, currency text not null,
     platform_order_no text, payment_url text, status text not null, channel_status text,
     created_at text not null, updated_at text not null
+  )`);
+  db.exec(`create table if not exists webhook_event (
+    id integer primary key, event_id text not null unique, payload_sha256 text not null,
+    event_type text not null, received_at text not null
   )`);
 
   function json(res, status, body) {
@@ -54,6 +58,38 @@ function createApp(options = {}) {
     }
     try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); }
     catch { throw Object.assign(new Error('Invalid JSON'), { status: 400 }); }
+  }
+  async function rawBody(req) {
+    let size = 0, chunks = [];
+    for await (const chunk of req) { size += chunk.length; if (size > 65536) throw Object.assign(new Error('Request too large'), { status: 413 }); chunks.push(chunk); }
+    return Buffer.concat(chunks);
+  }
+  async function receiveWebhook(req, res) {
+    const secret = options.webhookSecret || process.env.HUIZHIPAY_WEBHOOK_SECRET;
+    if (!secret) return json(res, 503, { error: 'Webhook secret is not configured' });
+    const timestamp = req.headers['x-huizhipay-timestamp'], signature = req.headers['x-huizhipay-signature'];
+    if (!/^\d{10}$/.test(timestamp || '') || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return json(res, 401, { error: 'Invalid webhook timestamp' });
+    const raw = await rawBody(req), expected = Buffer.from(createHmac('sha256', secret).update(timestamp + '.' + raw).digest('hex'));
+    const supplied = Buffer.from(String(signature || '').replace(/^v1=/, ''));
+    if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return json(res, 401, { error: 'Invalid webhook signature' });
+    let event; try { event = JSON.parse(raw.toString('utf8')); } catch { return json(res, 400, { error: 'Invalid JSON' }); }
+    if (!event.eventId || !event.type) return json(res, 400, { error: 'Invalid event' });
+    const digest = createHash('sha256').update(raw).digest('hex');
+    db.exec('begin immediate');
+    try {
+      const prior = db.prepare('select payload_sha256 from webhook_event where event_id=?').get(event.eventId);
+      if (prior && prior.payload_sha256 !== digest) { db.exec('rollback'); return json(res, 409, { error: 'Conflicting event' }); }
+      if (!prior) {
+        db.prepare('insert into webhook_event(event_id,payload_sha256,event_type,received_at) values(?,?,?,?)').run(event.eventId,digest,event.type,new Date().toISOString());
+        if (event.type === 'payment.succeeded' || event.type === 'payment.failed') {
+          const status = event.type === 'payment.succeeded' ? 'SUCCESS' : 'FAILED';
+          const result = db.prepare(`update merchant_order set status=?,channel_status=?,updated_at=? where merchant_order_no=? and platform_order_no=? and amount=? and currency=? and status not in ('SUCCESS','FAILED')`)
+            .run(status,status,new Date().toISOString(),event.data?.merchantOrderNo,event.data?.platformOrderNo,String(event.data?.amount),event.data?.currency);
+          if (result.changes !== 1) throw new Error('Webhook order validation failed');
+        }
+      }
+      db.exec('commit'); return json(res, 200, { received: true });
+    } catch (error) { db.exec('rollback'); return json(res, 409, { error: error.message }); }
   }
   async function platform(path, init = {}) {
     if (!apiKey) throw Object.assign(new Error('Merchant Sandbox API key is not configured'), { status: 503 });
@@ -114,6 +150,7 @@ function createApp(options = {}) {
       if (req.method === 'GET' && url.pathname === '/app.js') return asset(res, 'app.js', 'text/javascript; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/style.css') return asset(res, 'style.css', 'text/css; charset=utf-8');
       if (req.method === 'POST' && url.pathname === '/api/orders') return await createOrder(req, res);
+      if (req.method === 'POST' && url.pathname === '/webhooks/huizhipay') return await receiveWebhook(req, res);
       const match = url.pathname.match(/^\/api\/orders\/([A-Za-z0-9_-]{32})$/);
       if (req.method === 'GET' && match) return await getOrder(match[1], res);
       if (req.method === 'GET' && url.pathname.startsWith('/orders/')) return page(res);
