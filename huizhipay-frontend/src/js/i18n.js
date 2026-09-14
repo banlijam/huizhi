@@ -34,5 +34,7 @@ function updateLanguageToggle(lang) {
 
 function t(key, lang) {
   const translations = getTranslations(lang || 'en');
-  return getNestedValue(translations, key);
+  const value = getNestedValue(translations, key);
+  // 缺失文案返回空串而非 null：避免渲染成 "null"，也避免对 null 调用 .replace() 导致整页崩溃。
+  return value == null ? '' : value;
 }

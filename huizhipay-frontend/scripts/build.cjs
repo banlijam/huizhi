@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const https = require('https');
+const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'src');
@@ -136,6 +137,38 @@ function rewriteHtmlAssets() {
   }
 }
 
+/**
+ * 为 i18n 字典引用追加内容哈希版本号（?v=…）。
+ * 字典文件原本无版本号，浏览器/CDN 会缓存旧字典，导致新增文案键缺失：
+ *   - Onboarding/Wallet 把缺失文案直接渲染成 "null"；
+ *   - Risk 对 null 调用 .replace() 导致整页崩溃。
+ * 这里按 en/zh 字典内容生成哈希，内容变化时 URL 变化，强制拉取新字典。
+ */
+function rewriteI18nAssets() {
+  const hash = crypto
+    .createHash('sha256')
+    .update(fs.readFileSync(path.join(DIST_DIR, 'i18n', 'en.js')))
+    .update(fs.readFileSync(path.join(DIST_DIR, 'i18n', 'zh.js')))
+    .digest('hex')
+    .slice(0, 8);
+
+  const htmlFiles = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.html')) htmlFiles.push(full);
+    }
+  };
+  walk(DIST_DIR);
+
+  for (const htmlPath of htmlFiles) {
+    let html = fs.readFileSync(htmlPath, 'utf-8');
+    html = html.replace(/src="(\/?)i18n\/(en|zh)\.js"/g, `src="$1i18n/$2.js?v=${hash}"`);
+    fs.writeFileSync(htmlPath, html, 'utf-8');
+  }
+}
+
 /** 为 nginx 静态托管生成与本地预览一致的目录入口。 */
 function writeRouteEntrypoints() {
   const routes = {
@@ -194,6 +227,9 @@ async function build() {
 
   console.log('✏️  重写 HTML 中的 CDN 引用为本地路径...');
   rewriteHtmlAssets();
+
+  console.log('🔖 为 i18n 字典引用追加版本号...');
+  rewriteI18nAssets();
 
   console.log('🧭 生成静态部署路由入口...');
   writeRouteEntrypoints();
