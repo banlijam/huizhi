@@ -55,6 +55,7 @@ test('build merges the public home and login entry while separating protected wo
   await assert.rejects(readFile(path.join(ROOT, 'dist', 'home.html'), 'utf8'), /ENOENT/);
 
   const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
+  const english = await readFile(path.join(ROOT, 'dist', 'i18n', 'en.js'), 'utf8');
   assert.match(html, /HuizhiPay Web-first Interactive Prototype/);
   assert.match(html, /fitBaseDevicePixelRatio=devicePixelRatio\|\|1/);
   assert.match(html, /innerWidth\*browserZoom\/root\.offsetWidth/);
@@ -87,7 +88,8 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(html, /src=["']\/i18n\/zh\.js["']/);
   assert.match(html, /src=["']\/i18n\/en\.js["']/);
   assert.match(html, /Merchant Dashboard/);
-  assert.match(html, /Complete merchant onboarding/);
+  assert.match(english, /Business verification/);
+  assert.match(english, /Save and continue/);
   assert.match(html, /requireMerchantWorkspace/);
   assert.match(html, /id=\\?["']orders-prev\\?["']/);
   assert.match(html, /id=\\?["']orders-next\\?["']/);

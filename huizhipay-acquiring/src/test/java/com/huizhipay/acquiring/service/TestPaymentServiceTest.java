@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SandboxPaymentServiceTest {
+class TestPaymentServiceTest {
     @Mock PaymentOrderMapper mapper;
     @Mock TransFiCheckoutGateway gateway;
 
@@ -38,7 +38,7 @@ class SandboxPaymentServiceTest {
             verify(mapper).insert(any(PaymentOrder.class));
             return new TransFiCheckoutGateway.Result("invoice-1", "https://checkout.transfi.test/pay/1");
         });
-        SandboxPaymentService service = new SandboxPaymentService(mapper, gateway);
+        TestPaymentService service = new TestPaymentService(mapper, gateway);
         var result = service.create("M-A", command("SHOP-1", "12.00"), "https://merchant.test");
         assertThat(result.paymentUrl()).isEqualTo("https://checkout.transfi.test/pay/1");
         assertThat(result.channelStatus()).isEqualTo("INITIATED");
@@ -46,7 +46,7 @@ class SandboxPaymentServiceTest {
 
     @Test void sameMerchantOrderIsIdempotentButChangedAmountConflicts() {
         PaymentOrder existing = existing("M-A", "SHOP-1", "12.00");
-        SandboxPaymentService service = new SandboxPaymentService(mapper, gateway);
+        TestPaymentService service = new TestPaymentService(mapper, gateway);
         var initial = command("SHOP-1", "12.00");
         service.create("M-A", initial, "https://merchant.test");
         ArgumentCaptor<PaymentOrder> inserted = ArgumentCaptor.forClass(PaymentOrder.class);
@@ -61,17 +61,17 @@ class SandboxPaymentServiceTest {
 
     @Test void channelTimeoutLeavesPendingConfirmationAndNoInventedUrl() {
         when(gateway.createInvoice(any())).thenThrow(new IllegalStateException("timeout"));
-        SandboxPaymentService service = new SandboxPaymentService(mapper, gateway);
+        TestPaymentService service = new TestPaymentService(mapper, gateway);
         var result = service.create("M-A", command("SHOP-2", "12.00"), "https://merchant.test");
         assertThat(result.channelStatus()).isEqualTo("PENDING_CONFIRMATION");
         assertThat(result.paymentUrl()).isNull();
     }
 
     @Test void rejectsTamperedAmountPrecisionAndUnapprovedRedirectOrigin() {
-        SandboxPaymentService service = new SandboxPaymentService(mapper, gateway);
+        TestPaymentService service = new TestPaymentService(mapper, gateway);
         assertThatThrownBy(() -> service.create("M-A", command("SHOP-3", "12.001"), "https://merchant.test"))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(400);
-        var badUrl = new SandboxPaymentService.CreateCommand("SHOP-4", new BigDecimal("12.00"), "USD", "Mug",
+        var badUrl = new TestPaymentService.CreateCommand("SHOP-4", new BigDecimal("12.00"), "USD", "Mug",
                 "https://evil.test/order", "https://merchant.test/fail");
         assertThatThrownBy(() -> service.create("M-A", badUrl, "https://merchant.test"))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(400);
@@ -79,23 +79,23 @@ class SandboxPaymentServiceTest {
 
     @Test void queryAlwaysIncludesMerchantAndTransFiChannelScope() {
         when(mapper.selectOne(any())).thenReturn(existing("M-A", "SHOP-5", "12.00"));
-        SandboxPaymentService service = new SandboxPaymentService(mapper, gateway);
+        TestPaymentService service = new TestPaymentService(mapper, gateway);
         service.get("M-A", "SHOP-5");
         @SuppressWarnings("unchecked") ArgumentCaptor<Wrapper<PaymentOrder>> query = ArgumentCaptor.forClass(Wrapper.class);
         verify(mapper).selectOne(query.capture());
         AbstractWrapper<?, ?, ?> wrapper = (AbstractWrapper<?, ?, ?>) query.getValue();
         assertThat(query.getValue().getSqlSegment()).contains("merchant_id", "merchant_order_no", "channel");
         assertThat(wrapper.getParamNameValuePairs()).containsValue("M-A").containsValue("SHOP-5")
-                .containsValue(SandboxPaymentService.CHANNEL);
+                .containsValue(TestPaymentService.CHANNEL);
     }
 
-    private SandboxPaymentService.CreateCommand command(String id, String amount) {
-        return new SandboxPaymentService.CreateCommand(id, new BigDecimal(amount), "USD", "Mug",
+    private TestPaymentService.CreateCommand command(String id, String amount) {
+        return new TestPaymentService.CreateCommand(id, new BigDecimal(amount), "USD", "Mug",
                 "https://merchant.test/orders/token?return=success", "https://merchant.test/orders/token?return=failed");
     }
     private PaymentOrder existing(String merchant, String merchantOrder, String amount) {
         return new PaymentOrder().setOrderNo("TFI-EXISTING").setMerchantId(merchant).setMerchantOrderNo(merchantOrder)
-                .setAmount(new BigDecimal(amount)).setCurrency("USD").setChannel(SandboxPaymentService.CHANNEL)
+                .setAmount(new BigDecimal(amount)).setCurrency("USD").setChannel(TestPaymentService.CHANNEL)
                 .setReturnUrl("https://merchant.test/orders/token?return=success")
                 .setStatus(PaymentOrder.PaymentStatus.PENDING).setChannelStatus("INITIATED");
     }

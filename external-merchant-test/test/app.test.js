@@ -26,11 +26,11 @@ test('fixed catalog price is persisted and buyer can only query by random token'
   const platformPort = await listen(platform);
   const dir = mkdtempSync(join(tmpdir(), 'hzp-shop-'));
   const app = createApp({databasePath:join(dir,'orders.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,
-    apiKey:'hzp_test_'+'a'.repeat(48),publicOrigin:'https://merchant-sandbox.example.test'});
+    apiKey:'hzp_test_'+'a'.repeat(48),publicOrigin:'https://merchant-test.example.test'});
   const port = await listen(app.server);
   try {
     const createdResponse = await fetch(`http://127.0.0.1:${port}/api/orders`, {method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({productId:'sandbox-mug',amount:'0.01'})});
+      body:JSON.stringify({productId:'test-mug',amount:'0.01'})});
     assert.equal(createdResponse.status, 201);
     const created = await createdResponse.json();
     assert.equal(seen[0].amount, '12.00');
@@ -45,11 +45,11 @@ test('fixed catalog price is persisted and buyer can only query by random token'
 test('platform timeout keeps a durable pending-confirmation order without a fake payment URL', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'hzp-shop-'));
   const app = createApp({databasePath:join(dir,'orders.sqlite'),apiBase:'http://127.0.0.1:1',
-    apiKey:'hzp_test_'+'b'.repeat(48),publicOrigin:'https://merchant-sandbox.example.test'});
+    apiKey:'hzp_test_'+'b'.repeat(48),publicOrigin:'https://merchant-test.example.test'});
   const port = await listen(app.server);
   try {
     const created = await (await fetch(`http://127.0.0.1:${port}/api/orders`, {method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({productId:'sandbox-mug'})})).json();
+      body:JSON.stringify({productId:'test-mug'})})).json();
     assert.equal(created.status, 'PENDING_CONFIRMATION');
     assert.equal(created.paymentUrl, null);
   } finally { await close(app.server); app.db.close(); rmSync(dir,{recursive:true,force:true}); }
@@ -60,10 +60,10 @@ test('webhook verifies signature, persists idempotently, and only matching payme
     const merchantOrderNo=req.method==='POST'?JSON.parse(raw).merchantOrderNo:'SHOP-X';
     res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({code:200,data:{platformOrderNo:'TFI-WEBHOOK',merchantOrderNo,amount:'12.00',currency:'USD',status:'PENDING',channelStatus:'INITIATED'}})); });
   const platformPort=await listen(platform),dir=mkdtempSync(join(tmpdir(),'hzp-webhook-')),secret='whsec_test_secret';
-  const app=createApp({databasePath:join(dir,'orders.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,apiKey:'hzp_test_'+'c'.repeat(48),publicOrigin:'https://merchant-sandbox.example.test',webhookSecret:secret});
+  const app=createApp({databasePath:join(dir,'orders.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,apiKey:'hzp_test_'+'c'.repeat(48),publicOrigin:'https://merchant-test.example.test',webhookSecret:secret});
   const port=await listen(app.server);
   try{
-    const created=await(await fetch(`http://127.0.0.1:${port}/api/orders`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({productId:'sandbox-mug'})})).json();
+    const created=await(await fetch(`http://127.0.0.1:${port}/api/orders`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({productId:'test-mug'})})).json();
     const event={eventId:'evt_stable_1',type:'payment.succeeded',sandbox:true,data:{platformOrderNo:'TFI-WEBHOOK',merchantOrderNo:created.merchantOrderNo,amount:'12.00',currency:'USD',status:'SUCCESS'}};
     const raw=JSON.stringify(event),timestamp=Math.floor(Date.now()/1000).toString(),signature='v1='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
     const bad=await fetch(`http://127.0.0.1:${port}/webhooks/huizhipay`,{method:'POST',headers:{'x-huizhipay-timestamp':timestamp,'x-huizhipay-signature':'v1=bad'},body:raw});assert.equal(bad.status,401);
@@ -77,7 +77,7 @@ test('webhook verifies signature, persists idempotently, and only matching payme
 
 test('test notification is persisted without changing an order', async () => {
   const dir=mkdtempSync(join(tmpdir(),'hzp-webhook-test-')),secret='whsec_test_secret';
-  const app=createApp({databasePath:join(dir,'orders.sqlite'),publicOrigin:'https://merchant-sandbox.example.test',webhookSecret:secret});const port=await listen(app.server);
+  const app=createApp({databasePath:join(dir,'orders.sqlite'),publicOrigin:'https://merchant-test.example.test',webhookSecret:secret});const port=await listen(app.server);
   try{const event={eventId:'evt_test',type:'webhook.test',data:{message:'test'}},raw=JSON.stringify(event),timestamp=Math.floor(Date.now()/1000).toString(),signature='v1='+createHmac('sha256',secret).update(timestamp+'.'+raw).digest('hex');
     assert.equal((await fetch(`http://127.0.0.1:${port}/webhooks/huizhipay`,{method:'POST',headers:{'x-huizhipay-timestamp':timestamp,'x-huizhipay-signature':signature},body:raw})).status,200);
     assert.equal(app.db.prepare('select count(*) n from merchant_order').get().n,0);

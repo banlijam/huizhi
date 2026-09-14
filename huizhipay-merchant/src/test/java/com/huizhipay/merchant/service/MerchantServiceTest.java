@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,6 +44,31 @@ class MerchantServiceTest {
         assertThat(inserted.getValue().getOwnerUserId()).isEqualTo(7L);
         assertThat(inserted.getValue().getMerchantId()).startsWith("M-");
         assertThat(inserted.getValue().getKybStatus()).isEqualTo(Merchant.KybStatus.PENDING);
+    }
+
+    @Test
+    void pendingSubmissionCanBeWithdrawnForEditing() {
+        Merchant pending = new Merchant().setId(9L).setMerchantId("M-OWNED")
+                .setKybStatus(Merchant.KybStatus.PENDING).setCurrentStep((short) 4);
+        when(merchantMapper.selectOne(any())).thenReturn(pending);
+
+        Merchant result = new MerchantService(merchantMapper).withdraw("M-OWNED");
+
+        assertThat(result.getKybStatus()).isEqualTo(Merchant.KybStatus.DRAFT);
+        assertThat(result.getCurrentStep()).isEqualTo((short) 1);
+        verify(merchantMapper).updateById(pending);
+    }
+
+    @Test
+    void approvedSubmissionCannotBeWithdrawn() {
+        Merchant approved = new Merchant().setId(9L).setMerchantId("M-OWNED")
+                .setKybStatus(Merchant.KybStatus.APPROVED);
+        when(merchantMapper.selectOne(any())).thenReturn(approved);
+
+        assertThatThrownBy(() -> new MerchantService(merchantMapper).withdraw("M-OWNED"))
+                .isInstanceOf(com.huizhipay.common.exceptions.BizException.class)
+                .extracting("code").isEqualTo(409);
+        verify(merchantMapper, never()).updateById(any(Merchant.class));
     }
 
     private SubmitOnboardingRequest request() {

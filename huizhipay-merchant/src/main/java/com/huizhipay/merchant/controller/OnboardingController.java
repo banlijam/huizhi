@@ -48,6 +48,13 @@ public class OnboardingController {
         return R.ok(I18nUtils.get("merchant.onboarding.submitted"));
     }
 
+    @PostMapping("/withdraw")
+    public R<Void> withdraw() {
+        String merchantId = merchantAccessGuard.requireAnyRole(OWNER, ADMIN).merchantId();
+        merchantService.withdraw(merchantId);
+        return R.ok(I18nUtils.get("merchant.onboarding.withdrawn"));
+    }
+
     @GetMapping("/wallet")
     public R<WalletResponse> wallet() {
         String merchantId = requireMerchant();

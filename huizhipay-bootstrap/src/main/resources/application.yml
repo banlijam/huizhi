@@ -42,6 +42,21 @@ huizhipay:
   dummy:
     # 仅本地沙箱允许浏览器模拟渠道回调；默认关闭，生产结果必须由受信任的支付渠道产生。
     checkout-result-enabled: ${HUIZHIPAY_DUMMY_CHECKOUT_RESULT_ENABLED:false}
+  test:
+    merchant-return-origin: ${TEST_MERCHANT_RETURN_ORIGIN:https://merchant-test.example.test}
+  transfi:
+    checkout:
+      base-url: https://checkout-server.transfi.com
+      outbound-enabled: ${TRANSFI_CHECKOUT_OUTBOUND_ENABLED:false}
+      sandbox-credentials-confirmed: ${TRANSFI_CHECKOUT_SANDBOX_CREDENTIALS_CONFIRMED:false}
+      public-key: ${TRANSFI_CHECKOUT_PUBLIC_KEY:}
+      secret-key: ${TRANSFI_CHECKOUT_SECRET_KEY:}
+      payment-link-id: ${TRANSFI_CHECKOUT_PAYMENT_LINK_ID:}
+      webhook-enabled: ${TRANSFI_CHECKOUT_WEBHOOK_ENABLED:false}
+      webhook-secret: ${TRANSFI_CHECKOUT_WEBHOOK_SECRET:}
+  webhooks:
+    master-key: ${HUIZHIPAY_WEBHOOK_MASTER_KEY:}
+    allowed-hosts: ${HUIZHIPAY_WEBHOOK_ALLOWED_HOSTS:merchant-test.example.test}
   security:
     use-aws-kms: false  # 测试环境关闭硬件密钥签名，走本地
   stellar:
@@ -58,6 +73,7 @@ client:
   transfi:
     url: https://sandbox-api.transfi.com/v3
     mid: HODQSB_NA_NA
+    authorization: ${TRANSFI_V3_AUTHORIZATION:}
 
 logging:
   pattern:

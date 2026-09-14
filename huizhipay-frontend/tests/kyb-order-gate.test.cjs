@@ -48,13 +48,50 @@ test('orders page checks the real onboarding API before POST and provides a KYB 
   assert.match(html, /if\(!approved\)return;[^]*orderRequest\(ORDERS_API/);
 });
 
-test('KYB workspace uses the dashboard hierarchy and semantic status styles', async () => {
+test('KYB workspace uses a five-step merchant-facing verification journey', async () => {
   const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'onboarding', 'index.html'), 'utf8');
-  assert.match(html, /workspace-grid kyb-layout/);
-  assert.match(html, /ops-card kyb-hero/);
-  assert.match(html, /kyb-decision-state/);
-  assert.match(html, /TRANSACTIONS ENABLED/);
-  assert.match(html, /TRANSACTIONS BLOCKED/);
-  assert.match(html, /\.ops-status\.warning\{[^}]*var\(--amber\)/);
-  assert.match(html, /\.ops-status\.danger\{[^}]*var\(--red\)/);
+  const english = await readFile(path.join(ROOT, 'dist', 'i18n', 'en.js'), 'utf8');
+  assert.match(html, /class=["']kyb-wizard/);
+  assert.match(html, /kyb-progress-card/);
+  assert.match(html, /kyb-progress-list/);
+  assert.match(html, /wizardStepOwners/);
+  assert.match(english, /Directors & Beneficial Owners/);
+  assert.match(english, /Under review/);
+  assert.match(english, /More information needed/);
+});
+
+test('KYB workspace submits first-time and rejected merchant details to the real onboarding API', async () => {
+  const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'onboarding', 'index.html'), 'utf8');
+
+  for (const field of ['company', 'country', 'licenseNo', 'legalRep', 'idNo', 'settlementPref']) {
+    assert.match(html, new RegExp(`name=["']${field}["']`), field);
+  }
+  assert.match(html, /id=["']kyb-submission-form["']/);
+  assert.match(html, /status==='PENDING'\|\|status==='APPROVED'/);
+  assert.match(html, /KYB_DRAFT_STORAGE_KEY='huizhipay\.kybDraft\.v1'/);
+  assert.match(html, /saveKybDraft\(draft\)/);
+  assert.match(html, /draft\.step<5/);
+  assert.match(html, /await merchantPost\('\/api\/v1\/onboarding\/submit'/);
+  assert.match(html, /const refreshed=await merchantApi\('\/api\/v1\/onboarding\/status'\)/);
+  assert.match(html, /clearKybDraft\(\)/);
+  assert.match(html, /button\.disabled=true/);
+  assert.match(html, /message\.classList\.add\('error'\)/);
+  assert.doesNotMatch(html, /id=["']kyb-license-file["']/);
+});
+
+test('pending KYB can be withdrawn, edited, and resubmitted', async () => {
+  const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'onboarding', 'index.html'), 'utf8');
+  const chinese = await readFile(path.join(ROOT, 'dist', 'i18n', 'zh.js'), 'utf8');
+  assert.match(html, /id=["']kyb-withdraw["']/);
+  assert.match(html, /await merchantPost\('\/api\/v1\/onboarding\/withdraw',\{\}\)/);
+  assert.match(html, /mountOnboardingForm\(refreshed,content,navigationId\)/);
+  assert.match(chinese, /撤回并修改/);
+});
+
+test('KYB typography is readable at 100 percent browser zoom', async () => {
+  const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'onboarding', 'index.html'), 'utf8');
+  assert.match(html, /KYB readability baseline: equivalent to the former page viewed at 120% browser zoom/);
+  assert.match(html, /kyb-wizard-intro h2\{font-size:26px\}/);
+  assert.match(html, /kyb-control input[^}]*font-size:14px/);
+  assert.match(html, /kyb-submit[^}]*font-size:13px/);
 });

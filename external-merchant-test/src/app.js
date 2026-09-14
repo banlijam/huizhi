@@ -5,13 +5,13 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
 const PRODUCTS = Object.freeze({
-  'sandbox-mug': { name: 'Sandbox Test Mug', amount: '12.00', currency: 'USD' }
+  'test-mug': { name: 'Test Mug', amount: '12.00', currency: 'USD' }
 });
 
 function createApp(options = {}) {
   const db = new DatabaseSync(options.databasePath || ':memory:');
-  const apiBase = options.apiBase || process.env.HUIZHIPAY_API_BASE || 'http://127.0.0.1:14329';
-  const apiKey = options.apiKey || process.env.HUIZHIPAY_SANDBOX_API_KEY;
+  const apiBase = options.apiBase || process.env.HUIZHIPAY_API_BASE || 'http://127.0.0.1:14319';
+  const apiKey = options.apiKey || process.env.HUIZHIPAY_TEST_API_KEY;
   const publicOrigin = options.publicOrigin || process.env.PUBLIC_HTTPS_ORIGIN;
   const listenHost = options.listenHost || '127.0.0.1';
   const calls = new Map();
@@ -94,7 +94,7 @@ function createApp(options = {}) {
   async function platform(path, init = {}) {
     if (!apiKey) throw Object.assign(new Error('Merchant Sandbox API key is not configured'), { status: 503 });
     const response = await fetch(apiBase + path, { ...init, signal: AbortSignal.timeout(8000), headers: {
-      'content-type': 'application/json', 'x-huizhipay-sandbox-key': apiKey, ...(init.headers || {})
+      'content-type': 'application/json', 'x-huizhipay-test-key': apiKey, ...(init.headers || {})
     }});
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result.code !== 200) throw Object.assign(new Error(result.message || 'Payment platform request failed'), { status: response.status });
@@ -111,7 +111,7 @@ function createApp(options = {}) {
       values(?,?,?,?,?,'CREATING',?,?)`).run(merchantOrderNo, accessToken, input.productId, product.amount, product.currency, now, now);
     const resultPath = `/orders/${accessToken}`;
     try {
-      const payment = await platform('/api/v1/sandbox/payments', { method: 'POST', body: JSON.stringify({
+      const payment = await platform('/api/v1/test/payments', { method: 'POST', body: JSON.stringify({
         merchantOrderNo, amount: product.amount, currency: product.currency, productName: product.name,
         successRedirectUrl: publicOrigin + resultPath + '?return=success',
         failureRedirectUrl: publicOrigin + resultPath + '?return=failed'
@@ -130,7 +130,7 @@ function createApp(options = {}) {
     if (!row) return json(res, 404, { error: 'Order not found' });
     if (row.platform_order_no) {
       try {
-        const payment = await platform('/api/v1/sandbox/payments/' + encodeURIComponent(row.merchant_order_no));
+        const payment = await platform('/api/v1/test/payments/' + encodeURIComponent(row.merchant_order_no));
         db.prepare(`update merchant_order set payment_url=?,status=?,channel_status=?,updated_at=? where id=?`)
           .run(payment.paymentUrl || row.payment_url, payment.status, payment.channelStatus, new Date().toISOString(), row.id);
         row = db.prepare('select * from merchant_order where id=?').get(row.id);

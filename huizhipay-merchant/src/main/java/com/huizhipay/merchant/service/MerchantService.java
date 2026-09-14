@@ -1,6 +1,8 @@
 package com.huizhipay.merchant.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.huizhipay.common.exceptions.BizException;
+import com.huizhipay.common.i18n.I18nUtils;
 import com.huizhipay.merchant.dto.OnboardingStatusResponse;
 import com.huizhipay.merchant.dto.SubmitOnboardingRequest;
 import com.huizhipay.merchant.entity.Merchant;
@@ -78,6 +80,23 @@ public class MerchantService {
             merchantMapper.updateById(merchant);
         }
         log.info("[Merchant] KYB提交完成 merchantId={}, isNew={}, kybStatus=PENDING", merchant.getMerchantId(), isNew);
+        return merchant;
+    }
+
+    /** 撤回审核中的 KYB 申请，保留原资料并回到可编辑草稿态。 */
+    @Transactional(rollbackFor = Exception.class)
+    public Merchant withdraw(String merchantId) {
+        Merchant merchant = merchantMapper.selectOne(
+                new QueryWrapper<Merchant>().eq("merchant_id", merchantId));
+        if (merchant == null) {
+            throw new BizException(404, I18nUtils.get("merchant.onboarding.not_found"));
+        }
+        if (merchant.getKybStatus() != KybStatus.PENDING) {
+            throw new BizException(409, I18nUtils.get("merchant.onboarding.withdraw_not_pending"));
+        }
+        merchant.setKybStatus(KybStatus.DRAFT).setCurrentStep((short) 1);
+        merchantMapper.updateById(merchant);
+        log.info("[Merchant] KYB申请已撤回 merchantId={}, kybStatus=DRAFT", merchantId);
         return merchant;
     }
 

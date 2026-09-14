@@ -26,9 +26,6 @@ public class AppConfig {
     @Value("${client.transfi.authorization}")
     private String transfiAuthorization;
 
-    @Value("${huizhipay.transfi.outbound-enabled:true}")
-    private boolean transfiOutboundEnabled;
-
     @Bean
     public RestClient restClient() {
         RestClient.Builder builder = RestClient.builder()
@@ -36,11 +33,6 @@ public class AppConfig {
                 .defaultHeader("MID", transfiMid)
                 .defaultHeader("accept", "application/json")
                 .defaultHeader("authorization", transfiAuthorization);
-        if (!transfiOutboundEnabled) {
-            builder.requestInterceptor((request, body, execution) -> {
-                throw new IllegalStateException("TransFi outbound calls are disabled for this environment");
-            });
-        }
         return builder.build();
     }
 

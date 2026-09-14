@@ -37,4 +37,14 @@ class OnboardingControllerSecurityTest {
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
         verifyNoInteractions(settlementWalletService);
     }
+
+    @Test
+    void readonlyCannotWithdrawPendingKyb() {
+        doThrow(new BizException(403, "Forbidden"))
+                .when(merchantAccessGuard).requireAnyRole("OWNER", "ADMIN");
+
+        assertThatThrownBy(() -> controller.withdraw())
+                .isInstanceOf(BizException.class).extracting("code").isEqualTo(403);
+        verifyNoInteractions(merchantService);
+    }
 }

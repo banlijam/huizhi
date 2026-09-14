@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class WebhookEndpointPolicy {
     private final Set<String> allowedHosts;
 
-    public WebhookEndpointPolicy(@Value("${huizhipay.webhooks.allowed-hosts:merchant-sandbox.example.test}") String hosts) {
+    public WebhookEndpointPolicy(@Value("${huizhipay.webhooks.allowed-hosts:merchant-test.example.test}") String hosts) {
         allowedHosts = Arrays.stream(hosts.split(",")).map(String::trim).map(String::toLowerCase)
                 .filter(s -> !s.isBlank()).collect(Collectors.toUnmodifiableSet());
     }

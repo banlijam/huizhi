@@ -14,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named="HUIZHIPAY_LOCAL_PG_TEST",matches="true")
 @SpringBootTest(classes=Main.class,webEnvironment=SpringBootTest.WebEnvironment.NONE,properties={
-        "spring.profiles.active=sandbox",
-        "spring.datasource.url=jdbc:postgresql://127.0.0.1:15432/huizhipay_sandbox",
+        "spring.profiles.active=local",
+        "spring.datasource.url=jdbc:postgresql://127.0.0.1:15432/huizhipay_local",
         "spring.datasource.username=huizhipay",
         "spring.datasource.password=",
         "huizhipay.transfi.checkout.webhook-enabled=true",
@@ -24,8 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "huizhipay.webhooks.worker-delay-ms=3600000",
         "huizhipay.transfi.checkout.webhook-recovery-delay-ms=3600000"
 })
-class TransFiWebhookSandboxPostgresqlIntegrationTest {
-    private static final String MERCHANT="M-TASK3-SANDBOX";
+class TransFiWebhookTestEnvironmentPostgresqlIntegrationTest {
+    private static final String MERCHANT="M-TASK3-TEST";
     @Autowired JdbcTemplate jdbc;
     @Autowired TransFiCheckoutWebhookService service;
     @Autowired MerchantWebhookService merchantWebhooks;
@@ -43,8 +43,8 @@ class TransFiWebhookSandboxPostgresqlIntegrationTest {
 
     @Test void successCommitsOrderLedgerInboundEventAndOutboxOnceAndRejectsRegression() throws Exception {
         accounts();
-        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-sandbox.example.test/webhooks/huizhipay', 'unused-in-this-test', true)",MERCHANT);
-        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-OK','ct_task3_ok','SHOP-TASK3-OK',?,12.00,'USD','TRANSFI_CHECKOUT','OR-TASK3-OK','PENDING',current_timestamp,current_timestamp)",MERCHANT);
+        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-test.example.test/webhooks/huizhipay', 'unused-in-this-test', true)",MERCHANT);
+        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-OK','ct_task3_ok','SHOP-TASK3-OK',?,12.00,'TST','TRANSFI_CHECKOUT','OR-TASK3-OK','PENDING',current_timestamp,current_timestamp)",MERCHANT);
         byte[] success=payload("EV-TASK3-OK","fund_settled","OR-TASK3-OK","SHOP-TASK3-OK","12.00");
         assertThat(service.receive(success)).isEqualTo(TransFiCheckoutWebhookService.Result.PROCESSED);
         assertThat(service.receive(success)).isEqualTo(TransFiCheckoutWebhookService.Result.DUPLICATE);
@@ -57,9 +57,9 @@ class TransFiWebhookSandboxPostgresqlIntegrationTest {
     }
 
     @Test void mismatchAndUnknownOrderPersistForReviewWithoutCrossMerchantMutation() throws Exception {
-        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-sandbox.example.test/webhooks/huizhipay', 'unused-in-this-test', true)",MERCHANT);
-        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-MISMATCH','ct_task3_mismatch','SHOP-TASK3-MISMATCH',?,12.00,'USD','TRANSFI_CHECKOUT','OR-TASK3-MISMATCH','PENDING',current_timestamp,current_timestamp)",MERCHANT);
-        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-FAIL','ct_task3_fail','SHOP-TASK3-FAIL',?,12.00,'USD','TRANSFI_CHECKOUT','OR-TASK3-FAIL','PENDING',current_timestamp,current_timestamp)",MERCHANT);
+        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-test.example.test/webhooks/huizhipay', 'unused-in-this-test', true)",MERCHANT);
+        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-MISMATCH','ct_task3_mismatch','SHOP-TASK3-MISMATCH',?,12.00,'TST','TRANSFI_CHECKOUT','OR-TASK3-MISMATCH','PENDING',current_timestamp,current_timestamp)",MERCHANT);
+        jdbc.update("insert into t_payment_order(order_no,checkout_token,merchant_order_no,merchant_id,amount,currency,channel,channel_trade_no,status,created_at,updated_at) values('TFI-TASK3-FAIL','ct_task3_fail','SHOP-TASK3-FAIL',?,12.00,'TST','TRANSFI_CHECKOUT','OR-TASK3-FAIL','PENDING',current_timestamp,current_timestamp)",MERCHANT);
         assertThat(service.receive(payload("EV-TASK3-MISMATCH","fund_settled","OR-TASK3-MISMATCH","SHOP-TASK3-MISMATCH","13.00"))).isEqualTo(TransFiCheckoutWebhookService.Result.MANUAL_REVIEW);
         assertThat(service.receive(payload("EV-TASK3-EARLY","fund_settled","OR-NOT-LINKED","SHOP-NOT-LINKED","12.00"))).isEqualTo(TransFiCheckoutWebhookService.Result.PENDING);
         assertThat(jdbc.queryForObject("select status from t_payment_order where order_no='TFI-TASK3-MISMATCH'",String.class)).isEqualTo("PENDING");
@@ -70,7 +70,7 @@ class TransFiWebhookSandboxPostgresqlIntegrationTest {
     }
 
     @Test void failedDeliveryKeepsStableEventAndExpiredLeaseIsRecovered() {
-        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-sandbox.example.test/webhooks/huizhipay', 'not-reached-because-test-domain-has-no-dns', true)",MERCHANT);
+        jdbc.update("insert into t_merchant_webhook_config(merchant_id,endpoint_url,secret_ciphertext,enabled) values(?, 'https://merchant-test.example.test/webhooks/huizhipay', 'not-reached-because-test-domain-has-no-dns', true)",MERCHANT);
         String eventId=merchantWebhooks.enqueueTest(MERCHANT);
         merchantWebhooks.deliverDue();
         assertThat(jdbc.queryForObject("select status from t_merchant_webhook_delivery where event_id=?",String.class,eventId)).isEqualTo("RETRY");
@@ -81,8 +81,8 @@ class TransFiWebhookSandboxPostgresqlIntegrationTest {
         assertThat(jdbc.queryForObject("select event_id from t_merchant_webhook_delivery where event_id=?",String.class,eventId)).isEqualTo(eventId);
     }
 
-    private byte[] payload(String eventId,String status,String channelOrder,String merchantOrder,String amount){return ("{\"eventId\":\""+eventId+"\",\"entityId\":\""+channelOrder+"\",\"entityType\":\"order\",\"status\":\""+status+"\",\"order\":{\"orderId\":\""+channelOrder+"\",\"customerOrderId\":\""+merchantOrder+"\",\"depositAmount\":"+amount+",\"depositCurrency\":\"USD\"}}").getBytes(StandardCharsets.UTF_8);}
+    private byte[] payload(String eventId,String status,String channelOrder,String merchantOrder,String amount){return ("{\"eventId\":\""+eventId+"\",\"entityId\":\""+channelOrder+"\",\"entityType\":\"order\",\"status\":\""+status+"\",\"order\":{\"orderId\":\""+channelOrder+"\",\"customerOrderId\":\""+merchantOrder+"\",\"depositAmount\":"+amount+",\"depositCurrency\":\"TST\"}}").getBytes(StandardCharsets.UTF_8);}
     private void accounts(){
-        jdbc.update("insert into t_account(account_no,merchant_id,account_type,currency,balance) values('TASK3-ASSET',?,'ASSET_AVAILABLE','USD',0),('TASK3-LIABILITY',?,'LIABILITY_CUSTODY','USD',0),('TASK3-PLATFORM','__PLATFORM__','PLATFORM_INCOME','USD',0)",MERCHANT,MERCHANT);
+        jdbc.update("insert into t_account(account_no,merchant_id,account_type,currency,balance) values('TASK3-ASSET',?,'ASSET_AVAILABLE','TST',0),('TASK3-LIABILITY',?,'LIABILITY_CUSTODY','TST',0),('TASK3-PLATFORM','__PLATFORM__','PLATFORM_INCOME','TST',0)",MERCHANT,MERCHANT);
     }
 }

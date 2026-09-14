@@ -72,7 +72,7 @@ public class MerchantWebhookService {
     }
 
     public String enqueueTest(String merchantId) {
-        return enqueue(merchantId, null, "webhook.test", Map.of("message", "HuizhiPay Sandbox test notification"));
+        return enqueue(merchantId, null, "webhook.test", Map.of("message", "HuizhiPay test notification"));
     }
 
     public List<Map<String,Object>> list(String merchantId) {

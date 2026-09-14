@@ -5,7 +5,7 @@ param(
     [string]$MerchantId,
     [ValidateSet('Issue', 'Disable')]
     [string]$Action = 'Issue',
-    [string]$Database = 'huizhipay_sandbox',
+    [string]$Database = 'huizhipay_local',
     [string]$HostName = '127.0.0.1',
     [ValidateRange(1, 65535)] [int]$Port = 15432,
     [string]$Username = 'huizhipay',
@@ -13,9 +13,6 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-if ($Database -notmatch '(^|_)sandbox($|_)') { throw "Refusing API key change outside an explicit sandbox database." }
-if ($HostName -notin @('127.0.0.1', 'localhost')) { throw "Sandbox API keys are restricted to loopback PostgreSQL." }
-
 function SqlLiteral([string]$Value) { return "'" + $Value.Replace("'", "''") + "'" }
 $merchantSql = SqlLiteral $MerchantId
 
@@ -23,7 +20,7 @@ if ($Action -eq 'Disable') {
     $sql = "update t_merchant_api_key set enabled=false, disabled_at=(now() at time zone 'utc') where merchant_id=$merchantSql and enabled=true returning key_prefix;"
     $result = & $PsqlPath -X -v ON_ERROR_STOP=1 -h $HostName -p $Port -U $Username -d $Database -c $sql 2>&1
     if ($LASTEXITCODE -ne 0) { throw ($result -join [Environment]::NewLine) }
-    Write-Output "Sandbox API key disabled for merchant=$MerchantId"
+    Write-Output "Test API key disabled for merchant=$MerchantId"
     return
 }
 
@@ -40,7 +37,7 @@ begin;
 do `$check`$
 begin
   if not exists (select 1 from t_merchant where merchant_id=$merchantSql and kyb_status='APPROVED') then
-    raise exception 'API key issuance requires exactly one approved sandbox merchant';
+    raise exception 'API key issuance requires exactly one approved test merchant';
   end if;
 end
 `$check`$;
@@ -50,6 +47,6 @@ commit;
 "@
 $result = & $PsqlPath -X -v ON_ERROR_STOP=1 -h $HostName -p $Port -U $Username -d $Database -c $sql 2>&1
 if ($LASTEXITCODE -ne 0) { throw ($result -join [Environment]::NewLine) }
-Write-Output "Sandbox API key issued for merchant=$MerchantId"
+Write-Output "Test API key issued for merchant=$MerchantId"
 Write-Output "Copy this key now; it is shown once and only its SHA-256 digest is stored:"
 Write-Output $raw

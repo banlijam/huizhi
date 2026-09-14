@@ -25,9 +25,9 @@ class WebhookSecurityTest {
     }
 
     @Test void endpointPolicyAllowsOnlyConfiguredHttpsHostAndRejectsLoopbackAtSendTime() {
-        WebhookEndpointPolicy policy=new WebhookEndpointPolicy("merchant-sandbox.example.test,localhost");
-        assertThat(policy.validateConfiguration("https://merchant-sandbox.example.test/webhooks/huizhipay").getHost()).isEqualTo("merchant-sandbox.example.test");
-        assertThatThrownBy(()->policy.validateConfiguration("http://merchant-sandbox.example.test/hook")).isInstanceOf(RuntimeException.class);
+        WebhookEndpointPolicy policy=new WebhookEndpointPolicy("merchant-test.example.test,localhost");
+        assertThat(policy.validateConfiguration("https://merchant-test.example.test/webhooks/huizhipay").getHost()).isEqualTo("merchant-test.example.test");
+        assertThatThrownBy(()->policy.validateConfiguration("http://merchant-test.example.test/hook")).isInstanceOf(RuntimeException.class);
         assertThatThrownBy(()->policy.validateConfiguration("https://evil.example/hook")).isInstanceOf(RuntimeException.class);
         assertThatThrownBy(()->policy.validateForSend("https://localhost/hook")).isInstanceOf(IllegalStateException.class);
     }

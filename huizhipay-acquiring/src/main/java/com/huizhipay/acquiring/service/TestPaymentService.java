@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class SandboxPaymentService {
+public class TestPaymentService {
     public static final String CHANNEL = "TRANSFI_CHECKOUT";
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("10000.00");
     private final PaymentOrderMapper paymentOrderMapper;
@@ -79,7 +79,7 @@ public class SandboxPaymentService {
 
     public PaymentView get(String merchantId, String merchantOrderNo) {
         PaymentOrder order = find(merchantId, merchantOrderNo);
-        if (order == null) throw new BizException(404, "Sandbox payment not found");
+        if (order == null) throw new BizException(404, "Test payment not found");
         return toView(order);
     }
 
@@ -107,7 +107,7 @@ public class SandboxPaymentService {
             throw new BizException(400, "amount must be USD 0.01-10000.00 with at most 2 decimals");
         }
         if (!"USD".equalsIgnoreCase(command.currency())) {
-            throw new BizException(400, "TransFi Checkout Sandbox currently supports USD only");
+            throw new BizException(400, "TransFi Checkout test integration currently supports USD only");
         }
         if (command.productName() == null || command.productName().isBlank() || command.productName().length() > 120) {
             throw new BizException(400, "productName is required and limited to 120 characters");
@@ -129,7 +129,7 @@ public class SandboxPaymentService {
         } catch (RuntimeException ignored) {
             // Use the bounded error below.
         }
-        throw new BizException(400, "Redirect URLs must use the configured Sandbox merchant HTTPS origin");
+        throw new BizException(400, "Redirect URLs must use the configured test merchant HTTPS origin");
     }
 
     private int effectivePort(URI uri) { return uri.getPort() == -1 ? 443 : uri.getPort(); }
