@@ -363,7 +363,7 @@
         </div>
         <section class="guide" aria-label="Sandbox 网站接入步骤">
           <article class="guide-step"><b>01</b><div><h3>准备你网站的 HTTPS 返回页</h3><p>例如 <code>https://merchant.example/checkout/result</code>。HuizhiPay 会把这个地址原样保存为订单 returnUrl，买家完成 HPP 后可返回该页面。</p></div></article>
-          <article class="guide-step"><b>02</b><div><h3>在已登录的 Merchant Workspace 创建 USD 测试订单</h3><p>当前凭证签发尚未开放，因此请求只能由 HuizhiPay 同源、已登录的商户会话发起，不能把登录 Cookie 复制到你的网站服务端。</p><pre>const response = await fetch('/api/v1/dummy/orders', {
+          <article class="guide-step"><b>02</b><div><h3>在已登录的 Merchant Workspace 创建 USD 测试订单</h3><p>Test API Key 已可在 Developer 页面签发，但外部网站的 Dummy API 适配将在下一阶段接通。当前 Dummy 建单仍由 HuizhiPay 同源、已登录的商户会话发起；不要把登录 Cookie 复制到网站服务端。</p><pre>const response = await fetch('/api/v1/dummy/orders', {
   method: 'POST',
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
@@ -387,6 +387,9 @@ const { data: order } = await response.json();</pre></div></article>
             <tbody>
               <tr><td><code>POST /api/v1/dummy/orders</code></td><td>创建 USD Sandbox 订单</td><td>商户 OWNER / ADMIN，会校验 KYB</td><td>orderNo、checkoutToken、paymentUrl、returnUrl、status</td></tr>
               <tr><td><code>GET /api/v1/dummy/orders?page=1</code></td><td>查看当前商户测试订单</td><td>已登录商户</td><td>分页订单与真实状态</td></tr>
+              <tr><td><code>GET /api/v1/developer/api-keys</code></td><td>查看当前商户最近 20 条 Test Key 摘要</td><td>商户所有只读及以上角色</td><td>keyPrefix、enabled、createdAt、disabledAt</td></tr>
+              <tr><td><code>POST /api/v1/developer/api-keys</code></td><td>签发或轮换 <code>hzp_test_...</code> Key</td><td>APPROVED 商户 OWNER / ADMIN</td><td>明文 secretKey 仅返回一次</td></tr>
+              <tr><td><code>DELETE /api/v1/developer/api-keys/{keyId}</code></td><td>停用当前商户的活动 Test Key</td><td>商户 OWNER / ADMIN</td><td>停用后立即拒绝鉴权</td></tr>
               <tr><td><code>GET /api/v1/developer/query-logs</code></td><td>查看当前商户最近 100 条业务 API 查询</td><td>商户所有只读及以上角色</td><td>queryNo、productId、costAmount、status、errorMessage、createdAt</td></tr>
             </tbody>
           </table>
@@ -404,7 +407,7 @@ const { data: order } = await response.json();</pre></div></article>
           <span class="notice-icon" aria-hidden="true">!</span>
           <div>
             <strong>生产网站的 Server-to-Server 接入尚未开放</strong>
-            <p>API Key、商户 Webhook、Onramper、CREATE2 订单合约分账和 BTCPay Settled 状态同步仍未形成当前后端闭环。不要把 Sandbox 登录 Cookie 当成网站凭证；这些能力上线后再切换到生产集成。</p>
+            <p>Test API Key 与商户 Webhook 已有本地能力，但外部网站的 Dummy 建单适配以及 Production Key 尚未开放。不要把 Sandbox 登录 Cookie 当成网站凭证；Onramper、CREATE2 订单合约分账和 BTCPay Settled 状态同步仍不在当前运行链路中。</p>
           </div>
         </aside>
 

@@ -86,8 +86,8 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(html, /id=["']developer-language-toggle["']/);
   assert.equal((html.match(/<button[^>]*data-workspace-language-toggle/g) || []).length, 2);
   assert.match(html, /#merchant-workspace \.side>huizhi-brand/);
-  assert.match(html, /src=["']\/i18n\/zh\.js["']/);
-  assert.match(html, /src=["']\/i18n\/en\.js["']/);
+  assert.match(html, /src=["']\/?i18n\/zh\.js\?v=[a-f0-9]{8}["']/);
+  assert.match(html, /src=["']\/?i18n\/en\.js\?v=[a-f0-9]{8}["']/);
   assert.match(html, /Merchant Dashboard/);
   assert.match(english, /Business verification/);
   assert.match(english, /Save and continue/);
@@ -121,8 +121,9 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(developerRoute, /Developer Tools/);
   assert.match(developerRoute, /Dummy Order \+ HPP/);
   assert.match(developerRoute, /Capability Map/);
-  assert.match(developerRoute, /Issuance service is not connected/i);
-  assert.doesNotMatch(developerRoute, /sk_test_[a-z0-9]/i);
+  assert.match(developerRoute, /Approved merchant owners and admins can issue server-side keys/i);
+  assert.match(developerRoute, /Generate Test key/);
+  assert.doesNotMatch(developerRoute, /hzp_test_[A-Za-z0-9_-]{40,}/);
   assert.match(developerRoute, /src=["']\/js\/api\.js["']/);
   assert.match(developerRoute, /await isLoggedIn\(\)/);
   assert.match(developerRoute, /location\.replace\(['"]\/login\.html['"]\)/);
