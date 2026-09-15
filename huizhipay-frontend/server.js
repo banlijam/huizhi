@@ -112,7 +112,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (normalizedPath === '/') pathname = '/home.html';
-  if (normalizedPath === '/demo') pathname = IS_DIST ? '/demo/index.html' : '/index.html';
+  // The visual prototype is a local-development route and is intentionally
+  // absent from the deployable dist package.
+  if (normalizedPath === '/demo' && !IS_DIST) pathname = '/index.html';
   const merchantWorkspaceRoutes = new Set([
     '/merchant/orders',
     '/merchant/onboarding',

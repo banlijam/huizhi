@@ -173,7 +173,6 @@ function rewriteI18nAssets() {
 function writeRouteEntrypoints() {
   const routes = {
     merchant: 'index.html',
-    demo: 'index.html',
     developer: 'index.html',
     docs: 'docs.html',
     'checkout/widget': 'checkout-placeholder.html',

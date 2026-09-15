@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node --experimental-sqlite src/server.js",
-    "test": "node --experimental-sqlite --test test/*.test.js"
+    "test": "node --experimental-sqlite --test --test-isolation=none test/*.test.js",
+    "package": "node scripts/package.cjs"
   },
   "engines": { "node": ">=22.5" }
 }

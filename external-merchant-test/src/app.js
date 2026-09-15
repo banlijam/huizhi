@@ -12,7 +12,7 @@ function createApp(options = {}) {
   const db = new DatabaseSync(options.databasePath || ':memory:');
   const apiBase = options.apiBase || process.env.HUIZHIPAY_API_BASE || 'http://127.0.0.1:14319';
   const apiKey = options.apiKey || process.env.HUIZHIPAY_TEST_API_KEY;
-  const publicOrigin = options.publicOrigin || process.env.PUBLIC_HTTPS_ORIGIN;
+  const publicOrigin = options.publicOrigin || process.env.PUBLIC_ORIGIN || process.env.PUBLIC_HTTPS_ORIGIN;
   const listenHost = options.listenHost || '127.0.0.1';
   const calls = new Map();
   db.exec(`create table if not exists merchant_order (
@@ -101,7 +101,7 @@ function createApp(options = {}) {
     return result.data;
   }
   async function createOrder(req, res) {
-    if (!publicOrigin || !publicOrigin.startsWith('https://')) throw Object.assign(new Error('PUBLIC_HTTPS_ORIGIN is required'), { status: 503 });
+    if (!validPublicOrigin(publicOrigin)) throw Object.assign(new Error('PUBLIC_ORIGIN must be HTTPS or an exact local loopback HTTP origin'), { status: 503 });
     const input = await body(req), product = PRODUCTS[input.productId];
     if (!product) throw Object.assign(new Error('Unknown product'), { status: 400 });
     const merchantOrderNo = 'SHOP-' + randomUUID().replaceAll('-', '').slice(0, 20).toUpperCase();
@@ -141,6 +141,15 @@ function createApp(options = {}) {
   function publicOrder(row) { return { accessToken: row.access_token, merchantOrderNo: row.merchant_order_no,
     product: PRODUCTS[row.product_id], platformOrderNo: row.platform_order_no, paymentUrl: row.payment_url,
     status: row.status, channelStatus: row.channel_status, updatedAt: row.updated_at }; }
+
+  function validPublicOrigin(value) {
+    try {
+      const origin = new URL(value);
+      if (origin.href !== origin.origin + '/') return false;
+      if (origin.protocol === 'https:') return true;
+      return origin.protocol === 'http:' && (origin.hostname === '127.0.0.1' || origin.hostname === 'localhost');
+    } catch { return false; }
+  }
 
   const server = http.createServer(async (req, res) => {
     try {

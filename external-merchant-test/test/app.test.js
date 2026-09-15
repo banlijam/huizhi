@@ -55,6 +55,30 @@ test('platform timeout keeps a durable pending-confirmation order without a fake
   } finally { await close(app.server); app.db.close(); rmSync(dir,{recursive:true,force:true}); }
 });
 
+test('local loopback origin is allowed but non-HTTPS remote origin is rejected', async () => {
+  const platform = http.createServer(async (req,res) => {
+    let raw=''; for await(const c of req) raw+=c;
+    const order=JSON.parse(raw);
+    res.writeHead(200,{'content-type':'application/json'});
+    res.end(JSON.stringify({code:200,data:{platformOrderNo:'DUMMY-LOCAL',merchantOrderNo:order.merchantOrderNo,
+      amount:'12.00',currency:'USD',status:'PENDING',channelStatus:'INITIATED',paymentUrl:'http://127.0.0.1:3000/pay/?checkoutToken=ct_local'}}));
+  });
+  const platformPort=await listen(platform),dir=mkdtempSync(join(tmpdir(),'hzp-local-origin-'));
+  const local=createApp({databasePath:join(dir,'local.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,
+    apiKey:'hzp_test_'+'d'.repeat(48),publicOrigin:'http://127.0.0.1:14330'});
+  const remote=createApp({databasePath:join(dir,'remote.sqlite'),apiBase:`http://127.0.0.1:${platformPort}`,
+    apiKey:'hzp_test_'+'e'.repeat(48),publicOrigin:'http://merchant.example.test'});
+  const localPort=await listen(local.server),remotePort=await listen(remote.server);
+  try {
+    const body={method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({productId:'test-mug'})};
+    assert.equal((await fetch(`http://127.0.0.1:${localPort}/api/orders`,body)).status,201);
+    assert.equal((await fetch(`http://127.0.0.1:${remotePort}/api/orders`,body)).status,503);
+  } finally {
+    await close(local.server); await close(remote.server); await close(platform);
+    local.db.close(); remote.db.close(); rmSync(dir,{recursive:true,force:true});
+  }
+});
+
 test('webhook verifies signature, persists idempotently, and only matching payment updates the order', async () => {
   const platform = http.createServer(async (req,res) => { let raw=''; for await(const c of req)raw+=c;
     const merchantOrderNo=req.method==='POST'?JSON.parse(raw).merchantOrderNo:'SHOP-X';

@@ -53,6 +53,7 @@ test('build merges the public home and login entry while separating protected wo
   assert.match(homeHtml, /radial-gradient/);
   assert.doesNotMatch(homeHtml, /data-screen=/);
   await assert.rejects(readFile(path.join(ROOT, 'dist', 'home.html'), 'utf8'), /ENOENT/);
+  await assert.rejects(readFile(path.join(ROOT, 'dist', 'demo', 'index.html'), 'utf8'), /ENOENT/);
 
   const html = await readFile(path.join(ROOT, 'dist', 'merchant', 'index.html'), 'utf8');
   const english = await readFile(path.join(ROOT, 'dist', 'i18n', 'en.js'), 'utf8');
@@ -114,10 +115,8 @@ test('build merges the public home and login entry while separating protected wo
   }
 
   const merchantRoute = html;
-  const demoRoute = await readFile(path.join(ROOT, 'dist', 'demo', 'index.html'), 'utf8');
   const developerRoute = await readFile(path.join(ROOT, 'dist', 'developer', 'index.html'), 'utf8');
   assert.match(merchantRoute, /id=["']dashboard["']/);
-  assert.match(demoRoute, /class=["']demo-nav["']/);
   assert.match(developerRoute, /id=["']developer["']/);
   assert.match(developerRoute, /Developer Tools/);
   assert.match(developerRoute, /Dummy Order \+ HPP/);
@@ -230,12 +229,10 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(await merchantSlash.text(), /id=["']dashboard["']/);
 
   const demo = await fetch(`${baseUrl}/demo?screen=developer`);
-  assert.equal(demo.status, 200);
-  assert.match(await demo.text(), /Prototype preview/);
+  assert.equal(demo.status, 404);
 
   const demoSlash = await fetch(`${baseUrl}/demo/?screen=developer`);
-  assert.equal(demoSlash.status, 200);
-  assert.match(await demoSlash.text(), /normalizedPath/);
+  assert.equal(demoSlash.status, 404);
 
   const developer = await fetch(`${baseUrl}/developer`);
   assert.equal(developer.status, 200);

@@ -1,6 +1,10 @@
 const { createApp } = require('./app');
-const { mkdirSync } = require('node:fs');
+const { existsSync, mkdirSync } = require('node:fs');
 const { join } = require('node:path');
+
+const envFile = join(__dirname, '..', '.env');
+if (existsSync(envFile)) process.loadEnvFile(envFile);
+
 mkdirSync(join(__dirname, '..', 'data'), { recursive: true });
 const app = createApp({ databasePath: process.env.ORDER_DB_PATH || join(__dirname, '..', 'data', 'orders.sqlite') });
 const port = Number(process.env.PORT || 14330);
