@@ -19,4 +19,8 @@ public class DummyPaymentPolicy {
             throw new BizException(403, "Browser-controlled Dummy payment results are disabled");
         }
     }
+
+    public boolean isEnabled() {
+        return checkoutResultEnabled;
+    }
 }

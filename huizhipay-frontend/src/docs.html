@@ -363,14 +363,19 @@
         </div>
         <section class="guide" aria-label="Sandbox 网站接入步骤">
           <article class="guide-step"><b>01</b><div><h3>准备你网站的 HTTPS 返回页</h3><p>例如 <code>https://merchant.example/checkout/result</code>。HuizhiPay 会把这个地址原样保存为订单 returnUrl，买家完成 HPP 后可返回该页面。</p></div></article>
-          <article class="guide-step"><b>02</b><div><h3>在已登录的 Merchant Workspace 创建 USD 测试订单</h3><p>Test API Key 已可在 Developer 页面签发，但外部网站的 Dummy API 适配将在下一阶段接通。当前 Dummy 建单仍由 HuizhiPay 同源、已登录的商户会话发起；不要把登录 Cookie 复制到网站服务端。</p><pre>const response = await fetch('/api/v1/dummy/orders', {
+          <article class="guide-step"><b>02</b><div><h3>从外部网站服务端创建 USD 测试订单</h3><p>先签发并激活 <code>hzp_test_...</code>，再登记并验证该商户的返回 Origin。外部网站服务端调用 Test Payment API；不要把 Key 或登录 Cookie 发送到浏览器。</p><pre>const response = await fetch('http://127.0.0.1:8080/api/v1/test/payments', {
   method: 'POST',
-  credentials: 'include',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'X-HuizhiPay-Api-Key': process.env.HUIZHIPAY_TEST_API_KEY
+  },
   body: JSON.stringify({
+    merchantOrderNo: 'SHOP-20260916-001',
     amount: 10.00,
     currency: 'USD',
-    returnUrl: 'https://merchant.example/checkout/result'
+    productName: 'Test product',
+    successRedirectUrl: 'https://merchant.example/checkout/result?state=success',
+    failureRedirectUrl: 'https://merchant.example/checkout/result?state=failed'
   })
 });
 const { data: order } = await response.json();</pre></div></article>
@@ -407,7 +412,7 @@ const { data: order } = await response.json();</pre></div></article>
           <span class="notice-icon" aria-hidden="true">!</span>
           <div>
             <strong>生产网站的 Server-to-Server 接入尚未开放</strong>
-            <p>Test API Key 与商户 Webhook 已有本地能力，但外部网站的 Dummy 建单适配以及 Production Key 尚未开放。不要把 Sandbox 登录 Cookie 当成网站凭证；Onramper、CREATE2 订单合约分账和 BTCPay Settled 状态同步仍不在当前运行链路中。</p>
+            <p>Test API Key、已验证的商户返回 Origin、外部网站 Dummy 建单与商户 Webhook 已有本地能力。不要把 Sandbox 登录 Cookie 或 API Key 暴露给浏览器；真实 TransFi、Onramper、CREATE2 与 BTCPay 链路仍不在当前运行链路中。</p>
           </div>
         </aside>
 

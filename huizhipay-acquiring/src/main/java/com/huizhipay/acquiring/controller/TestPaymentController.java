@@ -1,16 +1,15 @@
 package com.huizhipay.acquiring.controller;
 
-import com.huizhipay.acquiring.service.MerchantApiKeyAuthenticator;
 import com.huizhipay.acquiring.service.TestPaymentService;
 import com.huizhipay.common.model.R;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import com.huizhipay.common.security.MerchantApiKeyAuthenticationPort.MerchantApiKeyPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,25 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/test/payments")
 @RequiredArgsConstructor
 public class TestPaymentController {
-    private final MerchantApiKeyAuthenticator apiKeyAuthenticator;
     private final TestPaymentService paymentService;
-
-    @Value("${huizhipay.test.merchant-return-origin:https://merchant-test.example.test}")
-    private String allowedReturnOrigin;
 
     @PostMapping
     public R<TestPaymentService.PaymentView> create(
-            @RequestHeader(value = "X-HuizhiPay-Test-Key", required = false) String apiKey,
+            @AuthenticationPrincipal MerchantApiKeyPrincipal principal,
             @RequestBody TestPaymentService.CreateCommand command) {
-        String merchantId = apiKeyAuthenticator.requireMerchant(apiKey);
-        return R.ok(paymentService.create(merchantId, command, allowedReturnOrigin));
+        return R.ok(paymentService.create(principal.merchantId(), command));
     }
 
     @GetMapping("/{merchantOrderNo}")
     public R<TestPaymentService.PaymentView> get(
-            @RequestHeader(value = "X-HuizhiPay-Test-Key", required = false) String apiKey,
+            @AuthenticationPrincipal MerchantApiKeyPrincipal principal,
             @PathVariable String merchantOrderNo) {
-        String merchantId = apiKeyAuthenticator.requireMerchant(apiKey);
-        return R.ok(paymentService.get(merchantId, merchantOrderNo));
+        return R.ok(paymentService.get(principal.merchantId(), merchantOrderNo));
     }
 }

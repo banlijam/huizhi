@@ -8,6 +8,7 @@ import com.huizhipay.common.exceptions.BizException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,9 +27,13 @@ public class TestPaymentService {
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("10000.00");
     private final PaymentOrderMapper paymentOrderMapper;
     private final TransFiCheckoutGateway checkoutGateway;
+    private final MerchantRedirectOriginService redirectOrigins;
+    private final DummyPaymentPolicy dummyPaymentPolicy;
+    @Value("${app.frontend.url:http://127.0.0.1:3000}")
+    private String frontendUrl;
 
-    public PaymentView create(String merchantId, CreateCommand command, String allowedReturnOrigin) {
-        validate(command, allowedReturnOrigin);
+    public PaymentView create(String merchantId, CreateCommand command) {
+        validate(merchantId, command);
         String merchantOrderNo = command.merchantOrderNo().trim();
         BigDecimal amount = command.amount().setScale(2, RoundingMode.UNNECESSARY);
         String fingerprint = fingerprint(command, amount);
@@ -44,11 +49,11 @@ public class TestPaymentService {
                 .setMerchantOrderNo(merchantOrderNo)
                 .setAmount(amount)
                 .setCurrency("USD")
-                .setChannel(CHANNEL)
+                .setChannel(dummyPaymentPolicy.isEnabled() ? "DUMMY" : CHANNEL)
                 .setFingerprint(fingerprint)
                 .setStatus(PaymentOrder.PaymentStatus.PENDING)
-                .setChannelStatus("CREATING")
-                .setRemark("TransFi Checkout invoice creation started")
+                .setChannelStatus(dummyPaymentPolicy.isEnabled() ? "INITIATED" : "CREATING")
+                .setRemark(dummyPaymentPolicy.isEnabled() ? "Dummy checkout created through Test API" : "TransFi Checkout invoice creation started")
                 .setCreatedAt(now).setUpdatedAt(now);
         try {
             paymentOrderMapper.insert(order);
@@ -56,6 +61,13 @@ public class TestPaymentService {
             PaymentOrder winner = find(merchantId, merchantOrderNo);
             if (winner == null) throw race;
             return sameRequestOrConflict(winner, fingerprint);
+        }
+
+        if (dummyPaymentPolicy.isEnabled()) {
+            String hppBase = frontendUrl == null ? "http://127.0.0.1:3000" : frontendUrl.replaceAll("/+$", "");
+            order.setPaymentUrl(hppBase + "/pay/?checkoutToken=" + order.getCheckoutToken());
+            paymentOrderMapper.updateById(order);
+            return toView(order);
         }
 
         try {
@@ -93,11 +105,10 @@ public class TestPaymentService {
     private PaymentOrder find(String merchantId, String merchantOrderNo) {
         return paymentOrderMapper.selectOne(Wrappers.<PaymentOrder>lambdaQuery()
                 .eq(PaymentOrder::getMerchantId, merchantId)
-                .eq(PaymentOrder::getMerchantOrderNo, merchantOrderNo)
-                .eq(PaymentOrder::getChannel, CHANNEL));
+                .eq(PaymentOrder::getMerchantOrderNo, merchantOrderNo));
     }
 
-    private void validate(CreateCommand command, String allowedReturnOrigin) {
+    private void validate(String merchantId, CreateCommand command) {
         if (command == null || command.merchantOrderNo() == null
                 || !command.merchantOrderNo().trim().matches("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")) {
             throw new BizException(400, "merchantOrderNo must be 1-64 safe characters");
@@ -112,27 +123,9 @@ public class TestPaymentService {
         if (command.productName() == null || command.productName().isBlank() || command.productName().length() > 120) {
             throw new BizException(400, "productName is required and limited to 120 characters");
         }
-        requireAllowedUrl(command.successRedirectUrl(), allowedReturnOrigin);
-        requireAllowedUrl(command.failureRedirectUrl(), allowedReturnOrigin);
+        redirectOrigins.requireAllowed(merchantId, "TEST", command.successRedirectUrl());
+        redirectOrigins.requireAllowed(merchantId, "TEST", command.failureRedirectUrl());
     }
-
-    private void requireAllowedUrl(String value, String allowedOrigin) {
-        try {
-            URI uri = URI.create(value);
-            URI allowed = URI.create(allowedOrigin);
-            boolean sameOrigin = "https".equalsIgnoreCase(uri.getScheme()) && uri.getUserInfo() == null
-                    && uri.getFragment() == null && uri.getHost() != null
-                    && uri.getScheme().equalsIgnoreCase(allowed.getScheme())
-                    && uri.getHost().equalsIgnoreCase(allowed.getHost())
-                    && effectivePort(uri) == effectivePort(allowed);
-            if (sameOrigin) return;
-        } catch (RuntimeException ignored) {
-            // Use the bounded error below.
-        }
-        throw new BizException(400, "Redirect URLs must use the configured test merchant HTTPS origin");
-    }
-
-    private int effectivePort(URI uri) { return uri.getPort() == -1 ? 443 : uri.getPort(); }
 
     private String fingerprint(CreateCommand command, BigDecimal amount) {
         String canonical = amount.toPlainString() + "|USD|" + command.productName().trim() + "|"

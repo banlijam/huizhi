@@ -22,11 +22,6 @@ import java.util.stream.Collectors;
 public class MerchantApiKeyAuthenticator implements MerchantApiKeyAuthenticationPort {
     private final MerchantApiKeyMapper mapper;
 
-    /** Compatibility entry point used by the existing Sandbox controller until it moves to the security principal. */
-    public String requireMerchant(String rawKey) {
-        return authenticate(rawKey, "TEST", "payments:write").merchantId();
-    }
-
     @Override
     public MerchantApiKeyPrincipal authenticate(String rawKey, String environment, String requiredScope) {
         if (!"TEST".equals(environment)) throw new BizException(401, "Only TEST API keys are available");

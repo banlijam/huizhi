@@ -94,7 +94,7 @@ function createApp(options = {}) {
   async function platform(path, init = {}) {
     if (!apiKey) throw Object.assign(new Error('Merchant Sandbox API key is not configured'), { status: 503 });
     const response = await fetch(apiBase + path, { ...init, signal: AbortSignal.timeout(8000), headers: {
-      'content-type': 'application/json', 'x-huizhipay-test-key': apiKey, ...(init.headers || {})
+      'content-type': 'application/json', 'x-huizhipay-api-key': apiKey, ...(init.headers || {})
     }});
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result.code !== 200) throw Object.assign(new Error(result.message || 'Payment platform request failed'), { status: response.status });
@@ -158,6 +158,12 @@ function createApp(options = {}) {
       if (req.method === 'GET' && url.pathname === '/') return page(res);
       if (req.method === 'GET' && url.pathname === '/app.js') return asset(res, 'app.js', 'text/javascript; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/style.css') return asset(res, 'style.css', 'text/css; charset=utf-8');
+      if (req.method === 'GET' && url.pathname === '/.well-known/huizhipay-verification.txt') {
+        const token = options.originVerificationToken || process.env.HUIZHIPAY_ORIGIN_VERIFICATION_TOKEN || '';
+        if (!token) return json(res, 404, { error: 'Origin verification token is not configured' });
+        res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+        return res.end(token);
+      }
       if (req.method === 'POST' && url.pathname === '/api/orders') return await createOrder(req, res);
       if (req.method === 'POST' && url.pathname === '/webhooks/huizhipay') return await receiveWebhook(req, res);
       const match = url.pathname.match(/^\/api\/orders\/([A-Za-z0-9_-]{32})$/);
