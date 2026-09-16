@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -51,6 +52,11 @@ public class GlobalExceptionHandler {
                 })
                 .orElse(I18nUtils.get("validate.failed"));
         return response(400, message);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<R<?>> handleNotFound(NoResourceFoundException e) {
+        return response(404, "Resource not found");
     }
 
     @ExceptionHandler(Exception.class)

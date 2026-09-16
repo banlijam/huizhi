@@ -11,7 +11,9 @@ test('developer API key page uses the authenticated Test key service', async () 
   assert.match(html, /Generate Test key/);
   assert.match(html, /Disable active key/);
   assert.match(html, /issued\.secretKey/);
-  assert.match(html, /X-HuizhiPay-CSRF/);
+  assert.match(html, /csrfFetch/);
+  assert.match(html, /\/activate/);
+  assert.doesNotMatch(html, /X-HuizhiPay-CSRF/);
   assert.match(html, /mountApiKeys\(showToast\)/);
   assert.doesNotMatch(html, /密钥签发服务尚未接入/);
 });

@@ -30,6 +30,23 @@ function getApiUrl(endpoint) {
   return `${API_BASE}${endpoint}`;
 }
 
+function csrfCookie() {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function csrfFetch(url, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  if (typeof document !== 'undefined' && !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method) && !csrfCookie()) {
+    await fetch('/api/v1/auth/csrf', { credentials: 'include' });
+  }
+  const headers = { ...(options.headers || {}) };
+  const token = csrfCookie();
+  if (token && !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) headers['X-XSRF-TOKEN'] = token;
+  return fetch(url, { credentials: 'include', ...options, headers });
+}
+
 async function login(email, password, totpCode) {
   const data = await apiPost('/auth/login', { email, password, totpCode });
   if (data) {
@@ -80,7 +97,7 @@ async function isLoggedIn() {
 
 async function logout() {
   try {
-    await fetch('/api/v1/auth/logout', {
+    await csrfFetch('/api/v1/auth/logout', {
       method: 'POST',
       credentials: 'include'
     });
@@ -127,7 +144,7 @@ async function fetchDeveloperQueryLogs() {
 
 async function apiPost(endpoint, data) {
   try {
-    const response = await fetch(getApiUrl(endpoint), {
+    const response = await csrfFetch(getApiUrl(endpoint), {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -151,7 +168,7 @@ async function apiPost(endpoint, data) {
 
 async function apiPut(endpoint, data) {
   try {
-    const response = await fetch(getApiUrl(endpoint), {
+    const response = await csrfFetch(getApiUrl(endpoint), {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',

@@ -18,6 +18,16 @@ public class MerchantApiKey {
     private String keyPrefix;
     private String keyHash;
     private Boolean enabled;
+    private String environment;
+    private String status;
+    private String keyName;
+    private String scopes;
+    private String createdBy;
+    private String disabledBy;
+    private LocalDateTime activatedAt;
+    private LocalDateTime lastUsedAt;
+    private LocalDateTime expiresAt;
+    private String revocationReason;
     private LocalDateTime createdAt;
     private LocalDateTime disabledAt;
 }

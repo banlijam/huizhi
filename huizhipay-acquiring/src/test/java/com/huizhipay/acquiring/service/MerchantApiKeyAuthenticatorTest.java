@@ -22,13 +22,13 @@ class MerchantApiKeyAuthenticatorTest {
         String raw = "hzp_test_" + "a".repeat(48);
         String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                 .digest(raw.getBytes(StandardCharsets.UTF_8)));
-        when(mapper.selectOne(any())).thenReturn(new MerchantApiKey().setMerchantId("M-A").setKeyHash(hash).setEnabled(true));
-        assertThat(new MerchantApiKeyAuthenticator(mapper).requireMerchant(raw)).isEqualTo("M-A");
+        when(mapper.selectOne(any())).thenReturn(new MerchantApiKey().setId(1L).setMerchantId("M-A").setKeyHash(hash).setEnabled(true).setStatus("ACTIVE").setScopes("payments:read payments:write"));
+        assertThat(new MerchantApiKeyAuthenticator(mapper).authenticate(raw,"TEST","payments:write").merchantId()).isEqualTo("M-A");
     }
 
     @Test void malformedKeyFailsBeforeDatabaseLookup() {
         MerchantApiKeyMapper mapper = mock(MerchantApiKeyMapper.class);
-        assertThatThrownBy(() -> new MerchantApiKeyAuthenticator(mapper).requireMerchant("short"))
+        assertThatThrownBy(() -> new MerchantApiKeyAuthenticator(mapper).authenticate("short","TEST","payments:write"))
                 .isInstanceOf(BizException.class).extracting("code").isEqualTo(401);
         verifyNoInteractions(mapper);
     }

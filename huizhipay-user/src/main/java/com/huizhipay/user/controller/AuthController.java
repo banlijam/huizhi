@@ -9,8 +9,10 @@ import com.huizhipay.user.security.UserPrincipal;
 import com.huizhipay.user.service.AuthService;
 import com.huizhipay.user.service.TotpService;
 import com.huizhipay.user.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.web.csrf.CsrfToken;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,17 +50,15 @@ public class AuthController {
         AuthResponse authResponse = authService.login(request);
         if (authResponse.getAccessToken() != null) {
             // 将JWT写入Cookie
-            Cookie cookie = new Cookie("access_token", authResponse.getAccessToken());
-            cookie.setHttpOnly(true);
-            cookie.setSecure(cookieSecure);
-            cookie.setPath("/");
-            cookie.setMaxAge(86400); // 1天
-            response.addCookie(cookie);
+            response.addHeader(HttpHeaders.SET_COOKIE, authCookie(authResponse.getAccessToken(), 86400).toString());
             // 不返回token给前端
             authResponse.setAccessToken(null);
         }
         return R.ok(authResponse);
     }
+
+    @GetMapping("/csrf")
+    public R<java.util.Map<String, String>> csrf(CsrfToken token) { return R.ok(java.util.Map.of("token", token.getToken())); }
 
     @PostMapping("/totp/setup")
     @PreAuthorize("isAuthenticated()") // 需要登录后绑定
@@ -109,12 +109,12 @@ public class AuthController {
     @PostMapping("/logout")
     public R<Void> logout(HttpServletResponse response) {
         // 清除 access_token Cookie
-        Cookie cookie = new Cookie("access_token", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(cookieSecure);
-        cookie.setPath("/");
-        cookie.setMaxAge(0); // 设置为0立即清除
-        response.addCookie(cookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, authCookie("", 0).toString());
         return R.ok(I18nUtils.get("auth.logout.success"));
+    }
+
+    private ResponseCookie authCookie(String value, long maxAge) {
+        return ResponseCookie.from("access_token", value).httpOnly(true).secure(cookieSecure).path("/")
+                .sameSite(cookieSecure ? "Strict" : "Lax").maxAge(maxAge).build();
     }
 }

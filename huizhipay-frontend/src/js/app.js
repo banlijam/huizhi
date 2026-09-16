@@ -193,7 +193,7 @@ async function generateInvoice() {
   btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Generating...';
   
   try {
-    const response = await fetch('/api/v1/topup/invoice', {
+    const response = await csrfFetch('/api/v1/topup/invoice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount: Number(amount) })

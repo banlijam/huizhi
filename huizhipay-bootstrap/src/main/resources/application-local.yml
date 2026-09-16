@@ -12,8 +12,15 @@ spring:
     username: ${SPRING_MAIL_USERNAME:local}
     password: ${SPRING_MAIL_PASSWORD:local}
 
+management:
+  health:
+    mail:
+      enabled: false
+
 jwt:
   secret: ${JWT_SECRET:local_dummy_jwt_secret_key_20260826_minimum_32_chars}
+  cookie:
+    secure: false
 
 huizhipay:
   dummy:
@@ -21,7 +28,7 @@ huizhipay:
 
 app:
   frontend:
-    url: ${APP_FRONTEND_URL:http://127.0.0.1:14318}
+    url: ${APP_FRONTEND_URL:http://127.0.0.1:3000}
 
 mybatis-plus:
   configuration:

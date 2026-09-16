@@ -1,6 +1,8 @@
 package com.huizhipay.user.config;
 
 import com.huizhipay.user.security.JwtAuthenticationFilter;
+import com.huizhipay.user.security.MerchantApiKeyAuthenticationFilter;
+import com.huizhipay.user.security.CsrfCookieFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,12 +12,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -23,18 +27,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final MerchantApiKeyAuthenticationFilter merchantApiKeyAuthenticationFilter;
+    private final CsrfCookieFilter csrfCookieFilter;
 
     @Value("${huizhipay.dummy.checkout-result-enabled:false}")
     private boolean dummyCheckoutResultEnabled;
 
+    @Value("${jwt.cookie.secure:true}")
+    private boolean cookieSecure;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
+        CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfRepository.setCookieCustomizer(cookie -> cookie.sameSite(cookieSecure ? "Strict" : "Lax")
+                .secure(cookieSecure).path("/"));
         http
-                .csrf(AbstractHttpConfigurer::disable)   // 禁用CSRF（使用JWT）
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfRepository)
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/v1/test/**", "/webhook/**",
+                                "/api/v1/dummy/orders/*/result"))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(HttpMethod.POST, "/webhook/transfi").permitAll();
-                    // Server-to-server test API performs its own merchant-key authentication.
-                    auth.requestMatchers("/api/v1/test/payments/**").permitAll();
+                    auth.requestMatchers("/api/v1/test/payments/**").hasRole("MERCHANT_API");
                     // 买家只可凭随机 checkoutToken 查询单笔订单；后台建单和列表必须登录。
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*").permitAll();
                     if (dummyCheckoutResultEnabled) {
@@ -48,7 +63,9 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(merchantApiKeyAuthenticationFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(csrfCookieFilter, CsrfFilter.class);
 
         return http.build();
     }

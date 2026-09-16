@@ -8,8 +8,6 @@ spring:
     driver-class-name: org.postgresql.Driver
   application:
     name: huizhipay-service-hub
-  profiles:
-    active: dev
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -36,14 +34,12 @@ spring:
 jwt:
   expiration: 86400000
   cookie:
-    secure: false  # 本地开发环境设为false，生产环境设为true
+    secure: ${JWT_COOKIE_SECURE:true}
 # 自定义风控保理及 Stellar 参数
 huizhipay:
   dummy:
     # 仅本地沙箱允许浏览器模拟渠道回调；默认关闭，生产结果必须由受信任的支付渠道产生。
     checkout-result-enabled: ${HUIZHIPAY_DUMMY_CHECKOUT_RESULT_ENABLED:false}
-  test:
-    merchant-return-origin: ${TEST_MERCHANT_RETURN_ORIGIN:https://merchant-test.example.test}
   transfi:
     checkout:
       base-url: https://checkout-server.transfi.com
