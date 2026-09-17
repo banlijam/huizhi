@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,6 +46,10 @@ class TestPaymentServiceTest {
         var result = service.create("M-A", command("SHOP-1", "12.00"));
         assertThat(result.paymentUrl()).isEqualTo("https://checkout.transfi.test/pay/1");
         assertThat(result.channelStatus()).isEqualTo("INITIATED");
+        ArgumentCaptor<PaymentOrder> inserted = ArgumentCaptor.forClass(PaymentOrder.class);
+        verify(mapper).insert(inserted.capture());
+        assertThat(inserted.getValue().getExpireAt())
+                .isBetween(LocalDateTime.now().plusMinutes(29), LocalDateTime.now().plusMinutes(31));
     }
 
     @Test void sameMerchantOrderIsIdempotentButChangedAmountConflicts() {

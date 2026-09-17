@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +60,8 @@ class DummyPaymentControllerTest {
         ArgumentCaptor<PaymentOrder> orderCaptor = ArgumentCaptor.forClass(PaymentOrder.class);
         verify(paymentOrderMapper).insert(orderCaptor.capture());
         assertThat(orderCaptor.getValue().getMerchantId()).isEqualTo("M-A");
+        assertThat(orderCaptor.getValue().getExpireAt())
+                .isBetween(LocalDateTime.now().plusMinutes(29), LocalDateTime.now().plusMinutes(31));
         var ordered = inOrder(merchantAccessGuard, merchantKybGuard, paymentOrderMapper);
         ordered.verify(merchantAccessGuard).requireAnyRole("OWNER", "ADMIN");
         ordered.verify(merchantKybGuard).requireApproved("M-A");

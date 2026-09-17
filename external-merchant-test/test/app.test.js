@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
-const { mkdtempSync, rmSync } = require('node:fs');
+const { mkdtempSync, readFileSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 const { createHmac } = require('node:crypto');
@@ -9,6 +9,11 @@ const { createApp } = require('../src/app');
 
 function listen(server) { return new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port))); }
 function close(server) { return new Promise(resolve => server.close(resolve)); }
+
+test('buyer is sent directly to the hosted checkout after order creation', () => {
+  const script = readFileSync(join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(script, /if\(o\.paymentUrl\)\{location\.assign\(o\.paymentUrl\);return;\}/);
+});
 
 test('fixed catalog price is persisted and buyer can only query by random token', async () => {
   const seen = [];

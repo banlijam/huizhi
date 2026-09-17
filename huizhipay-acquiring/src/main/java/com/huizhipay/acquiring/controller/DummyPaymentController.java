@@ -73,6 +73,7 @@ public class DummyPaymentController {
                 .setChannel(DUMMY_CHANNEL)
                 .setStatus(PaymentOrder.PaymentStatus.PENDING)
                 .setRemark("Dummy order created")
+                .setExpireAt(now.plusMinutes(30))
                 .setCreatedAt(now)
                 .setUpdatedAt(now);
         paymentOrderMapper.insert(order);

@@ -337,6 +337,7 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.doesNotMatch(paymentHtml, /get\(['"]orderNo['"]\)/);
   assert.match(paymentHtml, /id=["']merchant-name["']/);
   assert.match(paymentHtml, /order\.returnUrl/);
+  assert.match(paymentHtml, /\['localhost','127\.0\.0\.1','::1','\[::1\]'\]\.includes\(url\.hostname\)/);
   assert.match(paymentHtml, /location\.href=returnUrl/);
   assert.match(paymentHtml, /refreshProductionStatus/);
   assert.match(paymentHtml, /classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);

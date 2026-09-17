@@ -54,6 +54,7 @@ public class TestPaymentService {
                 .setStatus(PaymentOrder.PaymentStatus.PENDING)
                 .setChannelStatus(dummyPaymentPolicy.isEnabled() ? "INITIATED" : "CREATING")
                 .setRemark(dummyPaymentPolicy.isEnabled() ? "Dummy checkout created through Test API" : "TransFi Checkout invoice creation started")
+                .setExpireAt(now.plusMinutes(30))
                 .setCreatedAt(now).setUpdatedAt(now);
         try {
             paymentOrderMapper.insert(order);
