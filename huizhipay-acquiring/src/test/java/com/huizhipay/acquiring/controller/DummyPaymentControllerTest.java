@@ -147,6 +147,19 @@ class DummyPaymentControllerTest {
         verify(dummyPaymentCompletionService).complete("ct_local", "SUCCESS");
     }
 
+    @Test
+    void unavailablePaymentMethodReturnsPlaceholderWithoutUpdatingTheOrder() {
+        PaymentOrder order = new PaymentOrder()
+                .setCheckoutToken("ct_local")
+                .setChannel("DUMMY");
+        when(paymentOrderMapper.selectOne(any())).thenReturn(order);
+
+        var response = controller.selectPaymentMethod("ct_local", "WECHAT");
+
+        assertThat(response.getData()).isEqualTo("未接入");
+        verifyNoInteractions(dummyPaymentCompletionService);
+    }
+
     private void assertMerchantScope(Wrapper<PaymentOrder> query) {
         assertThat(query.getSqlSegment()).contains("merchant_id", "channel");
         AbstractWrapper<?, ?, ?> abstractQuery = (AbstractWrapper<?, ?, ?>) query;

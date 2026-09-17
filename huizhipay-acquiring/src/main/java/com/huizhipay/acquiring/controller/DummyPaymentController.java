@@ -91,6 +91,13 @@ public class DummyPaymentController {
         return R.ok(toView(dummyPaymentCompletionService.complete(checkoutToken, request.result())));
     }
 
+    @PostMapping("/{checkoutToken}/payment-methods/{paymentMethod}")
+    public R<String> selectPaymentMethod(@PathVariable String checkoutToken,
+                                         @PathVariable String paymentMethod) {
+        requireOrder(checkoutToken);
+        return R.ok("未接入");//TODO: Implement payment method selection logic
+    }
+
     @GetMapping
     public R<?> list(@RequestParam(name = "page", required = false) Integer page) {
         String merchantId = requireMerchantId();

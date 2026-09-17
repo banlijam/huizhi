@@ -124,9 +124,10 @@ test('public routes stay public while every merchant and developer workspace rou
   }
 });
 
-test('production checkout is display-only and server security fails closed for result submission', async () => {
+test('production checkout is display-only and sandbox payment actions are explicitly scoped', async () => {
   const paymentHtml = await readFile(path.join(ROOT, 'dist', 'pay', 'index.html'), 'utf8');
-  assert.match(paymentHtml, /classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
+  assert.match(paymentHtml, /payment-section['"]\)\.classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
+  assert.match(paymentHtml, /payment-methods\/\$\{encodeURIComponent\(method\)\}/);
   assert.match(paymentHtml, /if\(!IS_DUMMY\)/);
   assert.match(paymentHtml, /setInterval\(refreshProductionStatus,STATUS_POLL_MS\)/);
   assert.match(paymentHtml, /get\(['"]checkoutToken['"]\)/);
@@ -138,6 +139,7 @@ test('production checkout is display-only and server security fails closed for r
   ), 'utf8');
   assert.match(securityConfig, /checkout-result-enabled:false/);
   assert.match(securityConfig, /requestMatchers\(HttpMethod\.POST, "\/api\/v1\/dummy\/orders\/\*\/result"\)\.denyAll\(\)/);
+  assert.match(securityConfig, /"\/api\/v1\/dummy\/orders\/\*\/payment-methods\/\*"\)\.permitAll\(\)/);
   assert.match(securityConfig, /dummyCheckoutResultEnabled/);
 });
 

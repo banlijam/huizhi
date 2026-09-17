@@ -46,12 +46,15 @@ public class SecurityConfig {
                         .csrfTokenRepository(csrfRepository)
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                         .ignoringRequestMatchers("/api/v1/test/**", "/webhook/**",
-                                "/api/v1/dummy/orders/*/result"))
+                                "/api/v1/dummy/orders/*/result",
+                                "/api/v1/dummy/orders/*/payment-methods/*"))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(HttpMethod.POST, "/webhook/transfi").permitAll();
                     auth.requestMatchers("/api/v1/test/payments/**").hasRole("MERCHANT_API");
                     // 买家只可凭随机 checkoutToken 查询单笔订单；后台建单和列表必须登录。
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/dummy/orders/*").permitAll();
+                    auth.requestMatchers(HttpMethod.POST,
+                            "/api/v1/dummy/orders/*/payment-methods/*").permitAll();
                     if (dummyCheckoutResultEnabled) {
                         auth.requestMatchers(HttpMethod.POST, "/api/v1/dummy/orders/*/result").permitAll();
                     } else {

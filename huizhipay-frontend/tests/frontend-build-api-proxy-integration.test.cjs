@@ -340,12 +340,21 @@ test('built frontend serves routes and proxies API requests to the backend', asy
   assert.match(paymentHtml, /\['localhost','127\.0\.0\.1','::1','\[::1\]'\]\.includes\(url\.hostname\)/);
   assert.match(paymentHtml, /location\.href=returnUrl/);
   assert.match(paymentHtml, /refreshProductionStatus/);
-  assert.match(paymentHtml, /classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
+  assert.match(paymentHtml, /payment-section['"]\)\.classList\.toggle\(['"]hidden['"],!IS_DUMMY\)/);
+  assert.match(paymentHtml, /data-method=["']WECHAT["']/);
+  assert.match(paymentHtml, /data-method=["']ALIPAY["']/);
+  assert.match(paymentHtml, /data-method=["']CARD["']/);
+  assert.match(paymentHtml, /data-method=["']CRYPTO["']/);
+  assert.match(paymentHtml, /data-method=["']BALANCE["']/);
+  assert.match(paymentHtml, /class=["']test-tag["']>TEST/);
+  assert.match(paymentHtml, /raw=await response\.text\(\)/);
+  assert.doesNotMatch(paymentHtml, /body=await response\.json\(\)/);
+  assert.match(paymentHtml, /checkoutText\(['"]notIntegrated['"]\)\|\|['"]未接入['"]/);
   assert.match(paymentHtml, /APP_CONFIG\.ordersApi/);
 
   const paymentWithoutSlash = await fetch(`${baseUrl}/pay`);
   assert.equal(paymentWithoutSlash.status, 200);
-  assert.match(await paymentWithoutSlash.text(), /完成付款/);
+  assert.match(await paymentWithoutSlash.text(), /选择付款方式/);
 
   const favicon = await fetch(`${baseUrl}/favicon.svg`);
   assert.equal(favicon.status, 200);
